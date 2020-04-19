@@ -132,7 +132,6 @@ void input_process(){
 				buf.n++;
 				buf.value[i] = 1;
 			}
-			printf("%d ",push_sw_buff[i]);
 		}
 		
 		if(buf.n == 1 || buf.n == 2){
@@ -236,6 +235,7 @@ void recieve_msg(){
 				buf2.num = hour*100 + minuit;
 				key2 = msgget((key_t)1002, IPC_CREAT|0666);
 				msgsnd(key2, (void*)&buf2, sizeof(buf2), IPC_NOWAIT);
+				printf("key2 238 send\n");
 			}
 			else if(buf.n == 1 && buf.value[1] == 1){
 				hour = previous_hour;
@@ -246,6 +246,7 @@ void recieve_msg(){
 				buf2.num = hour*100 + minuit;
 				key2 = msgget((key_t)1002, IPC_CREAT|0666);
 				msgsnd(key2, (void*)&buf2, sizeof(buf2), IPC_NOWAIT);
+				printf("key2 249 send\n");
 			}
 			else if(buf.n == 1 && buf.value[2] == 1){
 				hour = (hour + 1) % 24;
@@ -256,7 +257,7 @@ void recieve_msg(){
 				key2 = msgget((key_t)1002, IPC_CREAT|0666);
 				msgsnd(key2, (void*)&buf2, sizeof(buf2), IPC_NOWAIT);
 				
-				printf("key2 message snd");
+				printf("key2 260 snd");
 			}
 			else if(buf.n == 1 && buf.value[3] == 1){
 				minuit = (minuit + 1) % 60;
@@ -266,6 +267,7 @@ void recieve_msg(){
 				buf2.num = hour*100 + minuit;
 				key2 = msgget((key_t)1002, IPC_CREAT|0666);
 				msgsnd(key2, (void*)&buf2, sizeof(buf2), IPC_NOWAIT);
+				printf("key2 270 send\n");
 			}
 		}
 		else if(mode == COUNTER_MODE){
@@ -285,6 +287,7 @@ void recieve_msg(){
 				buf2.base = counter_base;
 				key2 = msgget((key_t)1002, IPC_CREAT|0666);
 				msgsnd(key2, (void*)&buf2, sizeof(buf2), IPC_NOWAIT);
+				printf("key2 290 send\n");
 			}
 			else if(buf.n == 1 && buf.value[2] == 1){
 				counter_number += counter_base;
@@ -296,6 +299,7 @@ void recieve_msg(){
 				buf2.base = counter_base;
 				key2 = msgget((key_t)1002, IPC_CREAT|0666);
 				msgsnd(key2, (void*)&buf2, sizeof(buf2), IPC_NOWAIT);
+				printf("key2 302 send\n");
 			}
 			else if(buf.n == 1 && buf.value[3] == 1){
 				counter_number += 1;
@@ -307,6 +311,7 @@ void recieve_msg(){
 				buf2.base = counter_base;
 				key2 = msgget((key_t)1002, IPC_CREAT|0666);
 				msgsnd(key2, (void*)&buf2, sizeof(buf2), IPC_NOWAIT);
+				printf("key2 314 send\n");
 			}
 		}
 		else if(mode == TEXT_MODE){
@@ -472,6 +477,7 @@ void recieve_msg(){
 			buf2.num = text_count;
 			key2 = msgget((key_t)1002, IPC_CREAT|0666);
 			msgsnd(key2, (void*)&buf2, sizeof(buf2), IPC_NOWAIT);
+			printf("key2 474 send\n");
 		}
 	}
 }
