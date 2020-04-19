@@ -32,7 +32,7 @@
 
 struct switbuf{
 	int n;
-	char value[9];
+	unsigned char value[9];
 };
 
 struct msgbuf{
@@ -70,6 +70,8 @@ void change_mode(){
 			printf("read()");
 			return;
 		}
+
+		printf("event button pressed\n");
 		
 		value = ev[0].value;
 		
@@ -86,7 +88,7 @@ void change_mode(){
 			
 			if(mode == COUNTER_MODE){
 				//initialize
-				fnd_out(counter_number, counter_base);
+				//fnd_out(counter_number, counter_base);
 			}
 		}
 	}
@@ -104,7 +106,11 @@ void input_process(){
 	
 	dev = open(SWITCH_DEVICE, O_RDWR);
 	unsigned char push_sw_buff[9];
-	
+	memset(push_sw_buff, 0, sizeof(push_sw_buff));
+	for(i = 0; i<9; i++){
+		push_sw_buff[i] = 0;
+	}	
+
 	if(dev < 0){
 		printf("Device open error\n");
 		close(dev);
@@ -124,6 +130,7 @@ void input_process(){
 				buf.n++;
 				buf.value[i] = 1;
 			}
+			printf("%d ",push_sw_buff[i]);
 		}
 		
 		while(push_sw_buff[0] == 1 || push_sw_buff[1] == 1 || push_sw_buff[2] == 1 || push_sw_buff[3] == 1
@@ -174,6 +181,7 @@ void output_process(){
 	
 	while(1){
 		msgrcv(key2, (void*)&buf, sizeof(buf), 0, 0);
+		printf("in output process : key2 message received\n");
 		if(buf.type == FND){
 			fnd_out(buf.num, 10);
 		}
@@ -212,6 +220,7 @@ void recieve_msg(){
 	
 	while(1){
 		msgrcv(key1, (void*)&buf, sizeof(buf), 0, 0); //key input received
+		printf(" in recieve msg , key1 received\n");
 		if(mode == CLOCK_MODE){
 			if(buf.n == 1 && buf.value[0] == 1){
 				if(flag == 0){
@@ -238,6 +247,7 @@ void recieve_msg(){
 			buf2.num = hour*100 + minuit;
 			key2 = msgget((key_t)1002, IPC_CREAT|0666);
 			msgsnd(key2, (void*)&buf2, sizeof(buf2), IPC_NOWAIT);
+			printf("line 250 message send");
 		}
 		else if(mode == COUNTER_MODE){
 			if(buf.n == 1 && buf.value[0] == 1){
