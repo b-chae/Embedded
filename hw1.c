@@ -97,7 +97,6 @@ void input_process(){
 	struct switbuf buf;
 	key1 = msgget((key_t)1001, IPC_CREAT|0666);
 	memset(buf.value, 0, sizeof(buf.value));
-	buf.n = 0;
 	
 	int i;
 	int dev;
@@ -116,6 +115,8 @@ void input_process(){
 	}
 	
 	while(1){
+		
+		buf.n = 0;
 		
 		while(push_sw_buff[0] == 0 && push_sw_buff[1] == 0 && push_sw_buff[2] == 0 && push_sw_buff[3] == 0 
 		&& push_sw_buff[4] == 0 && push_sw_buff[5] == 0 && push_sw_buff[6] == 0 && push_sw_buff[7] == 0 
@@ -250,6 +251,8 @@ void recieve_msg(){
 				buf2.num = hour*100 + minuit;
 				key2 = msgget((key_t)1002, IPC_CREAT|0666);
 				msgsnd(key2, (void*)&buf2, sizeof(buf2), IPC_NOWAIT);
+				
+				printf("key2 message snd");
 			}
 			else if(buf.n == 1 && buf.value[3] == 1){
 				minuit = (minuit + 1) % 60;
