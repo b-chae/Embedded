@@ -1,1 +1,1 @@
-byeori is so cure
+**Embedded System Software Project 1**
