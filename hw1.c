@@ -32,7 +32,7 @@
 
 struct switbuf{
 	int n;
-	int value[9];
+	char value[9];
 };
 
 struct msgbuf{
