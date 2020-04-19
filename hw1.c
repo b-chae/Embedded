@@ -99,7 +99,6 @@ void input_process(){
 	struct switbuf buf;
 	key1 = msgget((key_t)1001, IPC_CREAT|0666);
 	memset(buf.value, 0, sizeof(buf.value));
-	buf.n = 0;
 	
 	int i;
 	int dev;
@@ -120,10 +119,12 @@ void input_process(){
 	
 	while(1){
 		
-		while(push_sw_buff[0] == 0 && push_sw_buff[1] == 0 && push_sw_buff[2] == 0 && push_sw_buff[3] == 0 
-		&& push_sw_buff[4] == 0 && push_sw_buff[5] == 0 && push_sw_buff[6] == 0 && push_sw_buff[7] == 0 
-		&& push_sw_buff[8] == 0)
-			read(dev, &push_sw_buff, sizeof(push_sw_buff));
+		buf.n = 0;
+		for(i=0; i<9; i++){
+			buf.value[i] = 0;
+		}
+		
+		read(dev, &push_sw_buff, sizeof(push_sw_buff));
 		
 		for(i=0; i<9; i++){
 			if(push_sw_buff[i] == 1)
@@ -134,16 +135,14 @@ void input_process(){
 			printf("%d ",push_sw_buff[i]);
 		}
 		
-		while(push_sw_buff[0] == 1 || push_sw_buff[1] == 1 || push_sw_buff[2] == 1 || push_sw_buff[3] == 1
-		|| push_sw_buff[4] == 1 || push_sw_buff[5] == 1 || push_sw_buff[6] == 1 || push_sw_buff[7] == 1 || push_sw_buff[8] == 1)
-			read(dev, &push_sw_buff, sizeof(push_sw_buff));
+		if(buf.n == 1 || buf.n == 2){
+			if(msgsnd(key1, (void*)&buf, sizeof(buf), IPC_NOWAIT) == -1){
+				printf("key 1 msgsnd error\n");
+				exit(0);
+			}
 		
-		if(msgsnd(key1, (void*)&buf, sizeof(buf), IPC_NOWAIT) == -1){
-			printf("key 1 msgsnd error\n");
-			exit(0);
+			printf("send switch message %d switches pressed\n", buf.n);
 		}
-		
-		printf("send switch message %d switches pressed\n", buf.n);
 	}
 	close(dev);
 }
@@ -256,6 +255,8 @@ void recieve_msg(){
 				buf2.num = hour*100 + minuit;
 				key2 = msgget((key_t)1002, IPC_CREAT|0666);
 				msgsnd(key2, (void*)&buf2, sizeof(buf2), IPC_NOWAIT);
+				
+				printf("key2 message snd");
 			}
 			else if(buf.n == 1 && buf.value[3] == 1){
 				minuit = (minuit + 1) % 60;
