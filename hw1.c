@@ -32,7 +32,7 @@
 
 struct switbuf{
 	int n;
-	int value[9];
+	unsigned char value[9];
 };
 
 struct msgbuf{
@@ -104,6 +104,7 @@ void input_process(){
 	
 	dev = open(SWITCH_DEVICE, O_RDWR);
 	unsigned char push_sw_buff[9];
+	memset(push_sw_buff, 0, sizeof(push_sw_buff));
 	
 	if(dev < 0){
 		printf("Device open error\n");
