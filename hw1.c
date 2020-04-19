@@ -85,6 +85,11 @@ void change_mode(){
 				if(mode < 0) mode = mode + 4;
 				printf("mode changed : %d\n", mode);
 			}
+			else if(ev[0].code == 158){
+				kill(pin_in, 9);
+				kill(pin_out, 9);
+				exit(1);
+			}
 			
 			if(mode == COUNTER_MODE){
 				//initialize
@@ -124,7 +129,9 @@ void input_process(){
 			buf.value[i] = 0;
 		}
 		
-		read(dev, &push_sw_buff, sizeof(push_sw_buff));
+		while(push_sw_buff[0] == 0 && push_sw_buff[1] == 0 && push_sw_buff[2] == 0 && push_sw_buff[3] == 0 && push_sw_buff[4] == 0 && 
+		push_sw_buff[5] == 0 && push_sw_buff[6] == 0 && push_sw_buff[7] == 0 && push_sw_buff[8] == 0) 
+			read(dev, &push_sw_buff, sizeof(push_sw_buff));
 		
 		for(i=0; i<9; i++){
 			if(push_sw_buff[i] == 1)
@@ -133,6 +140,10 @@ void input_process(){
 				buf.value[i] = 1;
 			}
 		}
+		
+		while(!(push_sw_buff[0] == 0 && push_sw_buff[1] == 0 && push_sw_buff[2] == 0 && push_sw_buff[3] == 0 && push_sw_buff[4] == 0 && 
+		push_sw_buff[5] == 0 && push_sw_buff[6] == 0 && push_sw_buff[7] == 0 && push_sw_buff[8] == 0)) 
+			read(dev, &push_sw_buff, sizeof(push_sw_buff));
 		
 		if(buf.n == 1 || buf.n == 2){
 			if(msgsnd(key1, (void*)&buf, sizeof(buf), IPC_NOWAIT) == -1){
@@ -229,46 +240,24 @@ void recieve_msg(){
 				}else{
 					flag = 0;	
 				}
-				
-				struct msgbuf buf2;
-				buf2.type = FND;
-				buf2.num = hour*100 + minuit;
-				key2 = msgget((key_t)1002, IPC_CREAT|0666);
-				msgsnd(key2, (void*)&buf2, sizeof(buf2), IPC_NOWAIT);
-				printf("key2 238 send\n");
 			}
 			else if(buf.n == 1 && buf.value[1] == 1){
 				hour = previous_hour;
 				minuit = previous_minuit;
-				
-				struct msgbuf buf2;
-				buf2.type = FND;
-				buf2.num = hour*100 + minuit;
-				key2 = msgget((key_t)1002, IPC_CREAT|0666);
-				msgsnd(key2, (void*)&buf2, sizeof(buf2), IPC_NOWAIT);
-				printf("key2 249 send\n");
 			}
 			else if(buf.n == 1 && buf.value[2] == 1){
 				hour = (hour + 1) % 24;
-				
-				struct msgbuf buf2;
-				buf2.type = FND;
-				buf2.num = hour*100 + minuit;
-				key2 = msgget((key_t)1002, IPC_CREAT|0666);
-				msgsnd(key2, (void*)&buf2, sizeof(buf2), IPC_NOWAIT);
-				
-				printf("key2 260 snd");
 			}
 			else if(buf.n == 1 && buf.value[3] == 1){
 				minuit = (minuit + 1) % 60;
-				
-				struct msgbuf buf2;
-				buf2.type = FND;
-				buf2.num = hour*100 + minuit;
-				key2 = msgget((key_t)1002, IPC_CREAT|0666);
-				msgsnd(key2, (void*)&buf2, sizeof(buf2), IPC_NOWAIT);
-				printf("key2 270 send\n");
 			}
+			
+			struct msgbuf buf2;
+			memset(buf2.text, 0, sizeof(buf2,text));
+			buf2.type = FND;
+			buf2.num = hour*100 + minuit;
+			key2 = msgget((key_t)1002, IPC_CREAT|0666);
+			msgsnd(key2, (void*)&buf2, sizeof(buf2), IPC_NOWAIT);
 		}
 		else if(mode == COUNTER_MODE){
 			if(buf.n == 1 && buf.value[0] == 1){
@@ -279,40 +268,22 @@ void recieve_msg(){
 			}
 			else if(buf.n == 1 && buf.value[1] == 1){
 				counter_number += counter_base*counter_base;
-				
-				counter_number = counter_number % (counter_base*counter_base*counter_base);
-				struct msgbuf buf2;
-				buf2.type = FND_WITH_BASE;
-				buf2.num = counter_number;
-				buf2.base = counter_base;
-				key2 = msgget((key_t)1002, IPC_CREAT|0666);
-				msgsnd(key2, (void*)&buf2, sizeof(buf2), IPC_NOWAIT);
-				printf("key2 290 send\n");
 			}
 			else if(buf.n == 1 && buf.value[2] == 1){
 				counter_number += counter_base;
-				
-				counter_number = counter_number % (counter_base*counter_base*counter_base);
-				struct msgbuf buf2;
-				buf2.type = FND_WITH_BASE;
-				buf2.num = counter_number;
-				buf2.base = counter_base;
-				key2 = msgget((key_t)1002, IPC_CREAT|0666);
-				msgsnd(key2, (void*)&buf2, sizeof(buf2), IPC_NOWAIT);
-				printf("key2 302 send\n");
 			}
 			else if(buf.n == 1 && buf.value[3] == 1){
 				counter_number += 1;
-				
-				counter_number = counter_number % (counter_base*counter_base*counter_base);
-				struct msgbuf buf2;
-				buf2.type = FND_WITH_BASE;
-				buf2.num = counter_number;
-				buf2.base = counter_base;
-				key2 = msgget((key_t)1002, IPC_CREAT|0666);
-				msgsnd(key2, (void*)&buf2, sizeof(buf2), IPC_NOWAIT);
-				printf("key2 314 send\n");
 			}
+			
+			counter_number = counter_number % (counter_base*counter_base*counter_base);
+			struct msgbuf buf2;
+			memset(buf2.text, 0, sizeof(buf2.text);
+			buf2.type = FND_WITH_BASE;
+			buf2.num = counter_number;
+			buf2.base = counter_base;
+			key2 = msgget((key_t)1002, IPC_CREAT|0666);
+			msgsnd(key2, (void*)&buf2, sizeof(buf2), IPC_NOWAIT);
 		}
 		else if(mode == TEXT_MODE){
 			if(buf.n == 1){
@@ -473,6 +444,7 @@ void recieve_msg(){
 			//DOT MATRIX 출력한다. alphabet mode? number mode?
 			//text_count를 FND 출력한다.
 			struct msgbuf buf2;
+			memset(buf2.text, 0, sizeof(buf2.text);
 			buf2.type = FND;
 			buf2.num = text_count;
 			key2 = msgget((key_t)1002, IPC_CREAT|0666);
