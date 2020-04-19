@@ -86,8 +86,8 @@ void change_mode(){
 				printf("mode changed : %d\n", mode);
 			}
 			else if(ev[0].code == 158){
-				kill(pin_in, 9);
-				kill(pin_out, 9);
+				kill(pid_in, 9);
+				kill(pid_out, 9);
 				exit(1);
 			}
 			
@@ -253,7 +253,7 @@ void recieve_msg(){
 			}
 			
 			struct msgbuf buf2;
-			memset(buf2.text, 0, sizeof(buf2,text));
+			memset(buf2.text, 0, sizeof(buf2.text));
 			buf2.type = FND;
 			buf2.num = hour*100 + minuit;
 			key2 = msgget((key_t)1002, IPC_CREAT|0666);
@@ -278,7 +278,7 @@ void recieve_msg(){
 			
 			counter_number = counter_number % (counter_base*counter_base*counter_base);
 			struct msgbuf buf2;
-			memset(buf2.text, 0, sizeof(buf2.text);
+			memset(buf2.text, 0, sizeof(buf2.text));
 			buf2.type = FND_WITH_BASE;
 			buf2.num = counter_number;
 			buf2.base = counter_base;
@@ -444,7 +444,7 @@ void recieve_msg(){
 			//DOT MATRIX 출력한다. alphabet mode? number mode?
 			//text_count를 FND 출력한다.
 			struct msgbuf buf2;
-			memset(buf2.text, 0, sizeof(buf2.text);
+			memset(buf2.text, 0, sizeof(buf2.text));
 			buf2.type = FND;
 			buf2.num = text_count;
 			key2 = msgget((key_t)1002, IPC_CREAT|0666);
