@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <sys/ipc.h>
 
 #define BUFF_SIZE 64
 #define KEY_RELEASE 0
@@ -31,17 +32,17 @@
 
 struct switbuf{
 	int n;
-	int value[10] = {0,};
-}
+	int value[9];
+};
 
 struct msgbuf{
 	int type;
 	char text[50];
 	int num;
 	int base;
-}
+};
 
-void fnd_out(int num, int base = 10);
+void fnd_out(int num, int base);
 
 int mode = 0;
 pid_t pid_in;
@@ -95,8 +96,7 @@ void input_process(){
 	key_t key1, key2, key3;
 	struct switbuf buf;
 	key1 = msgget((key_t)1001, IPC_CREAT|0666);
-	/* memset(buf.text, 0, sizeof(buf.text));
-	strcpy(buf.text, "");*/
+	memset(buf.value, 0, sizeof(buf.value));
 	buf.n = 0;
 	
 	int i;
@@ -203,10 +203,12 @@ void recieve_msg(){
 	int flag = 0;
 	
 	int text_count = 0;
-	char text_buf[8] = {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '};
+	char text_buf[8];
+	memset(text_buf, ' ', sizeof(text_buf));
 	int text_mode = 0; //0 : alphabet mode, 1 : number mode
 	char previous_char = ' ';
 	char tmp;
+	int i;
 	
 	while(1){
 		msgrcv(key1, (void*)&buf, sizeof(buf), 0, 0); //key input received
@@ -392,18 +394,16 @@ void recieve_msg(){
 						tmp = 'W';
 					}
 				}
-				for(int i=0; i<7; i++){
-					text_buf[i] = text_buf[i+1];
-				}
+				for(i=0; i<7; i++){
+				text_buf[i] = text_buf[i+1];							}
 				text_buf[7] = tmp;
 			}
 			else if(buf.n == 2){
 				text_count++;
 				
 				if(buf.value[1] == 1 && buf.value[2] == 1){
-					for(int i=0; i<8; i++){
+					for(i=0; i<8; i++)
 						text_buf[i] = ' ';
-					}
 					previous_char = ' ';
 				}
 				else if(buf.value[4] == 1 && buf.value[5] == 1){//change mode to alphabet or number
@@ -412,7 +412,7 @@ void recieve_msg(){
 					previous_char = ' ';
 				}
 				else if(buf.value[7] == 1 && buf.value[8] == 1){//insert a blank at the end
-					for(int i=0; i<7; i++){
+					for(i=0; i<7; i++){
 						text_buf[i] = text_buf[i+1];
 					}
 					text_buf[7] = ' ';
