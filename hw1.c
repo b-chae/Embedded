@@ -131,7 +131,7 @@ void input_process(){
 			read(dev, &push_sw_buff, sizeof(push_sw_buff));
 		
 		if(msgsnd(key1, (void*)&buf, sizeof(buf), IPC_NOWAIT) == -1){
-			printf("msgsnd error\n");
+			printf("key 1 msgsnd error\n");
 			exit(0);
 		}
 		
