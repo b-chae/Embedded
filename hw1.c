@@ -257,7 +257,9 @@ void recieve_msg(){
 			buf2.type = FND;
 			buf2.num = hour*100 + minuit;
 			key2 = msgget((key_t)1002, IPC_CREAT|0666);
-			msgsnd(key2, (void*)&buf2, sizeof(buf2), IPC_NOWAIT);
+			if( msgsnd(key2, (void*)&buf2, sizeof(buf2), IPC_NOWAIT) == -1 ){
+				printf("msg send error\n");
+			}
 		}
 		else if(mode == COUNTER_MODE){
 			if(buf.n == 1 && buf.value[0] == 1){
