@@ -31,7 +31,7 @@
 
 struct switbuf{
 	int n;
-	int value[10] = {0,};
+	int value[10];
 }
 
 struct msgbuf{
@@ -95,8 +95,8 @@ void input_process(){
 	key_t key1, key2, key3;
 	struct switbuf buf;
 	key1 = msgget((key_t)1001, IPC_CREAT|0666);
-	/* memset(buf.text, 0, sizeof(buf.text));
-	strcpy(buf.text, "");*/
+	memset(buf.value, 0, sizeof(buf.value));
+	//strcpy(buf.text, "");*/
 	buf.n = 0;
 	
 	int i;
@@ -131,7 +131,7 @@ void input_process(){
 			read(dev, &push_sw_buff, sizeof(push_sw_buff));
 		
 		if(msgsnd(key1, (void*)&buf, sizeof(buf), IPC_NOWAIT) == -1){
-			printf("msgsnd error\n");
+			printf("key 1 msgsnd error\n");
 			exit(0);
 		}
 		
