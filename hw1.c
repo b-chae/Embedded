@@ -112,6 +112,7 @@ void input_process(){
 	}
 	
 	while(1){
+		buf.n = 0;
 		
 		while(push_sw_buff[0] == 0 && push_sw_buff[1] == 0 && push_sw_buff[2] == 0 && push_sw_buff[3] == 0 
 		&& push_sw_buff[4] == 0 && push_sw_buff[5] == 0 && push_sw_buff[6] == 0 && push_sw_buff[7] == 0 
@@ -139,6 +140,9 @@ void input_process(){
 		}
 		
 		printf("send switch message %d switches pressed\n", buf.n);
+		for(i=0; i<9; i++)
+			printf("%d ", buf.value[i]);
+		printf("\n");
 	}
 	close(dev);
 }
@@ -175,10 +179,12 @@ void output_process(){
 	key2 = msgget((key_t)1002, IPC_CREAT|0666);
 
 	while(1){
-		if(msgrcv(key2, (void*)&buf, sizeof(buf) - sizeof(long), 10, 0) == -1)
+		if(msgrcv(key2, (void*)&buf, sizeof(buf) - sizeof(long), 10, MSG_NOERROR) == -1){
 			printf("msgrcv error\n");
+			exit(0);
+		}
 		else{
-			printf("message received %d %d\n", buf.type, buf.num);
+			printf("message received %d %d %s\n", buf.type, buf.num, buf.text);
 			if(buf.type == 10){
 					fnd_out(buf.num, 10);
 			}
