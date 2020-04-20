@@ -424,6 +424,9 @@ void recieve_msg(){
 						tmp = 'W';
 					}
 				}
+				
+				previous_char = tmp;
+				
 				for(i=0; i<7; i++){
 				text_buf[i] = text_buf[i+1];							}
 				text_buf[7] = tmp;
