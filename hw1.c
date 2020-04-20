@@ -25,11 +25,15 @@
 #define FND_DEVICE "/dev/fpga_fnd"
 #define SWITCH_DEVICE "/dev/fpga_push_switch"
 
+#define CLOCK_MODE 0
+#define COUNTER_MODE 1
+
+#define FND 10
+
 struct switbuf{
 	int n;
 	int value[10];
-}
-
+};
 
 struct msgbuf{
 	int type;
@@ -64,7 +68,7 @@ void change_mode(){
 		
 		if((rd = read(fd, ev, size*BUFF_SIZE)) < size){
 			printf("read()");
-			return 0;
+			return;
 		}
 		
 		value = ev[0].value;
@@ -90,7 +94,7 @@ void input_process(){
 	struct switbuf buf;
 	key1 = msgget((key_t)1001, IPC_CREAT|0666);
 	buf.n = 0;
-	memset(buf.value, 0, sizeof(buf.value);
+	memset(buf.value, 0, sizeof(buf.value));
 	
 	int i;
 	int dev;
@@ -187,7 +191,9 @@ void recieve_msg(){
 	key1 = msgget((key_t)1001, IPC_CREAT|0666);
 	
 	int hour = 1;
-	int minuit = 1;
+	int minuit = 1
+	
+	int previous_hour, previous_minuit;
 	
 	int flag = 0;
 	
@@ -240,8 +246,8 @@ int main(int argc, char *argv[]){
 		}
 		//main process
 		
-		pthread_create(&p_thread[0], NULL, change_mode, NULL);
-		pthread_create(&p_thread[1], NULL, recieve_msg, NULL);
+		r_value = pthread_create(&p_thread[0], NULL, change_mode, NULL);
+		r_value = pthread_create(&p_thread[1], NULL, recieve_msg, NULL);
 		pthread_join(p_thread[0], (void**)NULL);
 		pthread_join(p_thread[1], (void**)NULL);
 		
