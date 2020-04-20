@@ -28,6 +28,7 @@
 
 #define CLOCK_MODE 0
 #define COUNTER_MODE 1
+#define TEXT_MODE 2
 
 #define FND 10
 #define FND_WITH_BASE 11
