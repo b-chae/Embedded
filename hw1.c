@@ -31,12 +31,13 @@
 #define FND 10
 
 struct switbuf{
+	long type;
 	int n;
 	unsigned char value[9];
 };
 
 struct msgbuf{
-	int type;
+	long type;
 	char text[50];
 	int num;
 	int base;
@@ -173,7 +174,7 @@ void output_process(){
 	key2 = msgget((key_t)1002, IPC_CREAT|0666);
 
 	while(1){
-		if(msgrcv(key2, (void*)&buf, sizeof(buf), 0, 0) == -1)
+		if(msgrcv(key2, (void*)&buf, sizeof(buf) - sizeof(long), 10, 0) == -1)
 			printf("msgrcv error\n");
 		else{
 			printf("message received %d %d\n", buf.type, buf.num);
@@ -229,7 +230,10 @@ void recieve_msg(){
 			memset(buf2.text, 0, sizeof(buf2.text));
 			strcpy(buf2.text, "");
 			key2 = msgget((key_t)1002, IPC_CREAT|0666);
-			msgsnd(key2, (void*)&buf2, sizeof(buf2), IPC_NOWAIT);
+			if(msgsnd(key2, (void*)&buf2, sizeof(buf2), IPC_NOWAIT) == -1){
+					printf("key msgsnd fail\n");
+					exit(1);
+			}
 			printf("key2 msg sent\n");
 		}
 	}
