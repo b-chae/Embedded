@@ -225,6 +225,8 @@ void recieve_msg(){
 	int i;
 	strcpy(text_buf, "        ");
 	
+	int text_mode = 0;
+
 	while(1){
 		msgrcv(key1, (void*)&buf, sizeof(buf) - sizeof(long), 1, 0);
 		printf("key1 received\n");
