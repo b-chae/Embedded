@@ -27,6 +27,7 @@
 
 #define CLOCK_MODE 0
 #define COUNTER_MODE 1
+#define TEXT_MODE 2
 
 #define FND 10
 #define FND_WITH_BASE 11
@@ -276,6 +277,7 @@ void recieve_msg(){
 			}
 			
 			counter_number = counter_number % (counter_base*counter_base*counter_base);
+			printf("counter_number changed %d\n", counter_number);
 			struct msgbuf buf2;
 			memset(buf2.text, 0, sizeof(buf2.text));
 			strcpy(buf2.text, "");
@@ -287,6 +289,7 @@ void recieve_msg(){
 				printf("key 2 msgsnd error\n");
 				exit(0);
 			}
+			printf("key2 sent \n");
 		}
 		else if(mode == TEXT_MODE){
 			if(buf.n == 1){
