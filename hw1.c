@@ -174,10 +174,12 @@ void output_process(){
 
 	while(1){
 		if(msgrcv(key2, (void*)&buf, sizeof(buf), 0, 0) == -1)
-			printf("error\n");
-		printf("message received %d %d\n", buf.type, buf.num);
-		if(buf.type == 10){
-				fnd_out(buf.num, 10);
+			printf("msgrcv error\n");
+		else{
+			printf("message received %d %d\n", buf.type, buf.num);
+			if(buf.type == 10){
+					fnd_out(buf.num, 10);
+			}
 		}
 	}
 	
@@ -224,8 +226,11 @@ void recieve_msg(){
 			struct msgbuf buf2;
 			buf2.type = FND;
 			buf2.num = hour*100 + minuit;
+			memset(buf2.text, 0, sizeof(buf2.text));
+			strcpy(buf2.text, "");
 			key2 = msgget((key_t)1002, IPC_CREAT|0666);
 			msgsnd(key2, (void*)&buf2, sizeof(buf2), IPC_NOWAIT);
+			printf("key2 msg sent\n");
 		}
 	}
 }
