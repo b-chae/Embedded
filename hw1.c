@@ -16,6 +16,7 @@
 #include <time.h>
 #include <sys/ipc.h>
 #include <pthread.h>
+#include <sys/msg.h>
 
 #define BUFF_SIZE 64
 #define KEY_RELEASE 0
@@ -174,8 +175,10 @@ void output_process(){
 	key2 = msgget((key_t)1002, IPC_CREAT|0666);
 
 	while(1){
-		if(msgrcv(key2, (void*)&buf, sizeof(buf) - sizeof(long), 10, 0) == -1)
+		if(msgrcv(key2, (void*)&buf, sizeof(buf) - sizeof(long), 10, MSG_NOERROR) == -1){
 			printf("msgrcv error\n");
+			exit(0);
+	}
 		else{
 			printf("message received %d %d\n", buf.type, buf.num);
 			if(buf.type == 10){
