@@ -99,13 +99,10 @@ void input_process(){
 	int i;
 	int dev;
 	
-	for(i=0; i<9; i++){
-		buf.value[i] = 0;
-	}
-	
 	dev = open(SWITCH_DEVICE, O_RDWR);
 	unsigned char push_sw_buff[9];
-	
+	memset(push_sw_buff, 0, sizeof(push_sw_buff));	
+
 	if(dev < 0){
 		printf("Device open error\n");
 		close(dev);
@@ -124,6 +121,9 @@ void input_process(){
 			{
 				buf.n++;
 				buf.value[i] = 1;
+			}
+			else{
+				buf.value[i] = 0;
 			}
 		}
 		
