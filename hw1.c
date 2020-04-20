@@ -32,7 +32,7 @@
 
 struct switbuf{
 	int n;
-	int value[10];
+	unsigned char value[9];
 };
 
 struct msgbuf{
@@ -191,7 +191,7 @@ void recieve_msg(){
 	key1 = msgget((key_t)1001, IPC_CREAT|0666);
 	
 	int hour = 1;
-	int minuit = 1
+	int minuit = 1;
 	
 	int previous_hour, previous_minuit;
 	
