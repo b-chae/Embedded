@@ -94,6 +94,7 @@ void input_process(){
 	key_t key1, key2, key3;
 	struct switbuf buf;
 	key1 = msgget((key_t)1001, IPC_CREAT|0666);
+	buf.type = 0;
 	buf.n = 0;
 	memset(buf.value, 0, sizeof(buf.value));
 	
@@ -132,7 +133,7 @@ void input_process(){
 		|| push_sw_buff[4] == 1 || push_sw_buff[5] == 1 || push_sw_buff[6] == 1 || push_sw_buff[7] == 1 || push_sw_buff[8] == 1)
 			read(dev, &push_sw_buff, sizeof(push_sw_buff));
 		
-		if(msgsnd(key1, (void*)&buf, sizeof(buf), IPC_NOWAIT) == -1){
+		if(msgsnd(key1, (void*)&buf, sizeof(buf) - sizeof(long), IPC_NOWAIT) == -1){
 			printf("msgsnd error\n");
 			exit(0);
 		}
@@ -201,7 +202,7 @@ void recieve_msg(){
 	int flag = 0;
 	
 	while(1){
-		msgrcv(key1, (void*)&buf, sizeof(buf), msgtype, 0);
+		msgrcv(key1, (void*)&buf, sizeof(buf) - sizeof(long), msgtype, 0);
 		printf("key1 received\n");
 		if(mode == CLOCK_MODE){
 			if(buf.n == 1 && buf.value[0] == 1){
@@ -230,7 +231,7 @@ void recieve_msg(){
 			memset(buf2.text, 0, sizeof(buf2.text));
 			strcpy(buf2.text, "");
 			key2 = msgget((key_t)1002, IPC_CREAT|0666);
-			if(msgsnd(key2, (void*)&buf2, sizeof(buf2), IPC_NOWAIT) == -1){
+			if(msgsnd(key2, (void*)&buf2, sizeof(buf2) - sizeof(long), IPC_NOWAIT) == -1){
 					printf("key msgsnd fail\n");
 					exit(1);
 			}
