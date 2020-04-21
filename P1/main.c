@@ -1,60 +1,4 @@
-#include <unistd.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <dirent.h>
-#include <linux/input.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/select.h>
-#include <sys/time.h>
-#include <termios.h>
-#include <termios.h>
-#include <signal.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
-#include <sys/ipc.h>
-#include <pthread.h>
-
-#define BUFF_SIZE 64
-#define KEY_RELEASE 0
-#define KEY_PRESS 1
-
-#define MAX_DIGIT 4
-#define FND_DEVICE "/dev/fpga_fnd"
-#define SWITCH_DEVICE "/dev/fpga_push_switch"
-
-#define CLOCK_MODE 0
-#define COUNTER_MODE 1
-#define TEXT_MODE 2
-
-#define FND 10
-#define FND_WITH_BASE 11
-
-struct switbuf{
-	long type;
-	int n;
-	unsigned char value[9];
-};
-
-struct msgbuf{
-	long type;
-	char text[50];
-	int num;
-	int base;
-};
-
-void fnd_out(int num, int base);
-
-int mode = 0;
-pid_t pid_in;
-pid_t pid_out;
-pthread_t p_thread[3];
-int r_value;
-
-int counter_base = 2;
-int counter_number = 0;
+#include "header.h"
 
 void change_mode(){
 	
@@ -87,7 +31,16 @@ void change_mode(){
 				printf("mode changed : %d\n", mode);
 			}
 			
-			
+			/* initializaiton when mode changed */
+			if(mode == CLOCK_MODE){
+				
+			}
+			else if(mode == COUNTER_MODE){
+				
+			}
+			else if(mode == TEXT_MODE){
+				
+			}
 		}
 	}
 }
@@ -208,11 +161,12 @@ void recieve_msg(){
 	time_t t = time(NULL);
 	struct tm tm = *localtime(&t);
 	
-	int hour = tm.tm_hour;
-	int minuit = tm.tm_hour;
+	hour = tm.tm_hour;
+	minuit = tm.tm_hour;
 	
 	int previous_hour, previous_minuit;
 	fnd_out(hour*100 + minuit, 10);
+	printf("current time %d %d\n", hour, minuit);
 	
 	int flag = 0;
 	
@@ -295,138 +249,141 @@ void recieve_msg(){
 			if(buf.n == 1){
 				text_count++;
 				
+				int change_all = 0;
 				if(buf.value[0] == 1){// .QZ
 					if(previous_char == '.'){
-						tmp = 'Q';
+						tmp = 'Q'; text_buf[7] = tmp;
 					}
 					else if(previous_char == 'Q'){
-						tmp = 'Z';
+						tmp = 'Z'; text_buf[7] = tmp;
 					}
 					else if(previous_char == 'Z'){
-						tmp = '.';
+						tmp = '.'; text_buf[7] = tmp;
 					}
 					else{
-						tmp = '.';
+						tmp = '.'; change_all = 1;
 					}
 				}
 				else if(buf.value[1] == 1){ //ABC
 					if(previous_char == 'A'){
-						tmp = 'B';
+						tmp = 'B'; text_buf[7] = tmp;
 					}
 					else if(previous_char == 'B'){
-						tmp = 'C';
+						tmp = 'C'; text_buf[7] = tmp;
 					}
 					else if(previous_char == 'C'){
-						tmp = 'A';
+						tmp = 'A'; text_buf[7] = tmp;
 					}
 					else{
-						tmp = 'A';
+						tmp = 'A'; change_all = 1;
 					}
 				}
 				else if(buf.value[2] == 1){ //DEF
 					if(previous_char == 'D'){
-						tmp = 'E';
+						tmp = 'E'; text_buf[7] = tmp;
 					}
 					else if(previous_char == 'E'){
-						tmp = 'F';
+						tmp = 'F'; text_buf[7] = tmp;
 					}
 					else if(previous_char == 'F'){
-						tmp = 'D';
+						tmp = 'D'; text_buf[7] = tmp;
 					}
 					else{
-						tmp = 'D';
+						tmp = 'D'; change_all = 1;
 					}
 				}
 				else if(buf.value[3] == 1){ //GHI
 					if(previous_char == 'G'){
-						tmp = 'H';
+						tmp = 'H'; text_buf[7] = tmp;
 					}
 					else if(previous_char == 'H'){
-						tmp = 'I';
+						tmp = 'I'; text_buf[7] = tmp;
 					}
 					else if(previous_char == 'I'){
-						tmp = 'G';
+						tmp = 'G'; text_buf[7] = tmp;
 					}
 					else{
-						tmp = 'G';
+						tmp = 'G'; change_all = 1;
 					}
 				}
 				else if(buf.value[4] == 1){ //JKL
 					if(previous_char == 'J'){
-						tmp = 'K';
+						tmp = 'K'; text_buf[7] = tmp;
 					}
 					else if(previous_char == 'K'){
-						tmp = 'L';
+						tmp = 'L'; text_buf[7] = tmp;
 					}
 					else if(previous_char == 'L'){
-						tmp = 'J';
+						tmp = 'J'; text_buf[7] = tmp;
 					}
 					else{
-						tmp = 'J';
+						tmp = 'J'; change_all = 1;
 					}
 				}
 				else if(buf.value[5] == 1){ //MNO
 					if(previous_char == 'M'){
-						tmp = 'N';
+						tmp = 'N'; text_buf[7] = tmp;
 					}
 					else if(previous_char == 'N'){
-						tmp = 'O';
+						tmp = 'O'; text_buf[7] = tmp;
 					}
 					else if(previous_char == 'O'){
-						tmp = 'M';
+						tmp = 'M'; text_buf[7] = tmp;
 					}
 					else{
-						tmp = 'M';
+						tmp = 'M'; change_all = 1;
 					}
 				}
 				else if(buf.value[6] == 1){ //PRS
 					if(previous_char == 'P'){
-						tmp = 'R';
+						tmp = 'R'; text_buf[7] = tmp;
 					}
 					else if(previous_char == 'R'){
-						tmp = 'S';
+						tmp = 'S'; text_buf[7] = tmp;
 					}
 					else if(previous_char == 'S'){
-						tmp = 'P';
+						tmp = 'P'; text_buf[7] = tmp;
 					}
 					else{
-						tmp = 'P';
+						tmp = 'P'; change_all = 1;
 					}
 				}
 				else if(buf.value[7] == 1){ //TUV
 					if(previous_char == 'T'){
-						tmp = 'U';
+						tmp = 'U'; text_buf[7] = tmp;
 					}
 					else if(previous_char == 'U'){
-						tmp = 'V';
+						tmp = 'V'; text_buf[7] = tmp;
 					}
 					else if(previous_char == 'V'){
-						tmp = 'T';
+						tmp = 'T'; text_buf[7] = tmp;
 					}
 					else{
-						tmp = 'T';
+						tmp = 'T'; change_all = 1;
 					}
 				}
 				else if(buf.value[8] == 1){ //WXY
 					if(previous_char == 'W'){
-						tmp = 'X';
+						tmp = 'X'; text_buf[7] = tmp;
 					}
 					else if(previous_char == 'X'){
-						tmp = 'Y';
+						tmp = 'Y'; text_buf[7] = tmp;
 					}
 					else if(previous_char == 'Y'){
-						tmp = 'W';
+						tmp = 'W'; text_buf[7] = tmp;
 					}
 					else{
-						tmp = 'W';
+						tmp = 'W'; change_all = 1;
 					}
 				}
 				
 				previous_char = tmp;
 				
-				for(i=0; i<7; i++){
-				text_buf[i] = text_buf[i+1];							}
-				text_buf[7] = tmp;
+				if(change_all == 1){
+					for(i=0; i<7; i++){
+					text_buf[i] = text_buf[i+1];							}
+					text_buf[7] = tmp;
+				}
 			}
 			else if(buf.n == 2){
 				text_count++;
