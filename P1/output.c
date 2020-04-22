@@ -24,6 +24,51 @@ void fnd_out(int num, int base){
 	close(dev);
 }
 
+void dot_out(int mode){
+	
+	int i;
+	int dev;
+	
+	dev = open(DOT_DEVICE, O_WRONLY);
+	if(dev < 0){
+		printf("Device open error : %s\n", DOT_DEVICE);
+		exit(1);
+	}
+	
+	unsigned char fpga_a = {0x1c, 0x36, 0x63, 0x63, 0x63, 0x7f, 0x7f, 0x63, 0x63, 0x63};
+	unsigned char fpga_1 = {0x0c, 0x1c, 0x1c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x1e};
+	unsigned char fpga_blank = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+	
+	if(mode == -1){
+		write(dev, fpga_blank, sizeof(fpga_blank));
+	}
+	else if(mode == 0){
+		write(dev, fpga_a, sizeof(fpga_a));
+	}
+	else if(mode == 1){
+		write(dev, fpga_1, sizeof(fpga_a));
+	}
+	
+	close(dev);
+	return;
+	
+}
+
+void text_out(){
+	unsigned char string[32];
+	memset(string, '1' , sizeof(string));
+	int dev;
+	dev = open(TEXT_LCD_DEVICE, O_WRONLY);
+	if(dev < 0){
+		printf("Device open error : %s\n", TEXT_LCD_DEVICE);
+		exit(1);
+	}
+	
+	write(dev, string, sizeof(string));
+	close(dev);
+	return;
+}
+
 void output_process(){
 	
 	key_t key1, key2, key3;

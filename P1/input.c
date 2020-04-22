@@ -41,8 +41,21 @@ void input_process(){
 		}
 		
 		while(push_sw_buff[0] == 1 || push_sw_buff[1] == 1 || push_sw_buff[2] == 1 || push_sw_buff[3] == 1
-		|| push_sw_buff[4] == 1 || push_sw_buff[5] == 1 || push_sw_buff[6] == 1 || push_sw_buff[7] == 1 || push_sw_buff[8] == 1)
+		|| push_sw_buff[4] == 1 || push_sw_buff[5] == 1 || push_sw_buff[6] == 1 || push_sw_buff[7] == 1 || push_sw_buff[8] == 1){
 			read(dev, &push_sw_buff, sizeof(push_sw_buff));
+			buf.n = 0;
+			
+			for(i=0; i<9; i++){
+				if(push_sw_buff[i] == 1)
+				{
+					buf.n++;
+					buf.value[i] = 1;
+				}
+				else{
+					buf.value[i] = 0;
+				}
+			}
+		}
 		
 		if(msgsnd(key1, (void*)&buf, sizeof(buf) - sizeof(long), IPC_NOWAIT) == -1){
 			printf("msgsnd error\n");

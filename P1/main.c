@@ -24,7 +24,7 @@ void receive_msg(){
 	char previous_char = ' ';
 	char tmp;
 	int i;
-	int text_mode = 0;
+	text_mode = 0;
 	strcpy(text_buf, "        ");
 	
 	while(1){
@@ -98,140 +98,156 @@ void receive_msg(){
 			if(buf.n == 1){
 				text_count++;
 				
-				int change_all = 0;
-				if(buf.value[0] == 1){// .QZ
-					if(previous_char == '.'){
-						tmp = 'Q'; text_buf[7] = tmp;
+				if(text_mode == 0){
+					int change_all = 0;
+					if(buf.value[0] == 1){// .QZ
+						if(previous_char == '.'){
+							tmp = 'Q'; text_buf[7] = tmp;
+						}
+						else if(previous_char == 'Q'){
+							tmp = 'Z'; text_buf[7] = tmp;
+						}
+						else if(previous_char == 'Z'){
+							tmp = '.'; text_buf[7] = tmp;
+						}
+						else{
+							tmp = '.'; change_all = 1;
+						}
 					}
-					else if(previous_char == 'Q'){
-						tmp = 'Z'; text_buf[7] = tmp;
+					else if(buf.value[1] == 1){ //ABC
+						if(previous_char == 'A'){
+							tmp = 'B'; text_buf[7] = tmp;
+						}
+						else if(previous_char == 'B'){
+							tmp = 'C'; text_buf[7] = tmp;
+						}
+						else if(previous_char == 'C'){
+							tmp = 'A'; text_buf[7] = tmp;
+						}
+						else{
+							tmp = 'A'; change_all = 1;
+						}
 					}
-					else if(previous_char == 'Z'){
-						tmp = '.'; text_buf[7] = tmp;
+					else if(buf.value[2] == 1){ //DEF
+						if(previous_char == 'D'){
+							tmp = 'E'; text_buf[7] = tmp;
+						}
+						else if(previous_char == 'E'){
+							tmp = 'F'; text_buf[7] = tmp;
+						}
+						else if(previous_char == 'F'){
+							tmp = 'D'; text_buf[7] = tmp;
+						}
+						else{
+							tmp = 'D'; change_all = 1;
+						}
 					}
-					else{
-						tmp = '.'; change_all = 1;
+					else if(buf.value[3] == 1){ //GHI
+						if(previous_char == 'G'){
+							tmp = 'H'; text_buf[7] = tmp;
+						}
+						else if(previous_char == 'H'){
+							tmp = 'I'; text_buf[7] = tmp;
+						}
+						else if(previous_char == 'I'){
+							tmp = 'G'; text_buf[7] = tmp;
+						}
+						else{
+							tmp = 'G'; change_all = 1;
+						}
 					}
+					else if(buf.value[4] == 1){ //JKL
+						if(previous_char == 'J'){
+							tmp = 'K'; text_buf[7] = tmp;
+						}
+						else if(previous_char == 'K'){
+							tmp = 'L'; text_buf[7] = tmp;
+						}
+						else if(previous_char == 'L'){
+							tmp = 'J'; text_buf[7] = tmp;
+						}
+						else{
+							tmp = 'J'; change_all = 1;
+						}
+					}
+					else if(buf.value[5] == 1){ //MNO
+						if(previous_char == 'M'){
+							tmp = 'N'; text_buf[7] = tmp;
+						}
+						else if(previous_char == 'N'){
+							tmp = 'O'; text_buf[7] = tmp;
+						}
+						else if(previous_char == 'O'){
+							tmp = 'M'; text_buf[7] = tmp;
+						}
+						else{
+							tmp = 'M'; change_all = 1;
+						}
+					}
+					else if(buf.value[6] == 1){ //PRS
+						if(previous_char == 'P'){
+							tmp = 'R'; text_buf[7] = tmp;
+						}
+						else if(previous_char == 'R'){
+							tmp = 'S'; text_buf[7] = tmp;
+						}
+						else if(previous_char == 'S'){
+							tmp = 'P'; text_buf[7] = tmp;
+						}
+						else{
+							tmp = 'P'; change_all = 1;
+						}
+					}
+					else if(buf.value[7] == 1){ //TUV
+						if(previous_char == 'T'){
+							tmp = 'U'; text_buf[7] = tmp;
+						}
+						else if(previous_char == 'U'){
+							tmp = 'V'; text_buf[7] = tmp;
+						}
+						else if(previous_char == 'V'){
+							tmp = 'T'; text_buf[7] = tmp;
+						}
+						else{
+							tmp = 'T'; change_all = 1;
+						}
+					}
+					else if(buf.value[8] == 1){ //WXY
+						if(previous_char == 'W'){
+							tmp = 'X'; text_buf[7] = tmp;
+						}
+						else if(previous_char == 'X'){
+							tmp = 'Y'; text_buf[7] = tmp;
+						}
+						else if(previous_char == 'Y'){
+							tmp = 'W'; text_buf[7] = tmp;
+						}
+						else{
+							tmp = 'W'; change_all = 1;
+						}
+					}
+					
+					previous_char = tmp;
+					
+					if(change_all == 1){
+						for(i=0; i<7; i++){
+						text_buf[i] = text_buf[i+1];}
+						text_buf[7] = tmp;
+					}
+					
 				}
-				else if(buf.value[1] == 1){ //ABC
-					if(previous_char == 'A'){
-						tmp = 'B'; text_buf[7] = tmp;
+				else{
+					for(i=0; i<9 ;i++){
+						if(buf.value[i] == 0){
+							tmp = i + 1 + '0';
+						}
 					}
-					else if(previous_char == 'B'){
-						tmp = 'C'; text_buf[7] = tmp;
-					}
-					else if(previous_char == 'C'){
-						tmp = 'A'; text_buf[7] = tmp;
-					}
-					else{
-						tmp = 'A'; change_all = 1;
-					}
-				}
-				else if(buf.value[2] == 1){ //DEF
-					if(previous_char == 'D'){
-						tmp = 'E'; text_buf[7] = tmp;
-					}
-					else if(previous_char == 'E'){
-						tmp = 'F'; text_buf[7] = tmp;
-					}
-					else if(previous_char == 'F'){
-						tmp = 'D'; text_buf[7] = tmp;
-					}
-					else{
-						tmp = 'D'; change_all = 1;
-					}
-				}
-				else if(buf.value[3] == 1){ //GHI
-					if(previous_char == 'G'){
-						tmp = 'H'; text_buf[7] = tmp;
-					}
-					else if(previous_char == 'H'){
-						tmp = 'I'; text_buf[7] = tmp;
-					}
-					else if(previous_char == 'I'){
-						tmp = 'G'; text_buf[7] = tmp;
-					}
-					else{
-						tmp = 'G'; change_all = 1;
-					}
-				}
-				else if(buf.value[4] == 1){ //JKL
-					if(previous_char == 'J'){
-						tmp = 'K'; text_buf[7] = tmp;
-					}
-					else if(previous_char == 'K'){
-						tmp = 'L'; text_buf[7] = tmp;
-					}
-					else if(previous_char == 'L'){
-						tmp = 'J'; text_buf[7] = tmp;
-					}
-					else{
-						tmp = 'J'; change_all = 1;
-					}
-				}
-				else if(buf.value[5] == 1){ //MNO
-					if(previous_char == 'M'){
-						tmp = 'N'; text_buf[7] = tmp;
-					}
-					else if(previous_char == 'N'){
-						tmp = 'O'; text_buf[7] = tmp;
-					}
-					else if(previous_char == 'O'){
-						tmp = 'M'; text_buf[7] = tmp;
-					}
-					else{
-						tmp = 'M'; change_all = 1;
-					}
-				}
-				else if(buf.value[6] == 1){ //PRS
-					if(previous_char == 'P'){
-						tmp = 'R'; text_buf[7] = tmp;
-					}
-					else if(previous_char == 'R'){
-						tmp = 'S'; text_buf[7] = tmp;
-					}
-					else if(previous_char == 'S'){
-						tmp = 'P'; text_buf[7] = tmp;
-					}
-					else{
-						tmp = 'P'; change_all = 1;
-					}
-				}
-				else if(buf.value[7] == 1){ //TUV
-					if(previous_char == 'T'){
-						tmp = 'U'; text_buf[7] = tmp;
-					}
-					else if(previous_char == 'U'){
-						tmp = 'V'; text_buf[7] = tmp;
-					}
-					else if(previous_char == 'V'){
-						tmp = 'T'; text_buf[7] = tmp;
-					}
-					else{
-						tmp = 'T'; change_all = 1;
-					}
-				}
-				else if(buf.value[8] == 1){ //WXY
-					if(previous_char == 'W'){
-						tmp = 'X'; text_buf[7] = tmp;
-					}
-					else if(previous_char == 'X'){
-						tmp = 'Y'; text_buf[7] = tmp;
-					}
-					else if(previous_char == 'Y'){
-						tmp = 'W'; text_buf[7] = tmp;
-					}
-					else{
-						tmp = 'W'; change_all = 1;
-					}
-				}
-				
-				previous_char = tmp;
-				
-				if(change_all == 1){
+					
 					for(i=0; i<7; i++){
-					text_buf[i] = text_buf[i+1];							}
+						text_buf[i] = text_buf[i+1];
+					}
 					text_buf[7] = tmp;
+					previous_char = tmp;
 				}
 			}
 			else if(buf.n == 2){
@@ -305,13 +321,14 @@ void change_mode(){
 			
 			/* initializaiton when mode changed */
 			if(mode == CLOCK_MODE){
-				
+				dot_out(-1);
 			}
 			else if(mode == COUNTER_MODE){
-				
+				dot_out(-1);
 			}
 			else if(mode == TEXT_MODE){
-				
+				dot_out(text_mode);
+				text_out();
 			}
 		}
 	}

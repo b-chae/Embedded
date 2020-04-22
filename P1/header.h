@@ -25,6 +25,8 @@
 #define MAX_DIGIT 4
 #define FND_DEVICE "/dev/fpga_fnd"
 #define SWITCH_DEVICE "/dev/fpga_push_switch"
+#define DOT_DEVICE "/dev/fpga_dot"
+#define TEXT_LCD_DEVICE "/dev/fpga_text_lcd"
 
 #define CLOCK_MODE 0
 #define COUNTER_MODE 1
@@ -53,6 +55,8 @@ void input_process();
 void fnd_out(int num, int base);
 void output_process();
 void receive_msg();
+void dot_out(int mode);
+void text_out();
 
 /* global variables */
 int mode;
@@ -66,3 +70,5 @@ int counter_number;
 
 int hour;
 int minuit;
+
+int text_mode;
