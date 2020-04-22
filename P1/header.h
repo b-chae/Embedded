@@ -17,6 +17,7 @@
 #include <sys/ipc.h>
 #include <pthread.h>
 #include <sys/msg.h>
+#include <linux/kernel.h>
 
 #define BUFF_SIZE 64
 #define KEY_RELEASE 0

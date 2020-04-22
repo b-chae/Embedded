@@ -73,8 +73,7 @@ void dot_out(int mode){
 
 void text_out(const char* buf){
 	unsigned char string[32];
-	const char* my_buf;
-	copy_from_user(&&my_buf, buf, sizeof(const char*));
+
 	memset(string, ' ' , sizeof(string));
 	strncpy(string, buf, 8);
 	int dev;
