@@ -22,26 +22,44 @@ void input_process(){
 	}
 	
 	while(1){
+		buf.n = 0;
+		
 		while(push_sw_buff[0] == 0 && push_sw_buff[1] == 0 && push_sw_buff[2] == 0 && push_sw_buff[3] == 0 
 		&& push_sw_buff[4] == 0 && push_sw_buff[5] == 0 && push_sw_buff[6] == 0 && push_sw_buff[7] == 0 
 		&& push_sw_buff[8] == 0)
 			read(dev, &push_sw_buff, sizeof(push_sw_buff));
 		
-		do{
-			buf.n = 0;
+		for(i=0; i<9; i++){
+			if(push_sw_buff[i] == 1)
+			{
+				buf.n++;
+				buf.value[i] = 1;
+			}
+			else{
+				buf.value[i] = 0;
+			}
+		}
+		
+		while(push_sw_buff[0] == 1 || push_sw_buff[1] == 1 || push_sw_buff[2] == 1 || push_sw_buff[3] == 1
+		|| push_sw_buff[4] == 1 || push_sw_buff[5] == 1 || push_sw_buff[6] == 1 || push_sw_buff[7] == 1 || push_sw_buff[8] == 1){
+			read(dev, &push_sw_buff, sizeof(push_sw_buff));
 			
-			for(i=0; i<9; i++){
-				if(push_sw_buff[i] == 1)
-				{
-					buf.n++;
-					buf.value[i] = 1;
-				}
-				else{
-					buf.value[i] = 0;
+			if(push_sw_buff[0] == 1 || push_sw_buff[1] == 1 || push_sw_buff[2] == 1 || push_sw_buff[3] == 1
+		|| push_sw_buff[4] == 1 || push_sw_buff[5] == 1 || push_sw_buff[6] == 1 || push_sw_buff[7] == 1 || push_sw_buff[8] == 1){
+				buf.n = 0;
+				
+				for(i=0; i<9; i++){
+					if(push_sw_buff[i] == 1)
+					{
+						buf.n++;
+						buf.value[i] = 1;
+					}
+					else{
+						buf.value[i] = 0;
+					}
 				}
 			}
-		}while(push_sw_buff[0] == 1 || push_sw_buff[1] == 1 || push_sw_buff[2] == 1 || push_sw_buff[3] == 1
-		|| push_sw_buff[4] == 1 || push_sw_buff[5] == 1 || push_sw_buff[6] == 1 || push_sw_buff[7] == 1 || push_sw_buff[8] == 1);
+		}
 		
 		if(msgsnd(key1, (void*)&buf, sizeof(buf) - sizeof(long), IPC_NOWAIT) == -1){
 			printf("msgsnd error\n");
