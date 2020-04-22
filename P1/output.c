@@ -39,9 +39,9 @@ void dot_out(int mode){
 	unsigned char fpga_1[10];
 	unsigned char fpga_blank[10];
 	
-	memset(fpga_a, 0, sizeof(fpga_a);
-	memset(fpga_1, 0, sizeof(fpga_1);
-	memset(fpga_blank, 0, sizeof(fpga_blank);
+	memset(fpga_a, 0, sizeof(fpga_a));
+	memset(fpga_1, 0, sizeof(fpga_1));
+	memset(fpga_blank, 0, sizeof(fpga_blank));
 	
 	fpga_a[0] = 0x1c; fpga_a[1] = 0x36; fpga_a[2] = 0x63; fpga_a[3] = 0x63;
 	fpga_a[4] = 0x63; fpga_a[5] = 0x7f; fpga_a[6] = 0x7f; fpga_a[7] = 0x63;
