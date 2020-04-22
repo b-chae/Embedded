@@ -10,6 +10,7 @@ void input_process(){
 	
 	int i;
 	int dev;
+	int flag;
 	
 	dev = open(SWITCH_DEVICE, O_RDWR);
 	unsigned char push_sw_buff[9];
@@ -23,6 +24,7 @@ void input_process(){
 	
 	while(1){
 		buf.n = 0;
+		flag = 0;
 		
 		while(push_sw_buff[0] == 0 && push_sw_buff[1] == 0 && push_sw_buff[2] == 0 && push_sw_buff[3] == 0 
 		&& push_sw_buff[4] == 0 && push_sw_buff[5] == 0 && push_sw_buff[6] == 0 && push_sw_buff[7] == 0 
@@ -44,8 +46,8 @@ void input_process(){
 		|| push_sw_buff[4] == 1 || push_sw_buff[5] == 1 || push_sw_buff[6] == 1 || push_sw_buff[7] == 1 || push_sw_buff[8] == 1){
 			read(dev, &push_sw_buff, sizeof(push_sw_buff));
 			
-			if(push_sw_buff[0] == 1 || push_sw_buff[1] == 1 || push_sw_buff[2] == 1 || push_sw_buff[3] == 1
-		|| push_sw_buff[4] == 1 || push_sw_buff[5] == 1 || push_sw_buff[6] == 1 || push_sw_buff[7] == 1 || push_sw_buff[8] == 1){
+			if(flag == 0 && (push_sw_buff[0] == 1 || push_sw_buff[1] == 1 || push_sw_buff[2] == 1 || push_sw_buff[3] == 1
+		|| push_sw_buff[4] == 1 || push_sw_buff[5] == 1 || push_sw_buff[6] == 1 || push_sw_buff[7] == 1 || push_sw_buff[8] == 1)){
 				buf.n = 0;
 				
 				for(i=0; i<9; i++){
@@ -58,6 +60,8 @@ void input_process(){
 						buf.value[i] = 0;
 					}
 				}
+				
+				if(buf.n == 2) flag = 1;
 			}
 		}
 		

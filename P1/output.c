@@ -71,9 +71,12 @@ void dot_out(int mode){
 	
 }
 
-void text_out(){
+void text_out(const char* buf){
 	unsigned char string[32];
-	memset(string, 'A' , sizeof(string));
+	const char* my_buf;
+	copy_from_user(&&my_buf, buf, sizeof(const char*));
+	memset(string, ' ' , sizeof(string));
+	strncpy(string, buf, 8);
 	int dev;
 	dev = open(TEXT_LCD_DEVICE, O_WRONLY);
 	if(dev < 0){
@@ -106,6 +109,10 @@ void output_process(){
 			}
 			else if(buf.type == FND_WITH_BASE){
 				fnd_out(buf.num, buf.base);
+			}
+			
+			if(strcmp(buf.text, "") != 0){
+				text_out(buf.text);
 			}
 		}
 	}
