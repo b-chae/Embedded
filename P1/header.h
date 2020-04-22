@@ -55,14 +55,14 @@ void output_process();
 void receive_msg();
 
 /* global variables */
-int mode = 0;
+int mode;
 pid_t pid_in;
 pid_t pid_out;
 pthread_t p_thread[3];
 int r_value;
 
-int counter_base = 2;
-int counter_number = 0;
+int counter_base;
+int counter_number;
 
 int hour;
 int minuit;

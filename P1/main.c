@@ -24,6 +24,7 @@ void receive_msg(){
 	char previous_char = ' ';
 	char tmp;
 	int i;
+	int text_mode = 0;
 	strcpy(text_buf, "        ");
 	
 	while(1){
@@ -317,6 +318,9 @@ void change_mode(){
 }
 int main(int argc, char *argv[]){
 	
+	mode = 0;
+	counter_base = 2;
+	counter_number = 0;
 	
 	pid_in = fork();
 	if(pid_in == 0){//child process : receive input
