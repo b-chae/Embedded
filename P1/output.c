@@ -35,9 +35,26 @@ void dot_out(int mode){
 		exit(1);
 	}
 	
-	unsigned char fpga_a = {0x1c, 0x36, 0x63, 0x63, 0x63, 0x7f, 0x7f, 0x63, 0x63, 0x63};
-	unsigned char fpga_1 = {0x0c, 0x1c, 0x1c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x1e};
-	unsigned char fpga_blank = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+	unsigned char fpga_a[10];
+	unsigned char fpga_1[10];
+	unsigned char fpga_blank[10];
+	
+	memset(fpga_a, 0, sizeof(fpga_a);
+	memset(fpga_1, 0, sizeof(fpga_1);
+	memset(fpga_blank, 0, sizeof(fpga_blank);
+	
+	fpga_a[0] = 0x1c; fpga_a[1] = 0x36; fpga_a[2] = 0x63; fpga_a[3] = 0x63;
+	fpga_a[4] = 0x63; fpga_a[5] = 0x7f; fpga_a[6] = 0x7f; fpga_a[7] = 0x63;
+	fpga_a[8] = 0x63; fpga_a[9] = 0x63;
+	
+	for(i=0; i<10; i++){
+		fpga_blank[i] = 0x00;
+		fpga_1[i] = 0x0c;
+	}
+	
+	fpga_1[1] = 0x1c;
+	fpga_1[2] = 0x1c;
+	fpga_1[9] = 0x1e;
 	
 	if(mode == -1){
 		write(dev, fpga_blank, sizeof(fpga_blank));
@@ -56,7 +73,7 @@ void dot_out(int mode){
 
 void text_out(){
 	unsigned char string[32];
-	memset(string, '1' , sizeof(string));
+	memset(string, 'A' , sizeof(string));
 	int dev;
 	dev = open(TEXT_LCD_DEVICE, O_WRONLY);
 	if(dev < 0){
