@@ -56,7 +56,7 @@ void fnd_out(int num, int base);
 void output_process();
 void receive_msg();
 void dot_out(int mode);
-void text_out();
+void text_out(const char*);
 
 /* global variables */
 int mode;

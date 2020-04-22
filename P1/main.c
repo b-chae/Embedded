@@ -322,13 +322,14 @@ void change_mode(){
 			/* initializaiton when mode changed */
 			if(mode == CLOCK_MODE){
 				dot_out(-1);
+				text_out("        ");
 			}
 			else if(mode == COUNTER_MODE){
 				dot_out(-1);
+				text_out("        ");
 			}
 			else if(mode == TEXT_MODE){
 				dot_out(text_mode);
-				text_out();
 			}
 		}
 	}
