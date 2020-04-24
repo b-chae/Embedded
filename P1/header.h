@@ -76,3 +76,6 @@ int minuit;
 int text_mode;
 
 unsigned char draw_board[10];
+int isCursor;
+int cursorX;
+int cursorY;

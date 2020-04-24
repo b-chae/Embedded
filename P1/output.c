@@ -105,11 +105,59 @@ void text_out(const char* buf){
 	return;
 }
 
+void cursor_blink(){
+
+	while(1){
+		while(isCursor == 1){
+			int dev;
+			
+			dev = open(DOT_DEVICE, O_WRONLY);
+			if(dev < 0){
+				printf("Device open error : %s\n", DOT_DEVICE);
+				exit(1);
+			}
+			
+			switch(cursorY){
+				case 7: draw_board[cursorX] = draw_board[cursorX] | 0b10000000; break;
+				case 6: draw_board[cursorX] = draw_board[cursorX] | 0b01000000; break;
+				case 5: draw_board[cursorX] = draw_board[cursorX] | 0b00100000; break;
+				case 4: draw_board[cursorX] = draw_board[cursorX] | 0b00010000; break;
+				case 3: draw_board[cursorX] = draw_board[cursorX] | 0b00001000; break;
+				case 2: draw_board[cursorX] = draw_board[cursorX] | 0b00000100; break;
+				case 1: draw_board[cursorX] = draw_board[cursorX] | 0b00000010; break;
+				case 0: draw_board[cursorX] = draw_board[cursorX] | 0b00000001; break;
+			}
+
+			write(dev, draw_board, sizeof(draw_board));
+			sleep(1);
+			
+			switch(cursorY){
+				case 7: draw_board[cursorX] = draw_board[cursorX] & 0b01111111; break;
+				case 6: draw_board[cursorX] = draw_board[cursorX] & 0b10111111; break;
+				case 5: draw_board[cursorX] = draw_board[cursorX] & 0b11011111; break;
+				case 4: draw_board[cursorX] = draw_board[cursorX] & 0b11101111; break;
+				case 3: draw_board[cursorX] = draw_board[cursorX] & 0b11110111; break;
+				case 2: draw_board[cursorX] = draw_board[cursorX] & 0b11111011; break;
+				case 1: draw_board[cursorX] = draw_board[cursorX] & 0b11111101; break;
+				case 0: draw_board[cursorX] = draw_board[cursorX] & 0b11111110; break;
+			}
+			
+			write(dev, draw_board, sizeof(draw_board));
+			
+			close(dev);
+			sleep(1);
+		}
+	}
+}
+
 void output_process(){
 	
 	key_t key1, key2, key3;
 	struct msgbuf buf;
 	key2 = msgget((key_t)1002, IPC_CREAT|0666);
+	
+	r_value = pthread_create(&p_thread[2], NULL, cursor_blink, NULL);
+	pthread_join(p_thread[2], (void**)NULL);
 
 	while(1){
 		if(msgrcv(key2, (void*)&buf, sizeof(buf) - sizeof(long), 0, MSG_NOERROR) == -1){
