@@ -17,7 +17,6 @@
 #include <sys/ipc.h>
 #include <pthread.h>
 #include <sys/msg.h>
-#include <linux/kernel.h>
 
 #define BUFF_SIZE 64
 #define KEY_RELEASE 0
@@ -32,6 +31,7 @@
 #define CLOCK_MODE 0
 #define COUNTER_MODE 1
 #define TEXT_MODE 2
+#define DRAW_MODE 3
 
 #define FND 10
 #define FND_WITH_BASE 11
@@ -73,3 +73,5 @@ int hour;
 int minuit;
 
 int text_mode;
+
+unsigned char draw_board[10];

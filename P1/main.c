@@ -27,6 +27,12 @@ void receive_msg(){
 	text_mode = 0;
 	strcpy(text_buf, "        ");
 	
+	int draw_count = 0;
+	memset(draw_board, 0, sizeof(draw_board));
+	int isCursor = 1;
+	int cursorX = 0; //첫번째 줄
+	int cursorY = 7; //2의 7승 자리
+	
 	while(1){
 		msgrcv(key1, (void*)&buf, sizeof(buf) - sizeof(long), 1, 0);
 		printf("key1 received\n");
@@ -262,6 +268,7 @@ void receive_msg(){
 					if(text_mode == 0) text_mode = 1; //change to number mode
 					else text_mode = 0; //change to alphabet mode
 					previous_char = ' ';
+					dot_out(text_mode); //DOT MATRIX 출력한다. alphabet mode? number mode?
 				}
 				else if(buf.value[7] == 1 && buf.value[8] == 1){//insert a blank at the end
 					for(i=0; i<7; i++){
@@ -272,7 +279,6 @@ void receive_msg(){
 				}
 			}
 			//TEXT LCD 출력한다.
-			//DOT MATRIX 출력한다. alphabet mode? number mode?
 			//text_count를 FND 출력한다.
 			struct msgbuf buf2;
 			memset(buf2.text, 0, sizeof(buf2.text));
@@ -283,6 +289,57 @@ void receive_msg(){
 			if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
 				printf("key 2 msgsnd error\n");
 				exit(0);
+			}
+		}
+		else if(mode == DRAW_MODE){
+			if(buf.n == 1){
+				if(buf.value[0] == 1){ //reset
+					for(i=0; i<10; i++){
+						draw_board[i] = 0;
+					}
+					cursorX = 0;
+					cursorY = 7;
+					isCursor = 1;
+				}
+				else if(buf.value[1] == 1){
+					if(cursorX > 0) cursorX--;
+				}
+				else if(buf.value[2] == 1){ //cursor
+					
+				}
+				else if(buf.value[3] == 1){
+					if(cursorY < 7) cursorY++;
+				}
+				else if(buf.value[4] == 1){
+					switch(cursorY){
+						case 7: draw_board[cursorX] = draw_board[cursorX] | 0b10000000; break;
+						case 6: draw_board[cursorX] = draw_board[cursorX] | 0b01000000; break;
+						case 5: draw_board[cursorX] = draw_board[cursorX] | 0b00100000; break;
+						case 4: draw_board[cursorX] = draw_board[cursorX] | 0b00010000; break;
+						case 3: draw_board[cursorX] = draw_board[cursorX] | 0b00001000; break;
+						case 2: draw_board[cursorX] = draw_board[cursorX] | 0b00000100; break;
+						case 1: draw_board[cursorX] = draw_board[cursorX] | 0b00000010; break;
+						case 0: draw_board[cursorX] = draw_board[cursorX] | 0b00000001; break;
+					}
+				}
+				else if(buf.value[5] == 1){
+					if(cursorY > 0) cursorY--;
+				}
+				else if(buf.value[6] == 1){
+					for(i=0; i<10; i++){
+						draw_board[i] = 0;
+					}
+				}
+				else if(buf.value[7] == 1){
+					if(cursorX < 8) cursorX++;
+				}
+				else if(buf.value[8] == 1){
+					for(i=0; i<10; i++){
+						draw_board[i] = ~draw_board[i] % 256;
+					}
+				}
+				
+				dot_draw(isCursor, cursorX, cursorY);
 			}
 		}
 	}

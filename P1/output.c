@@ -71,6 +71,23 @@ void dot_out(int mode){
 	
 }
 
+void dot_draw(int isCursor, int cursorX, int cursorY){
+	
+	int i;
+	int dev;
+	
+	dev = open(DOT_DEVICE, O_WRONLY);
+	if(dev < 0){
+		printf("Device open error : %s\n", DOT_DEVICE);
+		exit(1);
+	}
+	
+	write(dev, draw_board, sizeof(draw_board));
+	
+	close(dev);
+	return;
+}
+
 void text_out(const char* buf){
 	unsigned char string[32];
 
