@@ -29,9 +29,9 @@ void receive_msg(){
 	
 	int draw_count = 0;
 	memset(draw_board, 0, sizeof(draw_board));
-	isCursor = 0;
+	isCursor = 1;
 	cursorX = 0; //첫번째 줄
-	cursorY = 7; //2의 7승 자리
+	cursorY = 6; //2의 7승 자리
 	
 	while(1){
 		msgrcv(key1, (void*)&buf, sizeof(buf) - sizeof(long), 1, 0);
@@ -298,7 +298,7 @@ void receive_msg(){
 						draw_board[i] = 0;
 					}
 					cursorX = 0;
-					cursorY = 7;
+					cursorY = 6;
 					isCursor = 1;
 				}
 				else if(buf.value[1] == 1){
@@ -308,7 +308,7 @@ void receive_msg(){
 					
 				}
 				else if(buf.value[3] == 1){
-					if(cursorY < 7) cursorY++;
+					if(cursorY < 6) cursorY++;
 				}
 				else if(buf.value[4] == 1){
 					switch(cursorY){

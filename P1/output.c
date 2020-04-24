@@ -108,7 +108,7 @@ void text_out(const char* buf){
 void cursor_blink(){
 
 	while(1){
-		while(isCursor == 1){
+		while(1){
 			int dev;
 			
 			dev = open(DOT_DEVICE, O_WRONLY);
@@ -145,6 +145,9 @@ void cursor_blink(){
 			write(dev, draw_board, sizeof(draw_board));
 			
 			close(dev);
+			sleep(1);
+
+			printf("?\n");
 			sleep(1);
 		}
 	}
