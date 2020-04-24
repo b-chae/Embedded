@@ -96,6 +96,7 @@ void cursor_blink(){
 	
 	memset(draw_board, 0, sizeof(draw_board));
 	
+	isCursor = 1;
 	cursorX = 0; //첫번째 줄
 	cursorY = 6; //2의 7승 자리
 
