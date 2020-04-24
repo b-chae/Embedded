@@ -376,8 +376,8 @@ void change_mode(){
 			}
 			else if(ev[0].code == 158){
 				close(dot_dev);
-				kill(pid_in);
-				kill(pid_out);
+				kill(pid_in, 0);
+				kill(pid_out, 0);
 				exit(1);
 			}
 			
