@@ -93,6 +93,11 @@ void cursor_blink(){
 		printf("Device open error : %s\n", DOT_DEVICE);
 		exit(1);
 	}
+	
+	memset(draw_board, 0, sizeof(draw_board));
+	
+	cursorX = 0; //첫번째 줄
+	cursorY = 6; //2의 7승 자리
 
 	while(1){
 		while(isCursor == 1){
