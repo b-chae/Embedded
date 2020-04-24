@@ -58,6 +58,7 @@ void output_process();
 void receive_msg();
 void dot_out(int mode);
 void text_out(const char*);
+void dot_draw(int isCursor, int cursorX, int cursorY);
 
 /* global variables */
 int mode;
