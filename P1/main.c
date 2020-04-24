@@ -312,7 +312,6 @@ void receive_msg(){
 				}
 				else if(buf.value[4] == 1){
 					switch(cursorY){
-						case 7: draw_board[cursorX] = draw_board[cursorX] | 0b10000000; break;
 						case 6: draw_board[cursorX] = draw_board[cursorX] | 0b01000000; break;
 						case 5: draw_board[cursorX] = draw_board[cursorX] | 0b00100000; break;
 						case 4: draw_board[cursorX] = draw_board[cursorX] | 0b00010000; break;
@@ -339,7 +338,7 @@ void receive_msg(){
 					}
 				}
 				
-				dot_draw(isCursor, cursorX, cursorY);
+				dot_draw();
 			}
 		}
 	}
@@ -374,6 +373,12 @@ void change_mode(){
 				mode--;
 				if(mode < 0) mode = mode + 4;
 				printf("mode changed : %d\n", mode);
+			}
+			else if(ev[0].code == 158){
+				close(dot_dev);
+				kill(pid_in);
+				kill(pid_out);
+				exit(1);
 			}
 			
 			/* initializaiton when mode changed */

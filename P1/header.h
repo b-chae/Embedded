@@ -58,13 +58,14 @@ void output_process();
 void receive_msg();
 void dot_out(int mode);
 void text_out(const char*);
-void dot_draw(int isCursor, int cursorX, int cursorY);
+void dot_draw();
+void input();
 
 /* global variables */
 int mode;
 pid_t pid_in;
 pid_t pid_out;
-pthread_t p_thread[3];
+pthread_t p_thread[4];
 int r_value;
 
 int counter_base;
@@ -79,3 +80,5 @@ unsigned char draw_board[10];
 int isCursor;
 int cursorX;
 int cursorY;
+
+int dot_dev;
