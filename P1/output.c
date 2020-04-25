@@ -26,6 +26,8 @@ void fnd_out(int num, int base){
 
 void dot_out(int mode){
 	
+	printf("dot_dev %d\n",dot_dev);
+
 	int i;
 	
 	unsigned char fpga_a[10];
@@ -94,6 +96,7 @@ void cursor_blink(){
 		exit(1);
 	}
 	
+	printf("dot_dev initialize %d\n", dot_dev);
 	memset(draw_board, 0, sizeof(draw_board));
 	
 	isCursor = 0;
