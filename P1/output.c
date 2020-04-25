@@ -111,16 +111,20 @@ void output(){
 	
 	int i;
 	key_t key1, key2, key3;
-	struct msgbuf buf;
-	key2 = msgget((key_t)1002, IPC_CREAT|0666);
 	
 	while(1){
+		struct msgbuf buf;
+		key2 = msgget((key_t)1002, IPC_CREAT|0666);
+		
 		if(msgrcv(key2, (void*)&buf, sizeof(buf) - sizeof(long), 0, MSG_NOERROR) == -1){
 			printf("msgrcv error\n");
 			exit(0);
 		}
 		else{
-			printf("message received %d %d %s\n", buf.type, buf.num, buf.text);
+			printf("message received %d %d ", buf.type, buf.num);
+			for(i=0; i<10; i++)
+				printf("%d ", buf.text[i]);
+			printf("\n");
 			if(buf.type == FND){
 				if(buf.type == 10){
 						fnd_out(buf.num, 10);
@@ -142,11 +146,7 @@ void output(){
 					dot_out(buf.num);
 				}
 				else if(strcpy(buf.text, "") != 0){
-					unsigned char draw[10];
-					memset(draw, 0, sizeof(draw));
-					for(i=0; i<10; i++)
-						draw[i] = buf.text[i];
-					dot_draw(draw);
+					dot_draw(buf.text);
 				}
 			}
 		}
