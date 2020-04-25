@@ -46,7 +46,7 @@ struct switbuf{
 
 struct msgbuf{
 	long type;
-	char text[50];
+	unsigned char text[50];
 	int num;
 	int base;
 };
@@ -59,7 +59,7 @@ void output_process();
 void receive_msg();
 void dot_out(int mode);
 void text_out(const char*);
-void dot_draw();
+void dot_draw(unsigned char*);
 void output();
 void snd_msg();
 
@@ -78,7 +78,7 @@ int minuit;
 
 int text_mode;
 
-unsigned char draw_board[10];
+//unsigned char draw_board[10];
 int isCursor;
 int cursorX;
 int cursorY;

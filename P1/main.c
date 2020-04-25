@@ -1,5 +1,7 @@
 #include "header.h"
 
+unsigned char draw_board[10];
+
 void receive_msg(){
 	
 	key_t key1, key2, key3;
@@ -28,6 +30,7 @@ void receive_msg(){
 	strcpy(text_buf, "        ");
 	
 	int draw_count = 0;
+	memset(draw_board, 0, sizeof(draw_board));
 	
 	while(1){
 		msgrcv(key1, (void*)&buf, sizeof(buf) - sizeof(long), 1, 0);
@@ -350,7 +353,7 @@ void receive_msg(){
 				
 				struct msgbuf buf2;
 				memset(buf2.text, 0, sizeof(buf2.text));
-				strcpy(buf2.text, "");
+				strcpy(buf2.text, draw_board);
 				buf2.type = DOT;
 				buf2.num = 2;
 				key2 = msgget((key_t)1002, IPC_CREAT|0666);
@@ -360,6 +363,7 @@ void receive_msg(){
 				}
 				printf("dot key2 sent \n");
 				
+				strcpy(buf2.text, "");
 				buf2.type = FND;
 				buf2.num = draw_count;
 				if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
@@ -485,7 +489,7 @@ int main(int argc, char *argv[]){
 	mode = 0;
 	counter_base = 2;
 	counter_number = 0;
-	memset(draw_board, 0, sizeof(draw_board));
+//	memset(draw_board, 0, sizeof(draw_board));
 	
 	pid_in = fork();
 	if(pid_in == 0){//child process : receive input

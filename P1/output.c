@@ -70,7 +70,7 @@ void dot_out(int mode){
 	
 }
 
-void dot_draw(){
+void dot_draw(unsigned char* draw_board){
 	
 	int dev;
 
@@ -80,6 +80,11 @@ void dot_draw(){
 		exit(1);
 	}
 	
+	int i;
+	for(i=0 ;i<10;i++)
+		printf("%d ", draw_board[i]);
+	printf("\n");
+
 	write(dev, draw_board, sizeof(draw_board));
 	close(dev);
 	
@@ -120,21 +125,23 @@ void output(){
 				if(buf.type == 10){
 						fnd_out(buf.num, 10);
 				}
+				if(strcmp(buf.text, "")!=0){
+					text_out(buf.text);
+				}
 			}
 			else if(buf.type == FND_WITH_BASE){
 				fnd_out(buf.num, buf.base);
+				if(strcmp(buf.text, "")!=0){
+					text_out(buf.text);
+				}
 			}
 			else if(buf.type == DOT){
 				if(buf.num == -1 || buf.num == 0 || buf.num == 1){
 					dot_out(buf.num);
 				}
-				else{
-					dot_draw();
+				else if(strcpy(buf.text, "") != 0){
+					dot_draw(buf.text);
 				}
-			}
-			
-			if(strcmp(buf.text, "") != 0){
-				text_out(buf.text);
 			}
 		}
 	}
