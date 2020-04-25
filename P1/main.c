@@ -9,10 +9,10 @@ void receive_msg(){
 	key1 = msgget((key_t)1001, IPC_CREAT|0666);
 	
 	time_t t = time(NULL);
-	struct tm tm = *localtime(&t);
+	struct tm *tm = localtime(&t);
 	
-	hour = tm.tm_hour;
-	minuit = tm.tm_hour;
+	hour = tm->tm_hour;
+	minuit = tm->tm_min;
 	
 	int previous_hour, previous_minuit;
 	fnd_out(hour*100 + minuit, 10);
@@ -413,10 +413,14 @@ void change_mode(){
 				if(mode < 0) mode = mode + 4;
 				printf("mode changed : %d\n", mode);
 			}
-			else if(ev[0].code == 158){
+			else if(ev[0].code == 116){
+				printf("Good bye\n");
+				dot_out(-1);
+				text_out("        ");
+				fnd_out(0);
 				kill(pid_in, SIGINT);
 				kill(pid_out, SIGINT);
-				exit(1);
+				exit(0);
 			}
 			
 			/* initializaiton when mode changed */
@@ -437,6 +441,7 @@ void change_mode(){
 			else if(mode == DRAW_MODE){
 				isCursor  = 1;
 				dot_draw(draw_board);
+				text_out("        ");
 			}
 		}
 	}
