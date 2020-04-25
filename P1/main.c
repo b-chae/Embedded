@@ -435,7 +435,7 @@ void snd_msg(){
 	key_t key1, key2, key3;
 	struct msgbuf buf2;
 	memset(buf2.text, 0, sizeof(buf2.text));
-	strcpy(buf2.text, text_buf);
+	strcpy(buf2.text, "");
 	key2 = msgget((key_t)1002, IPC_CREAT|0666);
 	
 	while(1){
@@ -451,7 +451,7 @@ void snd_msg(){
 			}
 			
 			buf2.type = DOT;
-			buf2.number = 2;
+			buf2.num = 2;
 			if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
 				printf("key 2 msgsnd error\n");
 				exit(0);
@@ -470,7 +470,7 @@ void snd_msg(){
 			}
 			
 			buf2.type = DOT;
-			buf2.number = 2;
+			buf2.num = 2;
 			if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
 				printf("key 2 msgsnd error\n");
 				exit(0);
