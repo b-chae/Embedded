@@ -85,6 +85,7 @@ void dot_draw(unsigned char* draw_board){
 		printf("%d ", draw_board[i]);
 	printf("\n");
 
+	dot_out(-1);
 	write(dev, draw_board, sizeof(draw_board));
 	close(dev);
 	
