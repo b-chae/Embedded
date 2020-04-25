@@ -126,12 +126,14 @@ void output(){
 						fnd_out(buf.num, 10);
 				}
 				if(strcmp(buf.text, "")!=0){
+					buf.text[8] = '\0';
 					text_out(buf.text);
 				}
 			}
 			else if(buf.type == FND_WITH_BASE){
 				fnd_out(buf.num, buf.base);
 				if(strcmp(buf.text, "")!=0){
+					buf.text[8] = '\0';
 					text_out(buf.text);
 				}
 			}

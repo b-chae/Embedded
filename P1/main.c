@@ -31,6 +31,8 @@ void receive_msg(){
 	
 	int draw_count = 0;
 	memset(draw_board, 0, sizeof(draw_board));
+	cursorX = 0;
+	cursorY = 6;
 	
 	while(1){
 		msgrcv(key1, (void*)&buf, sizeof(buf) - sizeof(long), 1, 0);
@@ -429,6 +431,7 @@ void change_mode(){
 			}
 			else if(mode == DRAW_MODE){
 				isCursor  = 1;
+				dot_draw(draw_board);
 			}
 		}
 	}
@@ -456,6 +459,7 @@ void snd_msg(){
 			
 			buf2.type = DOT;
 			buf2.num = 2;
+			strcpy(buf2.text, draw_board);
 			if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
 				printf("key 2 msgsnd error\n");
 				exit(0);
@@ -475,6 +479,7 @@ void snd_msg(){
 			
 			buf2.type = DOT;
 			buf2.num = 2;
+			strcpy(buf2.text, draw_board);
 			if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
 				printf("key 2 msgsnd error\n");
 				exit(0);
@@ -489,7 +494,6 @@ int main(int argc, char *argv[]){
 	mode = 0;
 	counter_base = 2;
 	counter_number = 0;
-//	memset(draw_board, 0, sizeof(draw_board));
 	
 	pid_in = fork();
 	if(pid_in == 0){//child process : receive input
