@@ -70,8 +70,7 @@ void dot_out(int mode){
 	
 }
 
-void dot_draw(unsigned char* draw_board){
-	
+void dot_draw(unsigned char* draw_board){	
 	int dev;
 
 	dev = open(DOT_DEVICE, O_WRONLY);
@@ -85,7 +84,6 @@ void dot_draw(unsigned char* draw_board){
 		printf("%d ", draw_board[i]);
 	printf("\n");
 
-	dot_out(-1);
 	write(dev, draw_board, sizeof(draw_board));
 	close(dev);
 	
@@ -111,6 +109,7 @@ void text_out(const char* buf){
 
 void output(){
 	
+	int i;
 	key_t key1, key2, key3;
 	struct msgbuf buf;
 	key2 = msgget((key_t)1002, IPC_CREAT|0666);
@@ -143,7 +142,11 @@ void output(){
 					dot_out(buf.num);
 				}
 				else if(strcpy(buf.text, "") != 0){
-					dot_draw(buf.text);
+					unsigned char draw[10];
+					memset(draw, 0, sizeof(draw));
+					for(i=0; i<10; i++)
+						draw[i] = buf.text[i];
+					dot_draw(draw);
 				}
 			}
 		}

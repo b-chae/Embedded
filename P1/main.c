@@ -349,13 +349,14 @@ void receive_msg(){
 				}
 				else if(buf.value[8] == 1){
 					for(i=0; i<10; i++){
-						draw_board[i] = ~draw_board[i] % 256;
+						draw_board[i] = ~draw_board[i] % 128;
 					}
 				}
 				
 				struct msgbuf buf2;
 				memset(buf2.text, 0, sizeof(buf2.text));
-				strcpy(buf2.text, draw_board);
+				for(i=0; i<10; i++)
+					buf2.text[i] = draw_board[i];
 				buf2.type = DOT;
 				buf2.num = 2;
 				key2 = msgget((key_t)1002, IPC_CREAT|0666);
@@ -373,6 +374,10 @@ void receive_msg(){
 					exit(0);
 				}
 				printf("draw_count key2 sent \n");
+
+				for(i=0; i<10;i++)
+					printf("[%d]",draw_board[i]);
+				printf("\n");
 			}
 		}
 	}
@@ -439,6 +444,7 @@ void change_mode(){
 
 void snd_msg(){
 	
+	int i;
 	key_t key1, key2, key3;
 	struct msgbuf buf2;
 	memset(buf2.text, 0, sizeof(buf2.text));
@@ -447,6 +453,7 @@ void snd_msg(){
 	
 	while(1){
 		if(isCursor == 1){
+			printf("cursor %d %d\n", cursorX, cursorY);
 			switch(cursorY){
 				case 6: draw_board[cursorX] = draw_board[cursorX] | 0b01000000; break;
 				case 5: draw_board[cursorX] = draw_board[cursorX] | 0b00100000; break;
@@ -484,6 +491,8 @@ void snd_msg(){
 				printf("key 2 msgsnd error\n");
 				exit(0);
 			}
+
+			for(i=0;i<10;i++) printf("%d ", draw_board[i]);
 		}
 		sleep(1);
 	}
@@ -506,10 +515,10 @@ int main(int argc, char *argv[]){
 		else{
 			r_value = pthread_create(&p_thread[0], NULL, change_mode, NULL);
 			r_value = pthread_create(&p_thread[1], NULL, receive_msg, NULL);
-			r_value = pthread_create(&p_thread[2], NULL, snd_msg, NULL);
+	//		r_value = pthread_create(&p_thread[2], NULL, snd_msg, NULL);
 			pthread_join(p_thread[0], (void**)NULL);
 			pthread_join(p_thread[1], (void**)NULL);
-			pthread_join(p_thread[2], (void**)NULL);
+	//		pthread_join(p_thread[2], (void**)NULL);
 		}
 		//main process
 		
