@@ -345,7 +345,7 @@ void receive_msg(){
 					}
 				}
 				else if(buf.value[7] == 1){
-					if(cursorX < 8) cursorX++;
+					if(cursorX < 9) cursorX++;
 				}
 				else if(buf.value[8] == 1){
 					for(i=0; i<10; i++){
@@ -446,16 +446,20 @@ void snd_msg(){
 	
 	int i;
 	key_t key1, key2, key3;
-	struct msgbuf buf2;
-	memset(buf2.text, 0, sizeof(buf2.text));
-	strcpy(buf2.text, "");
-	key2 = msgget((key_t)1002, IPC_CREAT|0666);
-	
+
 	while(1){
 		if(isCursor == 1){
+
+			int tmpX = cursorX;
+			int tmpY = cursorY;
+
+			struct msgbuf buf2;
+			memset(buf2.text, 0, sizeof(buf2.text));
+			key2 = msgget((key_t)1002, IPC_CREAT|0666);
+
 			printf("cursor %d %d\n", cursorX, cursorY);
-			switch(cursorY){
-				case 6: draw_board[cursorX] = draw_board[cursorX] | 0b01000000; break;
+			switch(tmpY){
+				case 6: draw_board[tmpX] = draw_board[cursorX] | 0b01000000; break;
 				case 5: draw_board[cursorX] = draw_board[cursorX] | 0b00100000; break;
 				case 4: draw_board[cursorX] = draw_board[cursorX] | 0b00010000; break;
 				case 3: draw_board[cursorX] = draw_board[cursorX] | 0b00001000; break;
@@ -466,13 +470,17 @@ void snd_msg(){
 			
 			buf2.type = DOT;
 			buf2.num = 2;
-			strcpy(buf2.text, draw_board);
+			
+			for(i=0; i<10; i++){
+				buf2.text[i] = draw_board[i];
+			}
+
 			if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
 				printf("key 2 msgsnd error\n");
 				exit(0);
 			}
 			
-			sleep(1);
+			usleep(6000);
 			
 			switch(cursorY){
 				case 6: draw_board[cursorX] = draw_board[cursorX] & 0b10111111; break;
@@ -486,15 +494,17 @@ void snd_msg(){
 			
 			buf2.type = DOT;
 			buf2.num = 2;
-			strcpy(buf2.text, draw_board);
+			for(i=0; i<10; i++){
+				buf2.text[i] = draw_board[i];
+			}
 			if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
 				printf("key 2 msgsnd error\n");
 				exit(0);
 			}
 
-			for(i=0;i<10;i++) printf("%d ", draw_board[i]);
+			for(i=0;i<10;i++) printf("/%d/", draw_board[i]);
 		}
-		sleep(1);
+		usleep(6000);
 	}
 }
 
@@ -515,10 +525,10 @@ int main(int argc, char *argv[]){
 		else{
 			r_value = pthread_create(&p_thread[0], NULL, change_mode, NULL);
 			r_value = pthread_create(&p_thread[1], NULL, receive_msg, NULL);
-	//		r_value = pthread_create(&p_thread[2], NULL, snd_msg, NULL);
+			r_value = pthread_create(&p_thread[2], NULL, snd_msg, NULL);
 			pthread_join(p_thread[0], (void**)NULL);
 			pthread_join(p_thread[1], (void**)NULL);
-	//		pthread_join(p_thread[2], (void**)NULL);
+			pthread_join(p_thread[2], (void**)NULL);
 		}
 		//main process
 		
