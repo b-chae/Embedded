@@ -59,6 +59,11 @@ struct msgbuf{
 	int base;
 };
 
+struct eventbuf{
+	long type;
+	int n;
+};
+
 /* function definition */
 void change_mode();
 void input_process();
