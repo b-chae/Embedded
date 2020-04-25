@@ -372,22 +372,28 @@ void change_mode(){
 			}
 			else if(ev[0].code == 158){
 				close(dot_dev);
-				kill(pid_in, 0);
-				kill(pid_out, 0);
+				kill(pid_in, SIGINT);
+				kill(pid_out, SIGINT);
 				exit(1);
 			}
 			
 			/* initializaiton when mode changed */
 			if(mode == CLOCK_MODE){
+				isCursor = 0;
 				dot_out(-1);
 				text_out("        ");
 			}
 			else if(mode == COUNTER_MODE){
+				isCursor = 0;
 				dot_out(-1);
 				text_out("        ");
 			}
 			else if(mode == TEXT_MODE){
+				isCursor = 0;
 				dot_out(text_mode);
+			}
+			else if(mode == DRAW_MODE){
+				isCursor  = 1;
 			}
 		}
 	}
