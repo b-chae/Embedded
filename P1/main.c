@@ -403,7 +403,7 @@ void change_mode(){
 
 	while(1){
 		
-		msgrcv(key, (void*)&buf, sizeof(buf) - sizeof(long), EVNET, 0);
+		msgrcv(key, (void*)&buf, sizeof(buf) - sizeof(long), EVENT, 0);
 		
 		if(buf.n == 115){ //volume up
 			mode = (mode + 1) % 4;
@@ -418,7 +418,7 @@ void change_mode(){
 			printf("Good bye\n");
 			dot_out(-1);
 			text_out("        ");
-			fnd_out(0);
+			fnd_out(0, 10);
 			kill(pid_in, SIGINT);
 			kill(pid_out, SIGINT);
 			exit(0);
@@ -429,24 +429,24 @@ void change_mode(){
 			isCursor = 0;
 			dot_out(-1);
 			text_out("        ");
-			fnd_out(hour*100 + minuit);
+			fnd_out(hour*100 + minuit, 10);
 		}
 		else if(mode == COUNTER_MODE){
 			isCursor = 0;
 			dot_out(-1);
 			text_out("        ");
-			fnd_out(counter_number);
+			fnd_out(counter_number, 10);
 		}
 		else if(mode == TEXT_MODE){
 			isCursor = 0;
 			dot_out(text_mode);
-			fnd_out(text_count);
+			fnd_out(text_count, 10);
 		}
 		else if(mode == DRAW_MODE){
 			isCursor  = 1;
 			dot_draw(draw_board);
 			text_out("        ");
-			fnd_out(draw_count);
+			fnd_out(draw_count, 10);
 		}
 
 	}
