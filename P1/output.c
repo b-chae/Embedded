@@ -26,7 +26,14 @@ void fnd_out(int num, int base){
 
 void dot_out(int mode){
 	
+	int dev;
 	int i;
+	
+	dev = open(DOT_DEVICE, O_WRONLY);
+	if(dev < 0){
+		printf("Device open error : %s\n", DOT_DEVICE);
+		exit(1);
+	}
 	
 	unsigned char fpga_a[10];
 	unsigned char fpga_1[10];
@@ -50,21 +57,31 @@ void dot_out(int mode){
 	fpga_1[9] = 0x1e;
 	
 	if(mode == -1){
-		write(dot_dev, fpga_blank, sizeof(fpga_blank));
+		write(dev, fpga_blank, sizeof(fpga_blank));
 	}
 	else if(mode == 0){
-		write(dot_dev, fpga_a, sizeof(fpga_a));
+		write(dev, fpga_a, sizeof(fpga_a));
 	}
 	else if(mode == 1){
-		write(dot_dev, fpga_1, sizeof(fpga_a));
+		write(dev, fpga_1, sizeof(fpga_a));
 	}
+	close(dev);
 	return;
 	
 }
 
 void dot_draw(){
 	
-	write(dot_dev, draw_board, sizeof(draw_board));
+	int dev;
+
+	dev = open(DOT_DEVICE, O_WRONLY);
+	if(dev < 0){
+		printf("Device open error : %s\n", DOT_DEVICE);
+		exit(1);
+	}
+	
+	write(dev, draw_board, sizeof(draw_board));
+	close(dev);
 	
 	return;
 }
@@ -84,53 +101,6 @@ void text_out(const char* buf){
 	write(dev, string, sizeof(string));
 	close(dev);
 	return;
-}
-
-void cursor_blink(){
-
-	dot_dev = open(DOT_DEVICE, O_WRONLY);
-	if(dot_dev < 0){
-		printf("Device open error : %s\n", DOT_DEVICE);
-		exit(1);
-	}
-	
-	memset(draw_board, 0, sizeof(draw_board));
-	
-	isCursor = 0;
-	cursorX = 0; //첫번째 줄
-	cursorY = 6; //2의 7승 자리
-
-	while(1){
-		while(isCursor == 1){
-			
-			switch(cursorY){
-				case 6: draw_board[cursorX] = draw_board[cursorX] | 0b01000000; break;
-				case 5: draw_board[cursorX] = draw_board[cursorX] | 0b00100000; break;
-				case 4: draw_board[cursorX] = draw_board[cursorX] | 0b00010000; break;
-				case 3: draw_board[cursorX] = draw_board[cursorX] | 0b00001000; break;
-				case 2: draw_board[cursorX] = draw_board[cursorX] | 0b00000100; break;
-				case 1: draw_board[cursorX] = draw_board[cursorX] | 0b00000010; break;
-				case 0: draw_board[cursorX] = draw_board[cursorX] | 0b00000001; break;
-			}
-
-			write(dot_dev, draw_board, sizeof(draw_board));
-			sleep(1);
-			
-			switch(cursorY){
-				case 6: draw_board[cursorX] = draw_board[cursorX] & 0b10111111; break;
-				case 5: draw_board[cursorX] = draw_board[cursorX] & 0b11011111; break;
-				case 4: draw_board[cursorX] = draw_board[cursorX] & 0b11101111; break;
-				case 3: draw_board[cursorX] = draw_board[cursorX] & 0b11110111; break;
-				case 2: draw_board[cursorX] = draw_board[cursorX] & 0b11111011; break;
-				case 1: draw_board[cursorX] = draw_board[cursorX] & 0b11111101; break;
-				case 0: draw_board[cursorX] = draw_board[cursorX] & 0b11111110; break;
-			}
-			
-			write(dot_dev, draw_board, sizeof(draw_board));
-			sleep(1);
-		}
-		sleep(1);
-	}
 }
 
 void output(){
@@ -154,6 +124,14 @@ void output(){
 			else if(buf.type == FND_WITH_BASE){
 				fnd_out(buf.num, buf.base);
 			}
+			else if(buf.type == dot){
+				if(buf.number == -1 || buf.number == 0 || buf.number == 1){
+					dot_out(buf.number);
+				}
+				else{
+					dot_draw();
+				}
+			}
 			
 			if(strcmp(buf.text, "") != 0){
 				text_out(buf.text);
@@ -164,9 +142,5 @@ void output(){
 
 void output_process(){
 	
-	r_value = pthread_create(&p_thread[2], NULL, cursor_blink, NULL);
-	r_value = pthread_create(&p_thread[3], NULL, output, NULL);
-	pthread_join(p_thread[2], (void**)NULL);
-	pthread_join(p_thread[3], (void**)NULL);
-	
+	output();
 }

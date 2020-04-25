@@ -35,6 +35,7 @@
 
 #define FND 10
 #define FND_WITH_BASE 11
+#define DOT 12
 
 /*struct definition*/
 struct switbuf{
@@ -59,7 +60,8 @@ void receive_msg();
 void dot_out(int mode);
 void text_out(const char*);
 void dot_draw();
-void input();
+void output();
+void snd_msg();
 
 /* global variables */
 int mode;
@@ -80,5 +82,3 @@ unsigned char draw_board[10];
 int isCursor;
 int cursorX;
 int cursorY;
-
-int dot_dev;

@@ -264,7 +264,18 @@ void receive_msg(){
 					if(text_mode == 0) text_mode = 1; //change to number mode
 					else text_mode = 0; //change to alphabet mode
 					previous_char = ' ';
-					dot_out(text_mode); //DOT MATRIX 출력한다. alphabet mode? number mode?
+					//DOT MATRIX 출력한다. alphabet mode? number mode?
+					struct msgbuf buf2;
+					memset(buf2.text, 0, sizeof(buf2.text));
+					strcpy(buf2.text, "");
+					buf2.type = DOT;
+					buf2.num = text_mode;
+					key2 = msgget((key_t)1002, IPC_CREAT|0666);
+					if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
+						printf("key 2 msgsnd error\n");
+						exit(0);
+					}
+					printf("dot key2 sent \n");
 				}
 				else if(buf.value[7] == 1 && buf.value[8] == 1){//insert a blank at the end
 					for(i=0; i<7; i++){
@@ -289,6 +300,9 @@ void receive_msg(){
 		}
 		else if(mode == DRAW_MODE){
 			if(buf.n == 1){
+				
+				draw_count++;
+				
 				if(buf.value[0] == 1){ //reset
 					for(i=0; i<10; i++){
 						draw_board[i] = 0;
@@ -334,7 +348,25 @@ void receive_msg(){
 					}
 				}
 				
-				dot_draw();
+				struct msgbuf buf2;
+				memset(buf2.text, 0, sizeof(buf2.text));
+				strcpy(buf2.text, "");
+				buf2.type = DOT;
+				buf2.num = 2;
+				key2 = msgget((key_t)1002, IPC_CREAT|0666);
+				if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
+					printf("key 2 msgsnd error\n");
+					exit(0);
+				}
+				printf("dot key2 sent \n");
+				
+				buf2.type = FND;
+				buf2.num = draw_count;
+				if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
+					printf("key 2 msgsnd error\n");
+					exit(0);
+				}
+				printf("draw_count key2 sent \n");
 			}
 		}
 	}
@@ -371,7 +403,6 @@ void change_mode(){
 				printf("mode changed : %d\n", mode);
 			}
 			else if(ev[0].code == 158){
-				close(dot_dev);
 				kill(pid_in, SIGINT);
 				kill(pid_out, SIGINT);
 				exit(1);
@@ -398,11 +429,63 @@ void change_mode(){
 		}
 	}
 }
+
+void snd_msg(){
+	
+	key_t key1, key2, key3;
+	struct msgbuf buf2;
+	memset(buf2.text, 0, sizeof(buf2.text));
+	strcpy(buf2.text, text_buf);
+	key2 = msgget((key_t)1002, IPC_CREAT|0666);
+	
+	while(1){
+		if(isCursor == 1){
+			switch(cursorY){
+				case 6: draw_board[cursorX] = draw_board[cursorX] | 0b01000000; break;
+				case 5: draw_board[cursorX] = draw_board[cursorX] | 0b00100000; break;
+				case 4: draw_board[cursorX] = draw_board[cursorX] | 0b00010000; break;
+				case 3: draw_board[cursorX] = draw_board[cursorX] | 0b00001000; break;
+				case 2: draw_board[cursorX] = draw_board[cursorX] | 0b00000100; break;
+				case 1: draw_board[cursorX] = draw_board[cursorX] | 0b00000010; break;
+				case 0: draw_board[cursorX] = draw_board[cursorX] | 0b00000001; break;
+			}
+			
+			buf2.type = DOT;
+			buf2.number = 2;
+			if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
+				printf("key 2 msgsnd error\n");
+				exit(0);
+			}
+			
+			sleep(1);
+			
+			switch(cursorY){
+				case 6: draw_board[cursorX] = draw_board[cursorX] & 0b10111111; break;
+				case 5: draw_board[cursorX] = draw_board[cursorX] & 0b11011111; break;
+				case 4: draw_board[cursorX] = draw_board[cursorX] & 0b11101111; break;
+				case 3: draw_board[cursorX] = draw_board[cursorX] & 0b11110111; break;
+				case 2: draw_board[cursorX] = draw_board[cursorX] & 0b11111011; break;
+				case 1: draw_board[cursorX] = draw_board[cursorX] & 0b11111101; break;
+				case 0: draw_board[cursorX] = draw_board[cursorX] & 0b11111110; break;
+			}
+			
+			buf2.type = DOT;
+			buf2.number = 2;
+			if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
+				printf("key 2 msgsnd error\n");
+				exit(0);
+			}
+		}
+		sleep(1);
+	}
+}
+
 int main(int argc, char *argv[]){
 	
 	mode = 0;
 	counter_base = 2;
 	counter_number = 0;
+	memset(draw_board, 0, sizeof(draw_board));
 	
 	pid_in = fork();
 	if(pid_in == 0){//child process : receive input
@@ -415,8 +498,10 @@ int main(int argc, char *argv[]){
 		else{
 			r_value = pthread_create(&p_thread[0], NULL, change_mode, NULL);
 			r_value = pthread_create(&p_thread[1], NULL, receive_msg, NULL);
+			r_value = pthread_create(&p_thread[2], NULL, snd_msg, NULL);
 			pthread_join(p_thread[0], (void**)NULL);
 			pthread_join(p_thread[1], (void**)NULL);
+			pthread_join(p_thread[2], (void**)NULL);
 		}
 		//main process
 		
