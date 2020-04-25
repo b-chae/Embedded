@@ -114,5 +114,8 @@ void switch_input(){
 }
 
 void input_process(){
-	switch_input();
+	r_value = pthread_create(&p_thread[3], NULL, switch_input, NULL);
+	r_value = pthread_create(&p_thread[4], NULL, event_input, NULL);
+	pthread_join(p_thread[3], (void**)NULL);
+	pthread_join(p_thread[4], (void**)NULL);
 }
