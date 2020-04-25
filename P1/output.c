@@ -145,7 +145,7 @@ void output(){
 				if(buf.num == -1 || buf.num == 0 || buf.num == 1){
 					dot_out(buf.num);
 				}
-				else if(strcpy(buf.text, "") != 0){
+				else if(strcmp(buf.text, "") != 0){
 					dot_draw(buf.text);
 				}
 			}
