@@ -84,7 +84,7 @@ void dot_draw(unsigned char* draw_board){
 		printf("%d ", draw_board[i]);
 	printf("\n");
 
-	write(dev, draw_board, sizeof(draw_board));
+	write(dev, draw_board, 10);
 	close(dev);
 	
 	return;
@@ -145,7 +145,7 @@ void output(){
 				if(buf.num == -1 || buf.num == 0 || buf.num == 1){
 					dot_out(buf.num);
 				}
-				else if(strcpy(buf.text, "") != 0){
+				else{
 					dot_draw(buf.text);
 				}
 			}
