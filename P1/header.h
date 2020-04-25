@@ -17,6 +17,7 @@
 #include <sys/ipc.h>
 #include <pthread.h>
 #include <sys/msg.h>
+#include <sys/mman.h>
 
 #define BUFF_SIZE 64
 #define KEY_RELEASE 0
@@ -27,15 +28,22 @@
 #define SWITCH_DEVICE "/dev/fpga_push_switch"
 #define DOT_DEVICE "/dev/fpga_dot"
 #define TEXT_LCD_DEVICE "/dev/fpga_text_lcd"
+#define EVENT_DEVICE "/dev/input/event0"
+
+#define FPGA_BASE_ADDRESS 0x08000000
+#define LED_ADDR 0x16 
 
 #define CLOCK_MODE 0
 #define COUNTER_MODE 1
 #define TEXT_MODE 2
 #define DRAW_MODE 3
 
+#define SWITCH 1
+#define EVENT 2
 #define FND 10
 #define FND_WITH_BASE 11
 #define DOT 12
+#define LED 13
 
 /*struct definition*/
 struct switbuf{
@@ -51,6 +59,11 @@ struct msgbuf{
 	int base;
 };
 
+struct eventbuf{
+	long type;
+	int n;
+}
+
 /* function definition */
 void change_mode();
 void input_process();
@@ -60,14 +73,14 @@ void receive_msg();
 void dot_out(int mode);
 void text_out(const char*);
 void dot_draw(unsigned char*);
-void output();
 void snd_msg();
+void led_out(char n);
 
 /* global variables */
 int mode;
 pid_t pid_in;
 pid_t pid_out;
-pthread_t p_thread[4];
+pthread_t p_thread[5];
 int r_value;
 
 int counter_base;

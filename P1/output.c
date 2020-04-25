@@ -107,7 +107,34 @@ void text_out(const char* buf){
 	return;
 }
 
-void output(){
+void led_out(char n){
+	int fd, i;
+	
+	unsigned long *fpga_addr = 0;
+	unsigned char *led_addr = 0;
+	
+	fd = open("/dev/mem", O_RDWR | O_SYNC);
+	if(fd < 0){
+		printf("/dev/mem open error\n");
+		exit(1);
+	}
+	
+	fpga_addr = (unsigned long *)mmap(NULL, 4096, PROT_READ | PROT_WRITE, MAP_SHARED, fd, FPGA_BASE_ADDRESS);
+	if (fpga_addr == MAP_FAILED)
+	{
+		printf("mmap error!\n");
+		close(fd);
+		exit(1);
+	}
+	
+	led_addr=(unsigned char*)((void*)fpga_addr+LED_ADDR);
+	*led_addr = n;
+	
+	munmap(led_addr, 4096);
+	close(fd);
+}
+
+void output_process(){
 	
 	int i;
 	key_t key1, key2, key3;
@@ -149,11 +176,9 @@ void output(){
 					dot_draw(buf.text);
 				}
 			}
+			else if(buf.type == LED){
+				led_out(buf.n);
+			}
 		}
 	}
-}
-
-void output_process(){
-	
-	output();
 }

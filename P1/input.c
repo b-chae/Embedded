@@ -1,10 +1,45 @@
 #include "header.h"
 
-void input_process(){
-	key_t key1, key2, key3;
+void event_input(){
+	
+	struct input_event ev[BUFF_SIZE];
+	int fd, rd, value, size = sizeof(struct input_event);
+
+	if((fd = open(EVENT_DEVICE, O_RDONLY)) == -1){
+		printf("%s is not a valid device.\n", EVENT_DEVICE);
+	}
+	
+	while(1){
+		
+		if((rd = read(fd, ev, size*BUFF_SIZE)) < size){
+			printf("read()");
+			return;
+		}
+		
+		value = ev[0].value;
+		
+		if(value == KEY_PRESS){
+			key_t key;
+			struct eventbuf buf;
+			key = msgget((key_t)1003, IPC_CREAT|0666);
+			buf.type = EVENT;
+			buf.n = ev[0].code;
+			
+			if(msgsnd(key, (void*)&buf, sizeof(buf) - sizeof(long), IPC_NOWAIT) == -1){
+				printf("msgsnd error\n");
+				exit(0);
+			}
+		}
+		
+	}
+	
+}
+
+void switch_input(){
+	key_t key1;
 	struct switbuf buf;
 	key1 = msgget((key_t)1001, IPC_CREAT|0666);
-	buf.type = 1;
+	buf.type = SWITCH;
 	buf.n = 0;
 	memset(buf.value, 0, sizeof(buf.value));
 	
@@ -76,4 +111,8 @@ void input_process(){
 		printf("\n");
 	}
 	close(dev);
+}
+
+void input_process(){
+	switch_input();
 }

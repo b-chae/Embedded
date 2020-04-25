@@ -2,6 +2,10 @@
 
 unsigned char draw_board[10];
 
+int text_count;
+char text_buf[8];
+int draw_count;
+
 void receive_msg(){
 	
 	key_t key1, key2, key3;
@@ -20,8 +24,8 @@ void receive_msg(){
 	
 	int flag = 0;
 	
-	int text_count = 0;
-	char text_buf[8];
+	text_count = 0;
+	text_buf[8];
 	memset(text_buf, 0, sizeof(text_buf));
 	char previous_char = ' ';
 	char tmp;
@@ -29,13 +33,13 @@ void receive_msg(){
 	text_mode = 0;
 	strcpy(text_buf, "        ");
 	
-	int draw_count = 0;
+	draw_count = 0;
 	memset(draw_board, 0, sizeof(draw_board));
 	cursorX = 0;
 	cursorY = 6;
 	
 	while(1){
-		msgrcv(key1, (void*)&buf, sizeof(buf) - sizeof(long), 1, 0);
+		msgrcv(key1, (void*)&buf, sizeof(buf) - sizeof(long), SWITCH, 0);
 		printf("key1 received\n");
 		if(mode == CLOCK_MODE){
 			if(buf.n == 1 && buf.value[0] == 1){
@@ -99,11 +103,20 @@ void receive_msg(){
 				printf("key 2 msgsnd error\n");
 				exit(0);
 			}
-			printf("key2 sent \n");
+			
+			buf2.type = LED;
+			if(counter_base == 2) buf2.num = 128;
+			else if(counter_base == 10) buf2.num = 64;
+			else if(counter_base == 8) buf2.num = 32;
+			else if(counter_base == 4) buf2.num = 16;
+			if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
+				printf("key 2 msgsnd error\n");
+				exit(0);
+			}
 		}
 		else if(mode == TEXT_MODE){
 			if(buf.n == 1){
-				text_count++;
+				text_count = (text_count + 1)%10000;
 				
 				if(text_mode == 0){
 					int change_all = 0;
@@ -245,7 +258,7 @@ void receive_msg(){
 				}
 				else{
 					for(i=0; i<9 ;i++){
-						if(buf.value[i] == 0){
+						if(buf.value[i] == 1){
 							tmp = i + 1 + '0';
 						}
 					}
@@ -258,7 +271,7 @@ void receive_msg(){
 				}
 			}
 			else if(buf.n == 2){
-				text_count++;
+				text_count = (text_count + 1)%10000;
 				
 				if(buf.value[1] == 1 && buf.value[2] == 1){
 					for(i=0; i<8; i++)
@@ -306,7 +319,7 @@ void receive_msg(){
 		else if(mode == DRAW_MODE){
 			if(buf.n == 1){
 				
-				draw_count++;
+				draw_count = (draw_count + 1)%10000;
 				
 				if(buf.value[0] == 1){ //reset
 					for(i=0; i<10; i++){
@@ -384,66 +397,58 @@ void receive_msg(){
 }
 
 void change_mode(){
-	
-	struct input_event ev[BUFF_SIZE];
-	int fd, rd, value, size = sizeof(struct input_event);
-	
-	char* device = "/dev/input/event0";
-	if((fd = open(device, O_RDONLY)) == -1){
-		printf("%s is not a valid device.\n", device);
-	}
 
+	struct eventbuf buf;
+	key_t key = msgget((key_t)1003, IPC_CREAT|0666);
 
 	while(1){
 		
-		if((rd = read(fd, ev, size*BUFF_SIZE)) < size){
-			printf("read()");
-			return;
+		msgrcv(key, (void*)&buf, sizeof(buf) - sizeof(long), EVNET, 0);
+		
+		if(buf.n == 115){ //volume up
+			mode = (mode + 1) % 4;
+			printf("mode changed : %d\n", mode);
+		}
+		else if(buf.n == 114){ //volume down
+			mode--;
+			if(mode < 0) mode = mode + 4;
+			printf("mode changed : %d\n", mode);
+		}
+		else if(buf.n == 116){
+			printf("Good bye\n");
+			dot_out(-1);
+			text_out("        ");
+			fnd_out(0);
+			kill(pid_in, SIGINT);
+			kill(pid_out, SIGINT);
+			exit(0);
 		}
 		
-		value = ev[0].value;
-		
-		if(value == KEY_PRESS){
-			if(ev[0].code == 115){ //volume up
-				mode = (mode + 1) % 4;
-				printf("mode changed : %d\n", mode);
-			}
-			else if(ev[0].code == 114){ //volume down
-				mode--;
-				if(mode < 0) mode = mode + 4;
-				printf("mode changed : %d\n", mode);
-			}
-			else if(ev[0].code == 116){
-				printf("Good bye\n");
-				dot_out(-1);
-				text_out("        ");
-				fnd_out(0);
-				kill(pid_in, SIGINT);
-				kill(pid_out, SIGINT);
-				exit(0);
-			}
-			
-			/* initializaiton when mode changed */
-			if(mode == CLOCK_MODE){
-				isCursor = 0;
-				dot_out(-1);
-				text_out("        ");
-			}
-			else if(mode == COUNTER_MODE){
-				isCursor = 0;
-				dot_out(-1);
-				text_out("        ");
-			}
-			else if(mode == TEXT_MODE){
-				isCursor = 0;
-				dot_out(text_mode);
-			}
-			else if(mode == DRAW_MODE){
-				isCursor  = 1;
-				dot_draw(draw_board);
-				text_out("        ");
-			}
+		/* initializaiton when mode changed */
+		if(mode == CLOCK_MODE){
+			isCursor = 0;
+			dot_out(-1);
+			text_out("        ");
+			fnd_out(hour*100 + minuit);
 		}
+		else if(mode == COUNTER_MODE){
+			isCursor = 0;
+			dot_out(-1);
+			text_out("        ");
+			fnd_out(counter_number);
+		}
+		else if(mode == TEXT_MODE){
+			isCursor = 0;
+			dot_out(text_mode);
+			fnd_out(text_count);
+		}
+		else if(mode == DRAW_MODE){
+			isCursor  = 1;
+			dot_draw(draw_board);
+			text_out("        ");
+			fnd_out(draw_count);
+		}
+
 	}
 }
 
