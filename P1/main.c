@@ -457,15 +457,14 @@ void snd_msg(){
 			memset(buf2.text, 0, sizeof(buf2.text));
 			key2 = msgget((key_t)1002, IPC_CREAT|0666);
 
-			printf("cursor %d %d\n", cursorX, cursorY);
 			switch(tmpY){
-				case 6: draw_board[tmpX] = draw_board[cursorX] | 0b01000000; break;
-				case 5: draw_board[cursorX] = draw_board[cursorX] | 0b00100000; break;
-				case 4: draw_board[cursorX] = draw_board[cursorX] | 0b00010000; break;
-				case 3: draw_board[cursorX] = draw_board[cursorX] | 0b00001000; break;
-				case 2: draw_board[cursorX] = draw_board[cursorX] | 0b00000100; break;
-				case 1: draw_board[cursorX] = draw_board[cursorX] | 0b00000010; break;
-				case 0: draw_board[cursorX] = draw_board[cursorX] | 0b00000001; break;
+				case 6: draw_board[tmpX] = draw_board[tmpX] | 0b01000000; break;
+				case 5: draw_board[tmpX] = draw_board[tmpX] | 0b00100000; break;
+				case 4: draw_board[tmpX] = draw_board[tmpX] | 0b00010000; break;
+				case 3: draw_board[tmpX] = draw_board[tmpX] | 0b00001000; break;
+				case 2: draw_board[tmpX] = draw_board[tmpX] | 0b00000100; break;
+				case 1: draw_board[tmpX] = draw_board[tmpX] | 0b00000010; break;
+				case 0: draw_board[tmpX] = draw_board[tmpX] | 0b00000001; break;
 			}
 			
 			buf2.type = DOT;
@@ -480,16 +479,16 @@ void snd_msg(){
 				exit(0);
 			}
 			
-			usleep(6000);
+			sleep(1);
 			
-			switch(cursorY){
-				case 6: draw_board[cursorX] = draw_board[cursorX] & 0b10111111; break;
-				case 5: draw_board[cursorX] = draw_board[cursorX] & 0b11011111; break;
-				case 4: draw_board[cursorX] = draw_board[cursorX] & 0b11101111; break;
-				case 3: draw_board[cursorX] = draw_board[cursorX] & 0b11110111; break;
-				case 2: draw_board[cursorX] = draw_board[cursorX] & 0b11111011; break;
-				case 1: draw_board[cursorX] = draw_board[cursorX] & 0b11111101; break;
-				case 0: draw_board[cursorX] = draw_board[cursorX] & 0b11111110; break;
+			switch(tmpY){
+				case 6: draw_board[tmpX] = draw_board[tmpX] & 0b10111111; break;
+				case 5: draw_board[tmpX] = draw_board[tmpX] & 0b11011111; break;
+				case 4: draw_board[tmpX] = draw_board[tmpX] & 0b11101111; break;
+				case 3: draw_board[tmpX] = draw_board[tmpX] & 0b11110111; break;
+				case 2: draw_board[tmpX] = draw_board[tmpX] & 0b11111011; break;
+				case 1: draw_board[tmpX] = draw_board[tmpX] & 0b11111101; break;
+				case 0: draw_board[tmpX] = draw_board[tmpX] & 0b11111110; break;
 			}
 			
 			buf2.type = DOT;
@@ -501,10 +500,8 @@ void snd_msg(){
 				printf("key 2 msgsnd error\n");
 				exit(0);
 			}
-
-			for(i=0;i<10;i++) printf("/%d/", draw_board[i]);
 		}
-		usleep(6000);
+		sleep(1);
 	}
 }
 
