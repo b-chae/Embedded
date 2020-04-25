@@ -124,9 +124,9 @@ void output(){
 			else if(buf.type == FND_WITH_BASE){
 				fnd_out(buf.num, buf.base);
 			}
-			else if(buf.type == dot){
-				if(buf.number == -1 || buf.number == 0 || buf.number == 1){
-					dot_out(buf.number);
+			else if(buf.type == DOT){
+				if(buf.num == -1 || buf.num == 0 || buf.num == 1){
+					dot_out(buf.num);
 				}
 				else{
 					dot_draw();
