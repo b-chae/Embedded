@@ -1,25 +1,32 @@
 #include "header.h"
 
-unsigned char draw_board[10];
-
-int text_count;
+/* CLOCK_MODE */
+int flag; //flag = 1 if CLOCK_MODE에서 시간 수정 중일 경우, flag = 0 if CLOCK_MODE에서 시간 수정 안하고 있는 경우
+int hour;
+int minuit;
+/* COUNTER_MODE */
+int counter_base;
+int counter_number;
+/* TEXT_MODE */
+int text_mode; //text_mode = 0 if TEXT_MODE에서 영어입력 중일 경우, text_mode = 1 if TEXT_MODE에서 숫자 입력중일 경우
+int text_count; //버튼이 눌러진 횟수
 char text_buf[8];
-int draw_count;
-int flag;
 char previous_char;
+/* DRAW_MODE */
+unsigned char draw_board[10];
+int isCursor; //1일 경우 커서 보이기, 0일 경우 커서 안보이기
+int cursorX; int cursorY; //커서 X, Y좌표
+int draw_count; //DRAW_MODE에서 버튼이 눌러진 횟수
 
+/* input process에서 스위치 입력을 받은 경우 메세지를 처리하는 함수 */
 void receive_msg(){
 	
-	key_t key1, key2, key3;
+	key_t key1, key2;
 	struct switbuf buf;
 	key1 = msgget((key_t)1001, IPC_CREAT|0666);
 	
 	time_t t = time(NULL);
-	struct tm *tm = localtime(&t);
-	
-	hour = tm->tm_hour;
-	minuit = tm->tm_min;
-	
+	struct tm *tm = localtime(&t);	
 	flag = 0;
 	memset(text_buf, 0, sizeof(text_buf));
 	char tmp;
@@ -28,13 +35,14 @@ void receive_msg(){
 	memset(draw_board, 0, sizeof(draw_board));
 	
 	while(1){
+		/* 스위치 입력을 받는다 */
 		msgrcv(key1, (void*)&buf, sizeof(buf) - sizeof(long), SWITCH, 0);
-		printf("key1 received\n");
+
 		if(mode == CLOCK_MODE){
-			if(buf.n == 1 && buf.value[0] == 1){
-				if(flag == 0){
+			if(buf.n == 1 && buf.value[0] == 1){ //1번 스위치, 시간 수정 모드 -> 시간 변경 끝, 시간 변경 끝 -> 시간 수정 모드
+				if(flag == 0){ //시간 변경 끝 -> 시간 수정모드
 					flag = 1;
-				}else{
+				}else{ //시간 수정 모드 -> 시간 변경 끝, LED 1번에 불이 들어오도록 한다.
 					flag = 0;
 
 					struct msgbuf buf2;
@@ -47,18 +55,18 @@ void receive_msg(){
 						exit(0);
 					}					
 				}
-			}
+			} //2번 스위치, 시간 수정 모드일 경우 보드의 시간으로 reset한다.
 			else if(buf.n == 1 && buf.value[1] == 1 && flag == 1){
 				hour = tm->tm_hour;
 				minuit = tm->tm_min;
-			}
+			} //3번 스위치, 시간 수정 모드일 경우 시간 + 1
 			else if(buf.n == 1 && buf.value[2] == 1 && flag == 1){
 				hour = ( hour + 1 ) % 24;
-			}
+			} //4번 스위치, 시간 수정 모드일 경우 분 + 1
 			else if(buf.n == 1 && buf.value[3] == 1 && flag == 1){
 				minuit = (minuit + 1) % 60;
 			}
-			
+			//시간이 바뀐 경우 FND를 hour*100 + minuit으로 설정한다. output process에 메세지 전달.
 			struct msgbuf buf2;
 			memset(buf2.text, 0, sizeof(buf2.text));
 			strcpy(buf2.text, "");
@@ -71,24 +79,24 @@ void receive_msg(){
 			}
 		}
 		else if(mode == COUNTER_MODE){
-			if(buf.n == 1 && buf.value[0] == 1){
+			if(buf.n == 1 && buf.value[0] == 1){ //1번 스위치, 진수를 2 -> 10 -> 8 -> 4로 바꾼다.
 				if(counter_base == 2) counter_base = 10;
 				else if(counter_base == 10) counter_base = 8;
 				else if(counter_base == 8) counter_base = 4;
 				else if(counter_base == 4) counter_base = 2;
-			}
+			}//2번 스위치, 백의자리 숫자 + 1
 			else if(buf.n == 1 && buf.value[1] == 1){
 				counter_number += counter_base*counter_base;
-			}
+			}//3번 스위치, 십의자리 숫자 + 1
 			else if(buf.n == 1 && buf.value[2] == 1){
 				counter_number += counter_base;
-			}
+			}//4번 스위치, 일의자리 숫자 + 1
 			else if(buf.n == 1 && buf.value[3] == 1){
 				counter_number += 1;
 			}
-			
 			counter_number = counter_number % (counter_base*counter_base*counter_base);
-			printf("counter_number changed %d\n", counter_number);
+
+			//바뀐 숫자를 FND에 출력. output process에 메세지 전달.
 			struct msgbuf buf2;
 			memset(buf2.text, 0, sizeof(buf2.text));
 			strcpy(buf2.text, "");
@@ -101,6 +109,7 @@ void receive_msg(){
 				exit(0);
 			}
 			
+			//진수에 맞게 LED출력. output process에 메세지 전달.
 			buf2.type = LED;
 			if(counter_base == 2) buf2.num = 128;
 			else if(counter_base == 10) buf2.num = 64;
@@ -112,10 +121,10 @@ void receive_msg(){
 			}
 		}
 		else if(mode == TEXT_MODE){
-			if(buf.n == 1){
+			if(buf.n == 1){ //동시에 눌려진 스위치가 한개이다.
 				text_count = (text_count + 1)%10000;
 				
-				if(text_mode == 0){
+				if(text_mode == 0){ //알파벳 입력 모드일 경우
 					int change_all = 0;
 					if(buf.value[0] == 1){// .QZ
 						if(previous_char == '.'){
@@ -246,14 +255,15 @@ void receive_msg(){
 					
 					previous_char = tmp;
 					
-					if(change_all == 1){
+					if(change_all == 1){ //한개씩 앞으로 미룬다.
 						for(i=0; i<7; i++){
-						text_buf[i] = text_buf[i+1];}
+							text_buf[i] = text_buf[i+1];
+						}
 						text_buf[7] = tmp;
 					}
 					
 				}
-				else{
+				else{//숫자 입력 모드일 경우
 					for(i=0; i<9 ;i++){
 						if(buf.value[i] == 1){
 							tmp = i + 1 + '0';
@@ -267,19 +277,19 @@ void receive_msg(){
 					previous_char = tmp;
 				}
 			}
-			else if(buf.n == 2){
+			else if(buf.n == 2){//동시에 스위치 2개가 눌려진 경우
 				text_count = (text_count + 1)%10000;
 				
-				if(buf.value[1] == 1 && buf.value[2] == 1){
-					for(i=0; i<8; i++)
+				if(buf.value[1] == 1 && buf.value[2] == 1){ //2,3번 버튼이 눌려짐
+					for(i=0; i<8; i++) //초기화
 						text_buf[i] = ' ';
 					previous_char = ' ';
 				}
-				else if(buf.value[4] == 1 && buf.value[5] == 1){//change mode to alphabet or number
+				else if(buf.value[4] == 1 && buf.value[5] == 1){//5,6번 버튼이 눌려짐, alphabet <-> number
 					if(text_mode == 0) text_mode = 1; //change to number mode
 					else text_mode = 0; //change to alphabet mode
 					previous_char = ' ';
-					//DOT MATRIX 출력한다. alphabet mode? number mode?
+					//DOT MATRIX 출력을 바꾼다. output process에 메세지 전달.
 					struct msgbuf buf2;
 					memset(buf2.text, 0, sizeof(buf2.text));
 					strcpy(buf2.text, "");
@@ -290,9 +300,8 @@ void receive_msg(){
 						printf("key 2 msgsnd error\n");
 						exit(0);
 					}
-					printf("dot key2 sent \n");
 				}
-				else if(buf.value[7] == 1 && buf.value[8] == 1){//insert a blank at the end
+				else if(buf.value[7] == 1 && buf.value[8] == 1){//8,9번 버튼이 눌려짐, insert a blank at the end
 					for(i=0; i<7; i++){
 						text_buf[i] = text_buf[i+1];
 					}
@@ -301,7 +310,7 @@ void receive_msg(){
 				}
 			}
 			//TEXT LCD 출력한다.
-			//text_count를 FND 출력한다.
+			//text_count를 FND 출력한다. -> output process에 메세지 전달.
 			struct msgbuf buf2;
 			memset(buf2.text, 0, sizeof(buf2.text));
 			strcpy(buf2.text, text_buf);
@@ -315,28 +324,27 @@ void receive_msg(){
 		}
 		else if(mode == DRAW_MODE){
 			if(buf.n == 1){
-				
 				draw_count = (draw_count + 1)%10000;
 				
-				if(buf.value[0] == 1){ //reset
+				if(buf.value[0] == 1){ //1번 스위치, 그림을 reset
 					for(i=0; i<10; i++){
 						draw_board[i] = 0;
 					}
-					cursorX = 0;
+					cursorX = 0; //커서 위치 reset
 					cursorY = 6;
 					isCursor = 1;
 				}
-				else if(buf.value[1] == 1){
+				else if(buf.value[1] == 1){ //2번 스위치, 커서를 위로 이동
 					if(cursorX > 0) cursorX--;
 				}
-				else if(buf.value[2] == 1){ //cursor
+				else if(buf.value[2] == 1){ //3번 스위치, 커서 보이기 <-> 커서 숨기기
 					if(isCursor == 1) isCursor = 0;
 					else isCursor = 1;
 				}
-				else if(buf.value[3] == 1){
+				else if(buf.value[3] == 1){//4번 스위치, 커서 왼쪽으로 이동
 					if(cursorY < 6) cursorY++;
 				}
-				else if(buf.value[4] == 1){
+				else if(buf.value[4] == 1){//5번 스위치, 현재위치 선택
 					switch(cursorY){
 						case 6: draw_board[cursorX] = draw_board[cursorX] | 0b01000000; break;
 						case 5: draw_board[cursorX] = draw_board[cursorX] | 0b00100000; break;
@@ -347,23 +355,23 @@ void receive_msg(){
 						case 0: draw_board[cursorX] = draw_board[cursorX] | 0b00000001; break;
 					}
 				}
-				else if(buf.value[5] == 1){
+				else if(buf.value[5] == 1){//6번 스위치, 커서 오른쪽으로 이동
 					if(cursorY > 0) cursorY--;
 				}
-				else if(buf.value[6] == 1){
+				else if(buf.value[6] == 1){//7번 스위치, 그림 reset
 					for(i=0; i<10; i++){
 						draw_board[i] = 0;
 					}
 				}
-				else if(buf.value[7] == 1){
+				else if(buf.value[7] == 1){//8번 스위치, 커서 아래로 이동
 					if(cursorX < 9) cursorX++;
 				}
-				else if(buf.value[8] == 1){
+				else if(buf.value[8] == 1){//9번 스위치, 그림 반전시키기
 					for(i=0; i<10; i++){
 						draw_board[i] = ~draw_board[i] % 128;
 					}
 				}
-				
+				//그림 정보를 buf2.text에 담아 output process에 전달
 				struct msgbuf buf2;
 				memset(buf2.text, 0, sizeof(buf2.text));
 				for(i=0; i<10; i++)
@@ -375,8 +383,7 @@ void receive_msg(){
 					printf("key 2 msgsnd error\n");
 					exit(0);
 				}
-				printf("dot key2 sent \n");
-				
+				//draw_count정보를 FND에 출력
 				strcpy(buf2.text, "");
 				buf2.type = FND;
 				buf2.num = draw_count;
@@ -384,16 +391,12 @@ void receive_msg(){
 					printf("key 2 msgsnd error\n");
 					exit(0);
 				}
-				printf("draw_count key2 sent \n");
-
-				for(i=0; i<10;i++)
-					printf("[%d]",draw_board[i]);
-				printf("\n");
 			}
 		}
 	}
 }
 
+/* event 버튼이 눌려진 경우 메세지를 받아서 처리하는 함수 */
 void change_mode(){
 
 	struct eventbuf buf;
@@ -413,6 +416,17 @@ void change_mode(){
 		printf("key 2 msgsnd error\n");
 		exit(0);
 	}
+	
+	//text fnd 초기화
+	hour = tm->tm_hour;
+	minuit=tm->tm_min;
+	buf2.type = FND;
+	buf2.num = hour*100 + minuit;
+	strcpy(buf2.text, "        ");
+	if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
+		printf("key 2 msgsnd error\n");
+		exit(0);
+	}
 
 	while(1){
 		
@@ -427,7 +441,7 @@ void change_mode(){
 			if(mode < 0) mode = mode + 4;
 			printf("mode changed : %d\n", mode);
 		}
-		else if(buf.n == 116){
+		else if(buf.n == 116){ //PROG버튼, 초기화하고 프로세스를 종료한다.
 			//DOT MATRIX 초기화
 			buf2.type = DOT;
 			buf2.num = -1;
@@ -461,14 +475,14 @@ void change_mode(){
 		if(mode == CLOCK_MODE){
 			isCursor = 0;
 			flag = 0;
-			//DOT MATRIX 초기화
+			//DOT MATRIX 빈칸으로 초기화
 			buf2.type = DOT;
 			buf2.num = -1;
 			if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
 				printf("key 2 msgsnd error\n");
 				exit(0);
 			}
-			//text fnd 초기화
+			//text fnd 현재 시간으로 초기화
 			hour = tm->tm_hour;
 			minuit=tm->tm_min;
 			buf2.type = FND;
@@ -478,7 +492,7 @@ void change_mode(){
 				printf("key 2 msgsnd error\n");
 				exit(0);
 			}
-			//led 초기화
+			//led 1번에 불이 들어온다.
 			buf2.type = LED;
 			buf2.num = 128;
 			if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
@@ -487,15 +501,16 @@ void change_mode(){
 			}
 		}
 		else if(mode == COUNTER_MODE){
+			flag = 0;
 			isCursor = 0;
-			//DOT MATRIX 초기화
+			//DOT MATRIX 빈칸으로 초기화
 			buf2.type = DOT;
 			buf2.num = -1;
 			if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
 				printf("key 2 msgsnd error\n");
 				exit(0);
 			}
-			//text fnd 초기화
+			//text fnd 0으로 초기화
 			buf2.type = FND;
 			buf2.num = 0;
 			strcpy(buf2.text, "        ");
@@ -505,7 +520,7 @@ void change_mode(){
 			}
 			counter_number = 0;
 			counter_base = 10;
-			//led 초기화
+			//led 초기화 2번으로 초기화
 			buf2.type = LED;
 			buf2.num = 64;
 			if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
@@ -519,14 +534,14 @@ void change_mode(){
 			text_count = 0;
 			strcpy(text_buf, "        ");
 			isCursor = 0;
-			//DOT MATRIX 초기화
+			//DOT MATRIX 알파벳 A로 초기화
 			buf2.type = DOT;
 			buf2.num = 0;
 			if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
 				printf("key 2 msgsnd error\n");
 				exit(0);
 			}
-			//text fnd 초기화
+			//text fnd 0으로 초기화
 			buf2.type = FND;
 			buf2.num = 0;
 			strcpy(buf2.text, "        ");
@@ -534,7 +549,7 @@ void change_mode(){
 				printf("key 2 msgsnd error\n");
 				exit(0);
 			}
-			//led 초기화
+			//led 0으로 초기화
 			buf2.type = LED;
 			buf2.num = 0;
 			if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
@@ -543,6 +558,7 @@ void change_mode(){
 			}
 		}
 		else if(mode == DRAW_MODE){
+			flag = 0;
 			isCursor  = 1;
 			cursorX = 0;
 			cursorY = 6;
@@ -550,9 +566,9 @@ void change_mode(){
 			for(i=0; i<10; i++){
 				draw_board[i] = 0;
 			}
-			//DOT MATRIX 초기화
+			//DOT MATRIX 빈칸으로 초기화
 			buf2.type = DOT;
-			buf2.num = 0;
+			buf2.num = -1;
 			if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
 				printf("key 2 msgsnd error\n");
 				exit(0);
@@ -565,7 +581,7 @@ void change_mode(){
 				printf("key 2 msgsnd error\n");
 				exit(0);
 			}
-			//led 초기화
+			//led 0으로 초기화
 			buf2.type = LED;
 			buf2.num = 0;
 			if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
@@ -577,14 +593,14 @@ void change_mode(){
 	}
 }
 
+/* 커서가 보일 경우, CLOCK_MODE 수정 중일 경우 1초마다 출력이 바뀌도록 메세지를 전달하는 함수 */
 void snd_msg(){
 	
 	int i;
 	key_t key2;
 
 	while(1){
-		if(isCursor == 1){
-
+		if(isCursor == 1){ //커서가 보인다.
 			int tmpX = cursorX;
 			int tmpY = cursorY;
 			char tmp_board[10];
@@ -597,7 +613,7 @@ void snd_msg(){
 			memset(buf2.text, 0, sizeof(buf2.text));
 			key2 = msgget((key_t)1002, IPC_CREAT|0666);
 
-			switch(tmpY){
+			switch(tmpY){ //커서 위치가 보인다.
 				case 6: tmp_board[tmpX] = tmp_board[tmpX] | 0b01000000; break;
 				case 5: tmp_board[tmpX] = tmp_board[tmpX] | 0b00100000; break;
 				case 4: tmp_board[tmpX] = tmp_board[tmpX] | 0b00010000; break;
@@ -620,12 +636,11 @@ void snd_msg(){
 			}
 			
 			sleep(1);
-			
-			for(i=0; i<10; i++){
+			for(i=0; i<10; i++){ //중간에 바뀔 수도 있어서 다시 체크
 				tmp_board[i] = draw_board[i];
 			}
 			
-			switch(tmpY){
+			switch(tmpY){ //커서 위치가 안보인다.
 				case 6: tmp_board[tmpX] = tmp_board[tmpX] & 0b10111111; break;
 				case 5: tmp_board[tmpX] = tmp_board[tmpX] & 0b11011111; break;
 				case 4: tmp_board[tmpX] = tmp_board[tmpX] & 0b11101111; break;
@@ -645,21 +660,21 @@ void snd_msg(){
 				exit(0);
 			}
 		}
-		if(flag == 1){
+		if(flag == 1){ //CLOCK_MODE에서 시간 수정모드일 경우 3번, 4번 LED를 번갈아 깜빡이도록 설정한다.
 			struct msgbuf buf2;
 			memset(buf2.text, 0, sizeof(buf2.text));
 			key2 = msgget((key_t)1002, IPC_CREAT|0666);
 			
 			buf2.type = LED;
-			buf2.num = 32;
+			buf2.num = 32; //3번 LED
 			if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
 				printf("key 2 msgsnd error\n");
 				exit(0);
 			}
 			
 			sleep(1);
-			if(flag == 1){
-				buf2.num = 16;
+			if(flag == 1){ //중간에 바뀌었는지 체크
+				buf2.num = 16; //4번 LED
 				if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
 					printf("key 2 msgsnd error\n");
 					exit(0);
@@ -669,20 +684,21 @@ void snd_msg(){
 		sleep(1);
 	}
 }
-
+/* input process --메세지전달--> main --메세지전달--> output process */
+/* 메인에서 받은 메세지를 처리하고 출력을 위한 메세지 전달을 통괄한다. */
 int main(int argc, char *argv[]){
-	
-	mode = 0;
+	int r_value;
+	mode = CLOCK_MODE;
 	
 	pid_in = fork();
-	if(pid_in == 0){//child process : receive input
+	if(pid_in == 0){
 		input_process();
-	}else{//parent
+	}else{
 		pid_out = fork();
 		if(pid_out == 0){
 			output_process();
 		}
-		else{
+		else{ //change_mode, receive_msg, snd_msg 함수가 동시에 작동하고 있다.
 			r_value = pthread_create(&p_thread[0], NULL, change_mode, (void *)NULL);
 			r_value = pthread_create(&p_thread[1], NULL, receive_msg, (void *)NULL);
 			r_value = pthread_create(&p_thread[2], NULL, snd_msg, (void *)NULL);
@@ -690,8 +706,6 @@ int main(int argc, char *argv[]){
 			pthread_join(p_thread[1], (void**)NULL);
 			pthread_join(p_thread[2], (void**)NULL);
 		}
-		//main process
-		
 	}
 	return 0;
 }

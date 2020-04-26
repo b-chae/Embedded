@@ -1,5 +1,6 @@
 #include "header.h"
 
+/* fnd_out function : num을 base진수로 fnd에 출력한다. */
 void fnd_out(int num, int base){
 	int dev;
 	unsigned char data[4];
@@ -7,10 +8,10 @@ void fnd_out(int num, int base){
 
 	memset(data, 0, sizeof(data));
 	
-	data[0] = num/(base*base*base);
-	data[1] = num/(base*base)%base;
-	data[2] = num%(base*base)/base;
-	data[3] = num%base;
+	data[0] = num/(base*base*base); //천의 자리수
+	data[1] = num/(base*base)%base; //백의 자리수
+	data[2] = num%(base*base)/base; //십의 자리수
+	data[3] = num%base; //일의 자리수
 
 	dev = open(FND_DEVICE, O_RDWR);
 	if(dev < 0){
@@ -24,6 +25,11 @@ void fnd_out(int num, int base){
 	close(dev);
 }
 
+/* dot_out : dot matrix를 설정값에 따라 다르게 출력한다.
+ * mode == -1 : 빈 화면 출력한다.
+ * mode == 0 : 알파벳 A를 출력한다.
+ * mode == 1 : 숫자 1을 출력한다.
+ */
 void dot_out(int mode){
 	
 	int dev;
@@ -51,10 +57,7 @@ void dot_out(int mode){
 		fpga_blank[i] = 0x00;
 		fpga_1[i] = 0x0c;
 	}
-	
-	fpga_1[1] = 0x1c;
-	fpga_1[2] = 0x1c;
-	fpga_1[9] = 0x1e;
+	fpga_1[1] = 0x1c; fpga_1[2] = 0x1c; fpga_1[9] = 0x1e;
 	
 	if(mode == -1){
 		write(dev, fpga_blank, sizeof(fpga_blank));
@@ -70,6 +73,7 @@ void dot_out(int mode){
 	
 }
 
+/* dot_draw function : dot matrix를 draw_board 배열값에 맞추어 출력한다 */
 void dot_draw(unsigned char* draw_board){	
 	int dev;
 
@@ -78,11 +82,6 @@ void dot_draw(unsigned char* draw_board){
 		printf("Device open error : %s\n", DOT_DEVICE);
 		exit(1);
 	}
-	
-	int i;
-	for(i=0 ;i<10;i++)
-		printf("%d ", draw_board[i]);
-	printf("\n");
 
 	write(dev, draw_board, 10);
 	close(dev);
@@ -90,6 +89,7 @@ void dot_draw(unsigned char* draw_board){
 	return;
 }
 
+/* text_out function : text lcd를 buf 배열값에 맞추어 출력한다. */
 void text_out(const char* buf){
 	unsigned char string[32];
 
@@ -107,6 +107,7 @@ void text_out(const char* buf){
 	return;
 }
 
+/* led_out function : mmap을 사용하여 n값을 led에 출력한다. */
 void led_out(char n){
 	int fd, i;
 	
@@ -134,12 +135,12 @@ void led_out(char n){
 	close(fd);
 }
 
+/* output 출력 통괄, 메세지를 받으면 각각 맞는 출력을 할 수 있도록 */
 void output_process(){
 	
-	int i;
-	key_t key1, key2, key3;
+	key_t key2;
 	
-	while(1){
+	while(1){ //계속 메세지를 기다린다.
 		struct msgbuf buf;
 		key2 = msgget((key_t)1002, IPC_CREAT|0666);
 		
@@ -148,35 +149,29 @@ void output_process(){
 			exit(0);
 		}
 		else{
-			printf("message received %d %d ", buf.type, buf.num);
-			for(i=0; i<10; i++)
-				printf("%d ", buf.text[i]);
-			printf("\n");
-			if(buf.type == FND){
-				if(buf.type == 10){
-						fnd_out(buf.num, 10);
-				}
-				if(strcmp(buf.text, "")!=0){
+			if(buf.type == FND){ //FND 타입일 경우
+				fnd_out(buf.num, 10); //10진수를 기본으로 출력한다.
+				if(strcmp(buf.text, "") != 0){ //text출력할 것이 있으면 한다.
 					buf.text[8] = '\0';
 					text_out(buf.text);
 				}
 			}
-			else if(buf.type == FND_WITH_BASE){
-				fnd_out(buf.num, buf.base);
-				if(strcmp(buf.text, "")!=0){
+			else if(buf.type == FND_WITH_BASE){ //FND_WITH_BASE 타입일 경우
+				fnd_out(buf.num, buf.base); //buf.num을 buf.base진수로 하여 출력한다.
+				if(strcmp(buf.text, "")!=0){ //text출력할 것이 있으면 한다.
 					buf.text[8] = '\0';
 					text_out(buf.text);
 				}
 			}
-			else if(buf.type == DOT){
-				if(buf.num == -1 || buf.num == 0 || buf.num == 1){
-					dot_out(buf.num);
+			else if(buf.type == DOT){ //DOT타입일 경우
+				if(buf.num == -1 || buf.num == 0 || buf.num == 1){ //특정 모드일 때는
+					dot_out(buf.num); //특정 모드에 맞는 dot matrix를 출력한다.
 				}
-				else{
+				else{//그렇지 않을 경우에는 buf.text에 dot matrix 정보가 들어있다.
 					dot_draw(buf.text);
 				}
 			}
-			else if(buf.type == LED){
+			else if(buf.type == LED){//LED타입일 경우 해당 숫자를 출력한다.
 				led_out(buf.num);
 			}
 		}
