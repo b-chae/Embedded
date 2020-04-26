@@ -149,9 +149,6 @@ void output_process(){
 		}
 		else{
 			printf("message received %d %d ", buf.type, buf.num);
-			for(i=0; i<10; i++)
-				printf("%d ", buf.text[i]);
-			printf("\n");
 			if(buf.type == FND){
 				if(buf.type == 10){
 						fnd_out(buf.num, 10);

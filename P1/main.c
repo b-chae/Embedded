@@ -29,7 +29,7 @@ void receive_msg(){
 	
 	while(1){
 		msgrcv(key1, (void*)&buf, sizeof(buf) - sizeof(long), SWITCH, 0);
-		printf("key1 received\n");
+
 		if(mode == CLOCK_MODE){
 			if(buf.n == 1 && buf.value[0] == 1){
 				if(flag == 0){
@@ -88,7 +88,7 @@ void receive_msg(){
 			}
 			
 			counter_number = counter_number % (counter_base*counter_base*counter_base);
-			printf("counter_number changed %d\n", counter_number);
+
 			struct msgbuf buf2;
 			memset(buf2.text, 0, sizeof(buf2.text));
 			strcpy(buf2.text, "");
@@ -290,7 +290,6 @@ void receive_msg(){
 						printf("key 2 msgsnd error\n");
 						exit(0);
 					}
-					printf("dot key2 sent \n");
 				}
 				else if(buf.value[7] == 1 && buf.value[8] == 1){//insert a blank at the end
 					for(i=0; i<7; i++){
@@ -375,7 +374,6 @@ void receive_msg(){
 					printf("key 2 msgsnd error\n");
 					exit(0);
 				}
-				printf("dot key2 sent \n");
 				
 				strcpy(buf2.text, "");
 				buf2.type = FND;
@@ -384,11 +382,6 @@ void receive_msg(){
 					printf("key 2 msgsnd error\n");
 					exit(0);
 				}
-				printf("draw_count key2 sent \n");
-
-				for(i=0; i<10;i++)
-					printf("[%d]",draw_board[i]);
-				printf("\n");
 			}
 		}
 	}
@@ -409,6 +402,17 @@ void change_mode(){
 	//led 초기화
 	buf2.type = LED;
 	buf2.num = 128;
+	if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
+		printf("key 2 msgsnd error\n");
+		exit(0);
+	}
+	
+	//text fnd 초기화
+	hour = tm->tm_hour;
+	minuit=tm->tm_min;
+	buf2.type = FND;
+	buf2.num = hour*100 + minuit;
+	strcpy(buf2.text, "        ");
 	if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
 		printf("key 2 msgsnd error\n");
 		exit(0);
@@ -661,8 +665,7 @@ void snd_msg(){
 			if(flag == 1){
 				buf2.num = 16;
 				if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
-					printf("
-					key 2 msgsnd error\n");
+					printf("key 2 msgsnd error\n");
 					exit(0);
 				}
 			}
