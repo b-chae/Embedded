@@ -5,6 +5,8 @@ unsigned char draw_board[10];
 int text_count;
 char text_buf[8];
 int draw_count;
+int flag;
+char previous_char;
 
 void receive_msg(){
 	
@@ -18,25 +20,12 @@ void receive_msg(){
 	hour = tm->tm_hour;
 	minuit = tm->tm_min;
 	
-	int previous_hour, previous_minuit;
-	fnd_out(hour*100 + minuit, 10);
-	printf("current time %d %d\n", hour, minuit);
-	
-	int flag = 0;
-	
-	text_count = 0;
-	text_buf[8];
+	flag = 0;
 	memset(text_buf, 0, sizeof(text_buf));
-	char previous_char = ' ';
 	char tmp;
 	int i;
-	text_mode = 0;
-	strcpy(text_buf, "        ");
 	
-	draw_count = 0;
 	memset(draw_board, 0, sizeof(draw_board));
-	cursorX = 0;
-	cursorY = 6;
 	
 	while(1){
 		msgrcv(key1, (void*)&buf, sizeof(buf) - sizeof(long), SWITCH, 0);
@@ -45,20 +34,28 @@ void receive_msg(){
 			if(buf.n == 1 && buf.value[0] == 1){
 				if(flag == 0){
 					flag = 1;
-					previous_hour = hour;
-					previous_minuit = minuit;
 				}else{
-					flag = 0;	
+					flag = 0;
+
+					struct msgbuf buf2;
+					memset(buf2.text, 0, sizeof(buf2.text));
+					buf2.type = LED;
+					buf2.num = 128;
+					key2 = msgget((key_t)1002, IPC_CREAT|0666);
+					if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
+						printf("key 2 msgsnd error\n");
+						exit(0);
+					}					
 				}
 			}
-			else if(buf.n == 1 && buf.value[1] == 1){
-				hour = previous_hour;
-				minuit = previous_minuit;
+			else if(buf.n == 1 && buf.value[1] == 1 && flag == 1){
+				hour = tm->tm_hour;
+				minuit = tm->tm_minuit;
 			}
-			else if(buf.n == 1 && buf.value[2] == 1){
-				hour = (hour + 1) % 24;
+			else if(buf.n == 1 && buf.value[2] == 1 && flag == 1){
+				hour = ( hour + 1 ) % 24;
 			}
-			else if(buf.n == 1 && buf.value[3] == 1){
+			else if(buf.n == 1 && buf.value[3] == 1 && flag == 1){
 				minuit = (minuit + 1) % 60;
 			}
 			
@@ -333,7 +330,8 @@ void receive_msg(){
 					if(cursorX > 0) cursorX--;
 				}
 				else if(buf.value[2] == 1){ //cursor
-					
+					if(isCursor == 1) isCursor = 0;
+					else isCursor = 1;
 				}
 				else if(buf.value[3] == 1){
 					if(cursorY < 6) cursorY++;
@@ -399,7 +397,14 @@ void receive_msg(){
 void change_mode(){
 
 	struct eventbuf buf;
+	struct msgbuf buf2;
 	key_t key = msgget((key_t)1003, IPC_CREAT|0666);
+	key_t key2 = msgget((key_t)1002, IPC_CREAT|0666);
+	memset(buf2.text, 0, sizeof(buf2.text));
+	int i;
+	
+	time_t t = time(NULL);
+	struct tm *tm = localtime(&t);
 
 	while(1){
 		
@@ -416,9 +421,29 @@ void change_mode(){
 		}
 		else if(buf.n == 116){
 			printf("Good bye\n");
-			dot_out(-1);
-			text_out("        ");
-			fnd_out(0, 10);
+			//DOT MATRIX 초기화
+			buf2.type = DOT;
+			buf2.num = -1;
+			if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
+				printf("key 2 msgsnd error\n");
+				exit(0);
+			}
+			//text fnd 초기화
+			buf2.type = FND;
+			buf2.num = 0;
+			strcpy(buf2.text, "        ");
+			if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
+				printf("key 2 msgsnd error\n");
+				exit(0);
+			}
+			//led 초기화
+			buf2.type = LED;
+			buf2.num = 0;
+			if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
+				printf("key 2 msgsnd error\n");
+				exit(0);
+			}
+			usleep(10);
 			kill(pid_in, SIGINT);
 			kill(pid_out, SIGINT);
 			exit(0);
@@ -427,26 +452,118 @@ void change_mode(){
 		/* initializaiton when mode changed */
 		if(mode == CLOCK_MODE){
 			isCursor = 0;
-			dot_out(-1);
-			text_out("        ");
-			fnd_out(hour*100 + minuit, 10);
+			flag = 0;
+			//DOT MATRIX 초기화
+			buf2.type = DOT;
+			buf2.num = -1;
+			if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
+				printf("key 2 msgsnd error\n");
+				exit(0);
+			}
+			//text fnd 초기화
+			hour = tm->tm_hour;
+			minuit=tm->tm_min;
+			buf2.type = FND;
+			buf2.num = hout*100 + minuit;
+			strcpy(buf2.text, "        ");
+			if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
+				printf("key 2 msgsnd error\n");
+				exit(0);
+			}
+			//led 초기화
+			buf2.type = LED;
+			buf2.num = 128;
+			if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
+				printf("key 2 msgsnd error\n");
+				exit(0);
+			}
 		}
 		else if(mode == COUNTER_MODE){
 			isCursor = 0;
-			dot_out(-1);
-			text_out("        ");
-			fnd_out(counter_number, 10);
+			//DOT MATRIX 초기화
+			buf2.type = DOT;
+			buf2.num = -1;
+			if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
+				printf("key 2 msgsnd error\n");
+				exit(0);
+			}
+			//text fnd 초기화
+			buf2.type = FND;
+			buf2.num = 0;
+			strcpy(buf2.text, "        ");
+			if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
+				printf("key 2 msgsnd error\n");
+				exit(0);
+			}
+			counter_number = 0;
+			counter_base = 10;
+			//led 초기화
+			buf2.type = LED;
+			buf2.num = 64;
+			if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
+				printf("key 2 msgsnd error\n");
+				exit(0);
+			}
 		}
 		else if(mode == TEXT_MODE){
+			text_mode = 0;
+			previous_char = ' ';
+			text_count = 0;
+			strcpy(text_buf, "        ");
 			isCursor = 0;
-			dot_out(text_mode);
-			fnd_out(text_count, 10);
+			//DOT MATRIX 초기화
+			buf2.type = DOT;
+			buf2.num = 0;
+			if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
+				printf("key 2 msgsnd error\n");
+				exit(0);
+			}
+			//text fnd 초기화
+			buf2.type = FND;
+			buf2.num = 0;
+			strcpy(buf2.text, "        ");
+			if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
+				printf("key 2 msgsnd error\n");
+				exit(0);
+			}
+			//led 초기화
+			buf2.type = LED;
+			buf2.num = 0;
+			if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
+				printf("key 2 msgsnd error\n");
+				exit(0);
+			}
 		}
 		else if(mode == DRAW_MODE){
 			isCursor  = 1;
-			dot_draw(draw_board);
-			text_out("        ");
-			fnd_out(draw_count, 10);
+			cursorX = 0;
+			cursorY = 6;
+			draw_count = 0;
+			for(i=0; i<10; i++){
+				draw_board[i] = 0;
+			}
+			//DOT MATRIX 초기화
+			buf2.type = DOT;
+			buf2.num = 0;
+			if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
+				printf("key 2 msgsnd error\n");
+				exit(0);
+			}
+			//text fnd 초기화
+			buf2.type = FND;
+			buf2.num = 0;
+			strcpy(buf2.text, "        ");
+			if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
+				printf("key 2 msgsnd error\n");
+				exit(0);
+			}
+			//led 초기화
+			buf2.type = LED;
+			buf2.num = 0;
+			if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
+				printf("key 2 msgsnd error\n");
+				exit(0);
+			}
 		}
 
 	}
@@ -455,7 +572,7 @@ void change_mode(){
 void snd_msg(){
 	
 	int i;
-	key_t key1, key2, key3;
+	key_t key2;
 
 	while(1){
 		if(isCursor == 1){
@@ -496,6 +613,10 @@ void snd_msg(){
 			
 			sleep(1);
 			
+			for(i=0; i<10; i++){
+				tmp_board[i] = draw_board[i];
+			}
+			
 			switch(tmpY){
 				case 6: tmp_board[tmpX] = tmp_board[tmpX] & 0b10111111; break;
 				case 5: tmp_board[tmpX] = tmp_board[tmpX] & 0b11011111; break;
@@ -511,6 +632,25 @@ void snd_msg(){
 			for(i=0; i<10; i++){
 				buf2.text[i] = tmp_board[i];
 			}
+			if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
+				printf("key 2 msgsnd error\n");
+				exit(0);
+			}
+		}
+		if(flag == 1){
+			struct msgbuf buf2;
+			memset(buf2.text, 0, sizeof(buf2.text));
+			key2 = msgget((key_t)1002, IPC_CREAT|0666);
+			
+			buf2.type = LED;
+			buf2.num = 32;
+			if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
+				printf("key 2 msgsnd error\n");
+				exit(0);
+			}
+			
+			sleep(1);
+			buf2.num = 16;
 			if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
 				printf("key 2 msgsnd error\n");
 				exit(0);
