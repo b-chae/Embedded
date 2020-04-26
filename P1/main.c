@@ -406,6 +406,14 @@ void change_mode(){
 	time_t t = time(NULL);
 	struct tm *tm = localtime(&t);
 
+	//led 초기화
+	buf2.type = LED;
+	buf2.num = 128;
+	if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
+		printf("key 2 msgsnd error\n");
+		exit(0);
+	}
+
 	while(1){
 		
 		msgrcv(key, (void*)&buf, sizeof(buf) - sizeof(long), EVENT, 0);
@@ -420,7 +428,6 @@ void change_mode(){
 			printf("mode changed : %d\n", mode);
 		}
 		else if(buf.n == 116){
-			printf("Good bye\n");
 			//DOT MATRIX 초기화
 			buf2.type = DOT;
 			buf2.num = -1;
@@ -443,9 +450,10 @@ void change_mode(){
 				printf("key 2 msgsnd error\n");
 				exit(0);
 			}
-			usleep(10);
+			sleep(1);
 			kill(pid_in, SIGINT);
 			kill(pid_out, SIGINT);
+			printf("Good bye\n");
 			exit(0);
 		}
 		
@@ -650,10 +658,13 @@ void snd_msg(){
 			}
 			
 			sleep(1);
-			buf2.num = 16;
-			if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
-				printf("key 2 msgsnd error\n");
-				exit(0);
+			if(flag == 1){
+				buf2.num = 16;
+				if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
+					printf("
+					key 2 msgsnd error\n");
+					exit(0);
+				}
 			}
 		}
 		sleep(1);
@@ -663,8 +674,6 @@ void snd_msg(){
 int main(int argc, char *argv[]){
 	
 	mode = 0;
-	counter_base = 2;
-	counter_number = 0;
 	
 	pid_in = fork();
 	if(pid_in == 0){//child process : receive input
