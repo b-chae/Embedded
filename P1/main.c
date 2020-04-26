@@ -661,8 +661,7 @@ void snd_msg(){
 			if(flag == 1){
 				buf2.num = 16;
 				if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
-					printf("
-					key 2 msgsnd error\n");
+					printf("key 2 msgsnd error\n");
 					exit(0);
 				}
 			}
