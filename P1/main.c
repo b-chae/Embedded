@@ -50,7 +50,7 @@ void receive_msg(){
 			}
 			else if(buf.n == 1 && buf.value[1] == 1 && flag == 1){
 				hour = tm->tm_hour;
-				minuit = tm->tm_minuit;
+				minuit = tm->tm_min;
 			}
 			else if(buf.n == 1 && buf.value[2] == 1 && flag == 1){
 				hour = ( hour + 1 ) % 24;
@@ -464,7 +464,7 @@ void change_mode(){
 			hour = tm->tm_hour;
 			minuit=tm->tm_min;
 			buf2.type = FND;
-			buf2.num = hout*100 + minuit;
+			buf2.num = hour*100 + minuit;
 			strcpy(buf2.text, "        ");
 			if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
 				printf("key 2 msgsnd error\n");
@@ -675,9 +675,9 @@ int main(int argc, char *argv[]){
 			output_process();
 		}
 		else{
-			r_value = pthread_create(&p_thread[0], NULL, change_mode, NULL);
-			r_value = pthread_create(&p_thread[1], NULL, receive_msg, NULL);
-			r_value = pthread_create(&p_thread[2], NULL, snd_msg, NULL);
+			r_value = pthread_create(&p_thread[0], NULL, change_mode, (void *)NULL);
+			r_value = pthread_create(&p_thread[1], NULL, receive_msg, (void *)NULL);
+			r_value = pthread_create(&p_thread[2], NULL, snd_msg, (void *)NULL);
 			pthread_join(p_thread[0], (void**)NULL);
 			pthread_join(p_thread[1], (void**)NULL);
 			pthread_join(p_thread[2], (void**)NULL);
