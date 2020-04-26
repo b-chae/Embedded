@@ -177,7 +177,7 @@ void output_process(){
 				}
 			}
 			else if(buf.type == LED){
-				led_out(buf.n);
+				led_out(buf.num);
 			}
 		}
 	}
