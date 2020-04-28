@@ -295,11 +295,13 @@ void receive_msg(){
 				}
 				//TEXT LCD 출력한다.
 				//text_count를 FND 출력한다. -> output process에 메세지 전달.
-				shmaddr2[3] = '\0';
+				for(i=0; i<8; i++){
+					shmaddr2[3+i] = text_buf[i];
+				}
 				shmaddr2[1] = text_count % 100;
 				shmaddr2[2] = text_count / 100;
 				shmaddr2[0] = FND;
-				sleep(1);
+				while(*shmaddr2 != '*') usleep(100);
 			}
 			else if(mode == DRAW_MODE){
 			if(n == 1){
