@@ -152,7 +152,7 @@ void output_process(){
 			for(i=0; i<10; i++){
 				text[i] = shmaddr[3+i];
 			}
-			printf("message received in output process [%d] %d [%s]\n", type,n,text);
+			printf("message received in output process [%d] %d\n", type,n);
 			
 			if(type == FND){ //FND 타입일 경우
 				fnd_out(n, 10); //10진수를 기본으로 출력한다.
