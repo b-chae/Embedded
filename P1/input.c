@@ -107,7 +107,8 @@ void switch_input(){
 		
 		printf("/");
 		*shmaddr = SWITCH;
-		sleep(1);
+		
+		while(*shmaddr != '*') usleep(100);
 		
 		printf("send switch message %d switches pressed\n", shmaddr[1]);
 		for(i=0; i<9; i++){
