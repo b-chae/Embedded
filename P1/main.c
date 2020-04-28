@@ -278,11 +278,12 @@ void receive_msg(){
 						else text_mode = 0; //change to alphabet mode
 						previous_char = ' ';
 						//DOT MATRIX 출력을 바꾼다. output process에 메세지 전달.
+						printf("change to %d\n", text_mode);
 						shmaddr2[3] = '\0';
 						shmaddr2[1] = text_mode;
 						shmaddr2[2] = 0;
 						shmaddr2[0] = DOT;
-						sleep(1);
+						while(*shmaddr2 != '*') usleep(100);
 					}
 					else if(shmaddr1[9] == 1 && shmaddr1[10] == 1){//8,9번 버튼이 눌려짐, insert a blank at the end
 						for(i=0; i<7; i++){
@@ -409,7 +410,6 @@ void change_mode(){
 		if( *shmaddr == EVENT ){
 			printf("event msg received\n");
 			whichButton = shmaddr[1];
-			printf("%d\n", whichButton);
 			
 			if(whichButton == 115){ //volume up
 				mode = (mode + 1) % 4;

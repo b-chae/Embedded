@@ -108,13 +108,13 @@ void switch_input(){
 		printf("/");
 		*shmaddr = SWITCH;
 		
-		while(*shmaddr != '*') usleep(100);
-		
 		printf("send switch message %d switches pressed\n", shmaddr[1]);
 		for(i=0; i<9; i++){
 			printf("%d ", shmaddr[2+i]);
 		}
 		printf("\n");
+		
+		while(*shmaddr != '*') usleep(100);
 	}
 	close(dev);
 }
