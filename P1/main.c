@@ -557,7 +557,7 @@ void change_mode(){
 				while(*shmaddr2 != '*') usleep(100);
 				
 				//text 설정 fnd counter 설정
-				strcpy(&shmaddr2[3], "");
+				shmaddr2[3] = '\0';
 				shmaddr2[1] = draw_count%100;
 				shmaddr2[2] = draw_count/100;
 				shmaddr2[0] = FND;
@@ -579,7 +579,8 @@ void change_mode(){
 void snd_msg(){
 	
 	int i;
-	key_t key2;
+	int shmid2 = shmget((key_t)1002, 14, 0);
+	char* shmaddr2 = (char*)shmat(shmid2, (char*)NULL, 0);
 
 	while(1){
 		if(isCursor == 1){ //커서가 보인다.
@@ -591,10 +592,6 @@ void snd_msg(){
 				tmp_board[i] = draw_board[i];
 			}
 
-			struct msgbuf buf2;
-			memset(buf2.text, 0, sizeof(buf2.text));
-			key2 = msgget((key_t)1002, IPC_CREAT|0666);
-
 			switch(tmpY){ //커서 위치가 보인다.
 				case 6: tmp_board[tmpX] = tmp_board[tmpX] | 0b01000000; break;
 				case 5: tmp_board[tmpX] = tmp_board[tmpX] | 0b00100000; break;
@@ -605,17 +602,12 @@ void snd_msg(){
 				case 0: tmp_board[tmpX] = tmp_board[tmpX] | 0b00000001; break;
 			}
 			
-			buf2.type = DOT;
-			buf2.num = 2;
-			
-			for(i=0; i<10; i++){
-				buf2.text[i] = tmp_board[i];
-			}
-
-			if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
-				printf("key 2 msgsnd error\n");
-				exit(0);
-			}
+			for(i=0; i<10; i++)
+				shmaddr2[i+3] = tmp_board[i];
+			shmaddr2[1] = 2;
+			shmaddr2[2] = 0;
+			shmaddr2[0] = DOT;
+			while(*shmaddr2 != '*') usleep(100);
 			
 			sleep(1);
 			for(i=0; i<10; i++){ //중간에 바뀔 수도 있어서 다시 체크
@@ -632,35 +624,28 @@ void snd_msg(){
 				case 0: tmp_board[tmpX] = tmp_board[tmpX] & 0b11111110; break;
 			}
 			
-			buf2.type = DOT;
-			buf2.num = 2;
-			for(i=0; i<10; i++){
-				buf2.text[i] = tmp_board[i];
-			}
-			if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
-				printf("key 2 msgsnd error\n");
-				exit(0);
-			}
+			for(i=0; i<10; i++)
+				shmaddr2[i+3] = tmp_board[i];
+			shmaddr2[1] = 2;
+			shmaddr2[2] = 0;
+			shmaddr2[0] = DOT;
+			while(*shmaddr2 != '*') usleep(100);
 		}
 		if(flag == 1){ //CLOCK_MODE에서 시간 수정모드일 경우 3번, 4번 LED를 번갈아 깜빡이도록 설정한다.
-			struct msgbuf buf2;
-			memset(buf2.text, 0, sizeof(buf2.text));
-			key2 = msgget((key_t)1002, IPC_CREAT|0666);
-			
-			buf2.type = LED;
-			buf2.num = 32; //3번 LED
-			if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
-				printf("key 2 msgsnd error\n");
-				exit(0);
-			}
+		
+			shmaddr2[3] = '\0';
+			shmaddr2[1] = 32;
+			shmaddr2[2] = 0;
+			shmaddr2[0] = LED;
+			while(*shmaddr2 != '*') usleep(100);
 			
 			sleep(1);
 			if(flag == 1){ //중간에 바뀌었는지 체크
-				buf2.num = 16; //4번 LED
-				if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
-					printf("key 2 msgsnd error\n");
-					exit(0);
-				}
+				shmaddr2[3] = '\0';
+				shmaddr2[1] = 16;
+				shmaddr2[2] = 0;
+				shmaddr2[0] = LED;
+				while(*shmaddr2 != '*') usleep(100);
 			}
 		}
 		sleep(1);
@@ -700,10 +685,10 @@ int main(int argc, char *argv[]){
 		else{ //change_mode, receive_msg, snd_msg 함수가 동시에 작동하고 있다.
 			r_value = pthread_create(&p_thread[0], NULL, change_mode, (void *)NULL);
 			r_value = pthread_create(&p_thread[1], NULL, receive_msg, (void *)NULL);
-			//r_value = pthread_create(&p_thread[2], NULL, snd_msg, (void *)NULL);
+			r_value = pthread_create(&p_thread[2], NULL, snd_msg, (void *)NULL);
 			pthread_join(p_thread[0], (void**)NULL);
 			pthread_join(p_thread[1], (void**)NULL);
-			//pthread_join(p_thread[2], (void**)NULL);
+			pthread_join(p_thread[2], (void**)NULL);
 		}
 	}
 	return 0;

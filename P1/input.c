@@ -63,8 +63,7 @@ void switch_input(){
 		&& push_sw_buff[4] == 0 && push_sw_buff[5] == 0 && push_sw_buff[6] == 0 && push_sw_buff[7] == 0 
 		&& push_sw_buff[8] == 0)
 			read(dev, &push_sw_buff, sizeof(push_sw_buff));
-		
-		printf("!");
+
 		for(i=0; i<9; i++){
 			if(push_sw_buff[i] == 1)
 			{
@@ -75,7 +74,6 @@ void switch_input(){
 				shmaddr[2+i] = 0; //안눌려짐 2
 			}
 		}
-		printf("?");
 		
 		//버튼을 눌렀다가 뗄 때까지 기다린다.
 		while(push_sw_buff[0] == 1 || push_sw_buff[1] == 1 || push_sw_buff[2] == 1 || push_sw_buff[3] == 1
@@ -103,7 +101,6 @@ void switch_input(){
 			}
 		}
 		
-		printf("/");
 		printf("send switch message %d switches pressed\n", shmaddr[1]);
 		for(i=0; i<9; i++){
 			printf("%d ", shmaddr[2+i]);
