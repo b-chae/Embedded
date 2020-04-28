@@ -179,6 +179,6 @@ void output_process(){
 			}
 			usleep(100);
 		}
-		ulseep(100);
+		usleep(100);
 	}
 }
