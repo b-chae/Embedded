@@ -187,6 +187,6 @@ void output_process(){
 			}
 			*shmaddr = '*';
 		}
-		usleep(1000);
+		usleep(100);
 	}
 }
