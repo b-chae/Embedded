@@ -278,6 +278,7 @@ void receive_msg(){
 						else text_mode = 0; //change to alphabet mode
 						previous_char = ' ';
 						//DOT MATRIX 출력을 바꾼다. output process에 메세지 전달.
+						while(*shmaddr2 != '*') usleep(100);
 						printf("change to %d\n", text_mode);
 						shmaddr2[3] = '\0';
 						shmaddr2[1] = text_mode;
@@ -296,6 +297,7 @@ void receive_msg(){
 				//TEXT LCD 출력한다.
 				//text_count를 FND 출력한다. -> output process에 메세지 전달.
 				printf("here!");
+				while(*shmaddr2 != '*') usleep(100);
 				for(i=0; i<8; i++){
 					shmaddr2[3+i] = text_buf[i];
 					printf("/%d %d/", shmaddr2[3+i], text_buf[i]);
