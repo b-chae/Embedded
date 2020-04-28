@@ -21,7 +21,7 @@ void event_input(){
 		
 		if(value == KEY_PRESS){ //버튼이 눌렸다.
 		
-			int shmid3 = shmget((key_t)1003, 2, IPC_CREAT|0666);
+			int shmid3 = shmget((key_t)1003, 2, 0);
 			char* shmaddr = (char*)shmat(shmid3, (char*)NULL, 0);
 			
 			shmaddr[1] = ev[0].code;
@@ -38,7 +38,7 @@ void event_input(){
 /* 스위치 입력을 받으면 main process에 입력 정보를 전달해준다. */
 void switch_input(){
 	
-	int shmid1 = shmget((key_t)1001, 11, IPC_CREAT|0666);
+	int shmid1 = shmget((key_t)1001, 11, 0);
 	char* shmaddr = (char*)shmat(shmid1, (char*)NULL, 0);
 	
 	*shmaddr = '*';
