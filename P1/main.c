@@ -296,11 +296,9 @@ void receive_msg(){
 				}
 				//TEXT LCD 출력한다.
 				//text_count를 FND 출력한다. -> output process에 메세지 전달.
+				printf("here!");
 				while(*shmaddr2 != '*') usleep(100);
-				for(i=0; i<8; i++){
-					shmaddr2[3+i] = text_buf[i];
-					printf("/%d %d/", shmaddr2[3+i], text_buf[i]);
-				}
+				strcpy(&shmaddr2[3], text_buf);
 				shmaddr2[1] = text_count % 100;
 				shmaddr2[2] = text_count / 100;
 				shmaddr2[0] = FND;
@@ -405,6 +403,7 @@ void change_mode(){
 	shmaddr2[2] = 0;
 	shmaddr2[0] = FND;
 	while(*shmaddr2 != '*') usleep(100);
+	printf("output complete\n");
 	
 	int shmid3 = shmget((key_t)1003, 2, 0);
 	char* shmaddr = (char*)shmat(shmid3, (char*)NULL, 0);
@@ -425,7 +424,7 @@ void change_mode(){
 				if(mode < 0) mode = mode + 4;
 				printf("mode changed : %d\n", mode);
 			}
-			else if(whichButton == 116){ //PROG버튼, 초기화하고 프로세스를 종료한다.
+			else if(whichButton == 158){ //BACK버튼, 초기화하고 프로세스를 종료한다.
 				//DOT MATRIX 초기화
 				shmaddr2[3] = '\0';
 				shmaddr2[1] = -1;
