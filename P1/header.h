@@ -18,6 +18,7 @@
 #include <pthread.h>
 #include <sys/msg.h>
 #include <sys/mman.h>
+#include <sys/shm.h>
 
 #define BUFF_SIZE 64
 #define KEY_RELEASE 0

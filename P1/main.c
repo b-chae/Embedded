@@ -399,9 +399,7 @@ void receive_msg(){
 /* event 버튼이 눌려진 경우 메세지를 받아서 처리하는 함수 */
 void change_mode(){
 
-	struct eventbuf buf;
 	struct msgbuf buf2;
-	key_t key = msgget((key_t)1003, IPC_CREAT|0666);
 	key_t key2 = msgget((key_t)1002, IPC_CREAT|0666);
 	memset(buf2.text, 0, sizeof(buf2.text));
 	int i;
@@ -427,11 +425,16 @@ void change_mode(){
 		printf("key 2 msgsnd error\n");
 		exit(0);
 	}
+	
+	int shmid3 = shmget((key_t)1003, 2, IPC_CREAT|0644);
+	char* shmaddr = (char*)shmat(shmid3, (char*)NULL, 0);
 
 	while(1){
 		
-		msgrcv(key, (void*)&buf, sizeof(buf) - sizeof(long), EVENT, 0);
-		
+		if( *shmaddr == EVENT ){
+			printf("event msg received\n");
+		}
+		/*
 		if(buf.n == 115){ //volume up
 			mode = (mode + 1) % 4;
 			printf("mode changed : %d\n", mode);
@@ -469,7 +472,7 @@ void change_mode(){
 			kill(pid_out, SIGINT);
 			printf("Good bye\n");
 			exit(0);
-		}
+		}*/
 		
 		/* initializaiton when mode changed */
 		if(mode == CLOCK_MODE){
@@ -689,6 +692,20 @@ void snd_msg(){
 int main(int argc, char *argv[]){
 	int r_value;
 	mode = CLOCK_MODE;
+	
+	int shmid1, shmid2, shmid3;
+	char* shmaddr;
+	
+	shmid1 = shmget((key_t)1001, 11, IPC_CREAT|0644);
+	shmid2 = shmget((key_t)1002, 13, IPC_CREAT|0644);
+	shmid3 = shmget((key_t)1003, 2, IPC_CREAT|0644);
+	
+	shmaddr = (char*)shmat(shmid1, (char*)NULL, 0);
+	*shmaddr = '*';
+	shmaddr = (char*)shmat(shmid2, (char*)NULL, 0);
+	*shmaddr = '*';
+	shmaddr = (char*)shmat(shmid3, (char*)NULL, 0);
+	*shmaddr = '*';
 	
 	pid_in = fork();
 	if(pid_in == 0){

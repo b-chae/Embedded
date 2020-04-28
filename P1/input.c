@@ -20,17 +20,16 @@ void event_input(){
 		value = ev[0].value;
 		
 		if(value == KEY_PRESS){ //버튼이 눌렸다.
-			key_t key;
-			struct eventbuf buf;
-			key = msgget((key_t)1003, IPC_CREAT|0666);
-			buf.type = EVENT;
-			buf.n = ev[0].code;
+		
+			int shmid3 = shmget((key_t)1003, 2, IPC_CREAT|0644);
+			char* shmaddr = (char*)shmat(shmid3, (char*)NULL, 0);
+			
+			shmaddr[1] = ev[0].code;
+			*shmaddr = EVENT;
 			
 			//메인 프로세스에 메세지 전달.
-			if(msgsnd(key, (void*)&buf, sizeof(buf) - sizeof(long), IPC_NOWAIT) == -1){
-				printf("msgsnd error\n");
-				exit(0);
-			}
+			printf("event button pressed\n");
+			usleep(100);
 		}
 		
 	}
