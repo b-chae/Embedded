@@ -154,6 +154,10 @@ void output_process(){
 			}
 			
 			printf("message received in output process [%d] %d %s\n", type,n,text);
+			for(i=0; i<10; i++){
+				printf("%d ",shmaddr[3+i]);
+			}
+			printf("\n");
 			
 			if(type == FND){ //FND 타입일 경우
 				fnd_out(n, 10); //10진수를 기본으로 출력한다.
