@@ -77,7 +77,7 @@ void switch_input(){
 				shmaddr[2+i] = 0; //안눌려짐 2
 			}
 		}
-		printf("!");
+		printf("?");
 		
 		//버튼을 눌렀다가 뗄 때까지 기다린다.
 		while(push_sw_buff[0] == 1 || push_sw_buff[1] == 1 || push_sw_buff[2] == 1 || push_sw_buff[3] == 1
@@ -102,13 +102,13 @@ void switch_input(){
 					}
 				}
 				
-				printf("!");
+				printf("?");
 				
 				if(shmaddr[1] == 2) flag = 1;
 			}
 		}
 		
-		printf("!");
+		printf("/");
 		*shmaddr = SWITCH;
 		sleep(1);
 		
