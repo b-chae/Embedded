@@ -66,16 +66,18 @@ void switch_input(){
 		&& push_sw_buff[8] == 0)
 			read(dev, &push_sw_buff, sizeof(push_sw_buff));
 		
+		printf("!");
 		for(i=0; i<9; i++){
 			if(push_sw_buff[i] == 1)
 			{
-				shmaddr[1]++; //몇 개의 버튼이 눌려졌는 지 센다.
+				shmaddr[1] += 1; //몇 개의 버튼이 눌려졌는 지 센다.
 				shmaddr[2+i] = 1; //눌러짐 1
 			}
 			else{
 				shmaddr[2+i] = 0; //안눌려짐 2
 			}
 		}
+		printf("!");
 		
 		//버튼을 눌렀다가 뗄 때까지 기다린다.
 		while(push_sw_buff[0] == 1 || push_sw_buff[1] == 1 || push_sw_buff[2] == 1 || push_sw_buff[3] == 1
@@ -85,12 +87,14 @@ void switch_input(){
 			/* 두개 입력받는 경우 처리 */
 			if(flag == 0 && (push_sw_buff[0] == 1 || push_sw_buff[1] == 1 || push_sw_buff[2] == 1 || push_sw_buff[3] == 1
 		|| push_sw_buff[4] == 1 || push_sw_buff[5] == 1 || push_sw_buff[6] == 1 || push_sw_buff[7] == 1 || push_sw_buff[8] == 1)){
+				printf("!");
+				
 				shmaddr[1] = 0;
 				
 				for(i=0; i<9; i++){
 					if(push_sw_buff[i] == 1)
 					{
-						shmaddr[1]++;
+						shmaddr[1] += 1;
 						shmaddr[2+i] = 1;
 					}
 					else{
@@ -98,10 +102,13 @@ void switch_input(){
 					}
 				}
 				
+				printf("!");
+				
 				if(shmaddr[1] == 2) flag = 1;
 			}
 		}
 		
+		printf("!");
 		*shmaddr = SWITCH;
 		sleep(1);
 		
