@@ -41,8 +41,6 @@ void switch_input(){
 	int shmid1 = shmget((key_t)1001, 11, 0);
 	char* shmaddr = (char*)shmat(shmid1, (char*)NULL, 0);
 	
-	*shmaddr = '*';
-	
 	int i;
 	int dev;
 	int flag;
@@ -106,13 +104,12 @@ void switch_input(){
 		}
 		
 		printf("/");
-		*shmaddr = SWITCH;
-		
 		printf("send switch message %d switches pressed\n", shmaddr[1]);
 		for(i=0; i<9; i++){
 			printf("%d ", shmaddr[2+i]);
 		}
 		printf("\n");
+		*shmaddr = SWITCH;
 		
 		while(*shmaddr != '*') usleep(100);
 	}
