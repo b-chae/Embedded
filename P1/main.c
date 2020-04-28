@@ -426,7 +426,7 @@ void change_mode(){
 		exit(0);
 	}
 	
-	int shmid3 = shmget((key_t)1003, 2, IPC_CREAT|0644);
+	int shmid3 = shmget((key_t)1003, 2, IPC_CREAT|0666);
 	char* shmaddr = (char*)shmat(shmid3, (char*)NULL, 0);
 	char whichButton;
 
@@ -437,7 +437,6 @@ void change_mode(){
 			*shmaddr = '*';
 			whichButton = shmaddr[1];
 			printf("%d\n",whichButton);			
-
 			if(whichButton == 115){ //volume up
 				mode = (mode + 1) % 4;
 				printf("mode changed : %d\n", mode);
@@ -700,9 +699,12 @@ int main(int argc, char *argv[]){
 	int shmid1, shmid2, shmid3;
 	char* shmaddr;
 	
-	shmid1 = shmget((key_t)1001, 11, IPC_CREAT|0644);
-	shmid2 = shmget((key_t)1002, 13, IPC_CREAT|0644);
-	shmid3 = shmget((key_t)1003, 2, IPC_CREAT|0644);
+	shmid1 = shmget((key_t)1001, 11, IPC_CREAT|0666);
+	shmid2 = shmget((key_t)1002, 13, IPC_CREAT|0666);
+	shmid3 = shmget((key_t)1003, 2, IPC_CREAT|0666);
+	
+	if(shmid1<0)
+		printf("error\n");
 	
 	shmaddr = (char*)shmat(shmid1, (char*)NULL, 0);
 	*shmaddr = '*';
