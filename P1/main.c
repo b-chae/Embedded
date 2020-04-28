@@ -297,6 +297,7 @@ void receive_msg(){
 				//text_count를 FND 출력한다. -> output process에 메세지 전달.
 				for(i=0; i<8; i++){
 					shmaddr2[3+i] = text_buf[i];
+					printf("/%d %d/", shmaddr2[3+i], text_buf[i]);
 				}
 				shmaddr2[1] = text_count % 100;
 				shmaddr2[2] = text_count / 100;

@@ -154,7 +154,7 @@ void output_process(){
 				text[i] = shmaddr[3+i];
 			}
 			printf(" hoihoi ");
-			printf("message received in output process [%d] %d %s\n", type,n,text);
+			printf("message received in output process [%d] %d [%s]\n", type,n,text);
 			for(i=0; i<10; i++){
 				printf("%d ",shmaddr[3+i]);
 			}
