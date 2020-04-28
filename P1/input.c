@@ -21,7 +21,7 @@ void event_input(){
 		
 		if(value == KEY_PRESS){ //버튼이 눌렸다.
 		
-			int shmid3 = shmget((key_t)1003, 2, IPC_CREAT|0644);
+			int shmid3 = shmget((key_t)1003, 2, IPC_CREAT|0666);
 			char* shmaddr = (char*)shmat(shmid3, (char*)NULL, 0);
 			
 			shmaddr[1] = ev[0].code;
