@@ -152,6 +152,9 @@ void output_process(){
 			for(i=0; i<10; i++){
 				text[i] = shmaddr[3+i];
 			}
+			
+			printf("message received in output process [%d] %d %s\n", type,n,text);
+			
 			if(type == FND){ //FND 타입일 경우
 				fnd_out(n, 10); //10진수를 기본으로 출력한다.
 				if(strcmp(text, "") != 0){ //text출력할 것이 있으면 한다.
@@ -177,8 +180,7 @@ void output_process(){
 			else if(type == LED){//LED타입일 경우 해당 숫자를 출력한다.
 				led_out(n);
 			}
-			usleep(100);
 		}
-		usleep(100);
+		sleep(1);
 	}
 }
