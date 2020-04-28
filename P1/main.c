@@ -21,312 +21,288 @@ int draw_count; //DRAW_MODE에서 버튼이 눌러진 횟수
 /* input process에서 스위치 입력을 받은 경우 메세지를 처리하는 함수 */
 void receive_msg(){
 	
-	key_t key1, key2;
-	struct switbuf buf;
-	key1 = msgget((key_t)1001, IPC_CREAT|0666);
+	int shmid1 = shmget((key_t)1001, 11, IPC_CREAT|0666);
+	char* shmaddr1 = (char*)shmat(shmid1, (char*)NULL, 0);
+	int shmid2 = shmget((key_t)1002, 14, IPC_CREAT|0666);
+	char* shmaddr2 = (char*)shmat(shmid2, (char*)NULL, 0);
 	
 	time_t t = time(NULL);
 	struct tm *tm = localtime(&t);	
 	flag = 0;
 	memset(text_buf, 0, sizeof(text_buf));
 	char tmp;
-	int i;
+	int i, n;
 	
 	memset(draw_board, 0, sizeof(draw_board));
 	
 	while(1){
 		/* 스위치 입력을 받는다 */
-		msgrcv(key1, (void*)&buf, sizeof(buf) - sizeof(long), SWITCH, 0);
+		if(*shmaddr1 == SWITCH){
+			*shmaddr1 = '*';
+			n = shmaddr1[1];
+			if(mode == CLOCK_MODE){
+				if(n == 1 && shmaddr1[2] == 1){ //1번 스위치, 시간 수정 모드 -> 시간 변경 끝, 시간 변경 끝 -> 시간 수정 모드
+					if(flag == 0){ //시간 변경 끝 -> 시간 수정모드
+						flag = 1;
+					}else{ //시간 수정 모드 -> 시간 변경 끝, LED 1번에 불이 들어오도록 한다.
+						flag = 0;
 
-		if(mode == CLOCK_MODE){
-			if(buf.n == 1 && buf.value[0] == 1){ //1번 스위치, 시간 수정 모드 -> 시간 변경 끝, 시간 변경 끝 -> 시간 수정 모드
-				if(flag == 0){ //시간 변경 끝 -> 시간 수정모드
-					flag = 1;
-				}else{ //시간 수정 모드 -> 시간 변경 끝, LED 1번에 불이 들어오도록 한다.
-					flag = 0;
-
-					struct msgbuf buf2;
-					memset(buf2.text, 0, sizeof(buf2.text));
-					buf2.type = LED;
-					buf2.num = 128;
-					key2 = msgget((key_t)1002, IPC_CREAT|0666);
-					if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
-						printf("key 2 msgsnd error\n");
-						exit(0);
-					}					
+						shmaddr2[3] = '\0';
+						shmaddr2[1] = 28
+						shmaddr2[2] = 1
+						shmaddr2[0] = LED;
+						usleep(100);			
+					}
+				} //2번 스위치, 시간 수정 모드일 경우 보드의 시간으로 reset한다.
+				else if(n == 1 && shmaddr1[3] == 1 && flag == 1){
+					hour = tm->tm_hour;
+					minuit = tm->tm_min;
+				} //3번 스위치, 시간 수정 모드일 경우 시간 + 1
+				else if(n == 1 && shmaddr1[4] == 1 && flag == 1){
+					hour = ( hour + 1 ) % 24;
+				} //4번 스위치, 시간 수정 모드일 경우 분 + 1
+				else if(n == 1 && shmaddr1[5] == 1 && flag == 1){
+					minuit = (minuit + 1) % 60;
 				}
-			} //2번 스위치, 시간 수정 모드일 경우 보드의 시간으로 reset한다.
-			else if(buf.n == 1 && buf.value[1] == 1 && flag == 1){
-				hour = tm->tm_hour;
-				minuit = tm->tm_min;
-			} //3번 스위치, 시간 수정 모드일 경우 시간 + 1
-			else if(buf.n == 1 && buf.value[2] == 1 && flag == 1){
-				hour = ( hour + 1 ) % 24;
-			} //4번 스위치, 시간 수정 모드일 경우 분 + 1
-			else if(buf.n == 1 && buf.value[3] == 1 && flag == 1){
-				minuit = (minuit + 1) % 60;
+				//시간이 바뀐 경우 FND를 hour*100 + minuit으로 설정한다. output process에 메세지 전달.
+				shmaddr2[3] = '\0';
+				shmaddr2[1] = minuit;
+				shmaddr2[2] = hour;
+				shmaddr2[0] = FND;
+				usleep(100);
 			}
-			//시간이 바뀐 경우 FND를 hour*100 + minuit으로 설정한다. output process에 메세지 전달.
-			struct msgbuf buf2;
-			memset(buf2.text, 0, sizeof(buf2.text));
-			strcpy(buf2.text, "");
-			buf2.type = FND;
-			buf2.num = hour*100 + minuit;
-			key2 = msgget((key_t)1002, IPC_CREAT|0666);
-			if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
-				printf("key 2 msgsnd error\n");
-				exit(0);
-			}
-		}
-		else if(mode == COUNTER_MODE){
-			if(buf.n == 1 && buf.value[0] == 1){ //1번 스위치, 진수를 2 -> 10 -> 8 -> 4로 바꾼다.
-				if(counter_base == 2) counter_base = 10;
-				else if(counter_base == 10) counter_base = 8;
-				else if(counter_base == 8) counter_base = 4;
-				else if(counter_base == 4) counter_base = 2;
-			}//2번 스위치, 백의자리 숫자 + 1
-			else if(buf.n == 1 && buf.value[1] == 1){
-				counter_number += counter_base*counter_base;
-			}//3번 스위치, 십의자리 숫자 + 1
-			else if(buf.n == 1 && buf.value[2] == 1){
-				counter_number += counter_base;
-			}//4번 스위치, 일의자리 숫자 + 1
-			else if(buf.n == 1 && buf.value[3] == 1){
-				counter_number += 1;
-			}
-			counter_number = counter_number % (counter_base*counter_base*counter_base);
+			else if(mode == COUNTER_MODE){
+				if(n == 1 && shmaddr1[2] == 1){ //1번 스위치, 진수를 2 -> 10 -> 8 -> 4로 바꾼다.
+					if(counter_base == 2) counter_base = 10;
+					else if(counter_base == 10) counter_base = 8;
+					else if(counter_base == 8) counter_base = 4;
+					else if(counter_base == 4) counter_base = 2;
+				}//2번 스위치, 백의자리 숫자 + 1
+				else if(n == 1 && shmaddr1[3] == 1){
+					counter_number += counter_base*counter_base;
+				}//3번 스위치, 십의자리 숫자 + 1
+				else if(n == 1 && shmaddr1[4] == 1){
+					counter_number += counter_base;
+				}//4번 스위치, 일의자리 숫자 + 1
+				else if(n == 1 && shmaddr1[5] == 1){
+					counter_number += 1;
+				}
+				counter_number = counter_number % (counter_base*counter_base*counter_base);
 
-			//바뀐 숫자를 FND에 출력. output process에 메세지 전달.
-			struct msgbuf buf2;
-			memset(buf2.text, 0, sizeof(buf2.text));
-			strcpy(buf2.text, "");
-			buf2.type = FND_WITH_BASE;
-			buf2.num = counter_number;
-			buf2.base = counter_base;
-			key2 = msgget((key_t)1002, IPC_CREAT|0666);
-			if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
-				printf("key 2 msgsnd error\n");
-				exit(0);
-			}
-			
-			//진수에 맞게 LED출력. output process에 메세지 전달.
-			buf2.type = LED;
-			if(counter_base == 2) buf2.num = 128;
-			else if(counter_base == 10) buf2.num = 64;
-			else if(counter_base == 8) buf2.num = 32;
-			else if(counter_base == 4) buf2.num = 16;
-			if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
-				printf("key 2 msgsnd error\n");
-				exit(0);
-			}
-		}
-		else if(mode == TEXT_MODE){
-			if(buf.n == 1){ //동시에 눌려진 스위치가 한개이다.
-				text_count = (text_count + 1)%10000;
+				//바뀐 숫자를 FND에 출력. output process에 메세지 전달.
+				shmaddr2[3] = '\0';
+				shmaddr2[1] = counter_number % 100;
+				shmaddr2[2] = counter_number / 100;
+				shmaddr2[13] = counter_base;
+				shmaddr2[0] = FND_WITH_BASE;
+				usleep(100);
 				
-				if(text_mode == 0){ //알파벳 입력 모드일 경우
-					int change_all = 0;
-					if(buf.value[0] == 1){// .QZ
-						if(previous_char == '.'){
-							tmp = 'Q'; text_buf[7] = tmp;
-						}
-						else if(previous_char == 'Q'){
-							tmp = 'Z'; text_buf[7] = tmp;
-						}
-						else if(previous_char == 'Z'){
-							tmp = '.'; text_buf[7] = tmp;
-						}
-						else{
-							tmp = '.'; change_all = 1;
-						}
-					}
-					else if(buf.value[1] == 1){ //ABC
-						if(previous_char == 'A'){
-							tmp = 'B'; text_buf[7] = tmp;
-						}
-						else if(previous_char == 'B'){
-							tmp = 'C'; text_buf[7] = tmp;
-						}
-						else if(previous_char == 'C'){
-							tmp = 'A'; text_buf[7] = tmp;
-						}
-						else{
-							tmp = 'A'; change_all = 1;
-						}
-					}
-					else if(buf.value[2] == 1){ //DEF
-						if(previous_char == 'D'){
-							tmp = 'E'; text_buf[7] = tmp;
-						}
-						else if(previous_char == 'E'){
-							tmp = 'F'; text_buf[7] = tmp;
-						}
-						else if(previous_char == 'F'){
-							tmp = 'D'; text_buf[7] = tmp;
-						}
-						else{
-							tmp = 'D'; change_all = 1;
-						}
-					}
-					else if(buf.value[3] == 1){ //GHI
-						if(previous_char == 'G'){
-							tmp = 'H'; text_buf[7] = tmp;
-						}
-						else if(previous_char == 'H'){
-							tmp = 'I'; text_buf[7] = tmp;
-						}
-						else if(previous_char == 'I'){
-							tmp = 'G'; text_buf[7] = tmp;
-						}
-						else{
-							tmp = 'G'; change_all = 1;
-						}
-					}
-					else if(buf.value[4] == 1){ //JKL
-						if(previous_char == 'J'){
-							tmp = 'K'; text_buf[7] = tmp;
-						}
-						else if(previous_char == 'K'){
-							tmp = 'L'; text_buf[7] = tmp;
-						}
-						else if(previous_char == 'L'){
-							tmp = 'J'; text_buf[7] = tmp;
-						}
-						else{
-							tmp = 'J'; change_all = 1;
-						}
-					}
-					else if(buf.value[5] == 1){ //MNO
-						if(previous_char == 'M'){
-							tmp = 'N'; text_buf[7] = tmp;
-						}
-						else if(previous_char == 'N'){
-							tmp = 'O'; text_buf[7] = tmp;
-						}
-						else if(previous_char == 'O'){
-							tmp = 'M'; text_buf[7] = tmp;
-						}
-						else{
-							tmp = 'M'; change_all = 1;
-						}
-					}
-					else if(buf.value[6] == 1){ //PRS
-						if(previous_char == 'P'){
-							tmp = 'R'; text_buf[7] = tmp;
-						}
-						else if(previous_char == 'R'){
-							tmp = 'S'; text_buf[7] = tmp;
-						}
-						else if(previous_char == 'S'){
-							tmp = 'P'; text_buf[7] = tmp;
-						}
-						else{
-							tmp = 'P'; change_all = 1;
-						}
-					}
-					else if(buf.value[7] == 1){ //TUV
-						if(previous_char == 'T'){
-							tmp = 'U'; text_buf[7] = tmp;
-						}
-						else if(previous_char == 'U'){
-							tmp = 'V'; text_buf[7] = tmp;
-						}
-						else if(previous_char == 'V'){
-							tmp = 'T'; text_buf[7] = tmp;
-						}
-						else{
-							tmp = 'T'; change_all = 1;
-						}
-					}
-					else if(buf.value[8] == 1){ //WXY
-						if(previous_char == 'W'){
-							tmp = 'X'; text_buf[7] = tmp;
-						}
-						else if(previous_char == 'X'){
-							tmp = 'Y'; text_buf[7] = tmp;
-						}
-						else if(previous_char == 'Y'){
-							tmp = 'W'; text_buf[7] = tmp;
-						}
-						else{
-							tmp = 'W'; change_all = 1;
-						}
-					}
+				//진수에 맞게 LED출력. output process에 메세지 전달.
+				shmaddr2[2] = 0;
+				if(counter_base == 2) {shmaddr2[1] = 28; shmaddr2[2] = 1;}
+				else if(counter_base == 10) shmaddr2[1] = 64;
+				else if(counter_base == 8) shmaddr2[1] = 32;
+				else if(counter_base == 4) shmaddr2[1] = 16;
+				shmaddr2[0] = LED;
+				usleep(100);
+			}
+			else if(mode == TEXT_MODE){
+				if(n == 1){ //동시에 눌려진 스위치가 한개이다.
+					text_count = (text_count + 1)%10000;
 					
-					previous_char = tmp;
-					
-					if(change_all == 1){ //한개씩 앞으로 미룬다.
+					if(text_mode == 0){ //알파벳 입력 모드일 경우
+						int change_all = 0;
+						if(shmaddr1[2] == 1){// .QZ
+							if(previous_char == '.'){
+								tmp = 'Q'; text_buf[7] = tmp;
+							}
+							else if(previous_char == 'Q'){
+								tmp = 'Z'; text_buf[7] = tmp;
+							}
+							else if(previous_char == 'Z'){
+								tmp = '.'; text_buf[7] = tmp;
+							}
+							else{
+								tmp = '.'; change_all = 1;
+							}
+						}
+						else if(shmaddr1[3] == 1){ //ABC
+							if(previous_char == 'A'){
+								tmp = 'B'; text_buf[7] = tmp;
+							}
+							else if(previous_char == 'B'){
+								tmp = 'C'; text_buf[7] = tmp;
+							}
+							else if(previous_char == 'C'){
+								tmp = 'A'; text_buf[7] = tmp;
+							}
+							else{
+								tmp = 'A'; change_all = 1;
+							}
+						}
+						else if(shmaddr1[4] == 1){ //DEF
+							if(previous_char == 'D'){
+								tmp = 'E'; text_buf[7] = tmp;
+							}
+							else if(previous_char == 'E'){
+								tmp = 'F'; text_buf[7] = tmp;
+							}
+							else if(previous_char == 'F'){
+								tmp = 'D'; text_buf[7] = tmp;
+							}
+							else{
+								tmp = 'D'; change_all = 1;
+							}
+						}
+						else if(shmaddr1[5] == 1){ //GHI
+							if(previous_char == 'G'){
+								tmp = 'H'; text_buf[7] = tmp;
+							}
+							else if(previous_char == 'H'){
+								tmp = 'I'; text_buf[7] = tmp;
+							}
+							else if(previous_char == 'I'){
+								tmp = 'G'; text_buf[7] = tmp;
+							}
+							else{
+								tmp = 'G'; change_all = 1;
+							}
+						}
+						else if(shmaddr1[6] == 1){ //JKL
+							if(previous_char == 'J'){
+								tmp = 'K'; text_buf[7] = tmp;
+							}
+							else if(previous_char == 'K'){
+								tmp = 'L'; text_buf[7] = tmp;
+							}
+							else if(previous_char == 'L'){
+								tmp = 'J'; text_buf[7] = tmp;
+							}
+							else{
+								tmp = 'J'; change_all = 1;
+							}
+						}
+						else if(shmaddr1[7] == 1){ //MNO
+							if(previous_char == 'M'){
+								tmp = 'N'; text_buf[7] = tmp;
+							}
+							else if(previous_char == 'N'){
+								tmp = 'O'; text_buf[7] = tmp;
+							}
+							else if(previous_char == 'O'){
+								tmp = 'M'; text_buf[7] = tmp;
+							}
+							else{
+								tmp = 'M'; change_all = 1;
+							}
+						}
+						else if(shmaddr1[8] == 1){ //PRS
+							if(previous_char == 'P'){
+								tmp = 'R'; text_buf[7] = tmp;
+							}
+							else if(previous_char == 'R'){
+								tmp = 'S'; text_buf[7] = tmp;
+							}
+							else if(previous_char == 'S'){
+								tmp = 'P'; text_buf[7] = tmp;
+							}
+							else{
+								tmp = 'P'; change_all = 1;
+							}
+						}
+						else if(shmaddr1[9] == 1){ //TUV
+							if(previous_char == 'T'){
+								tmp = 'U'; text_buf[7] = tmp;
+							}
+							else if(previous_char == 'U'){
+								tmp = 'V'; text_buf[7] = tmp;
+							}
+							else if(previous_char == 'V'){
+								tmp = 'T'; text_buf[7] = tmp;
+							}
+							else{
+								tmp = 'T'; change_all = 1;
+							}
+						}
+						else if(shmaddr1[10] == 1){ //WXY
+							if(previous_char == 'W'){
+								tmp = 'X'; text_buf[7] = tmp;
+							}
+							else if(previous_char == 'X'){
+								tmp = 'Y'; text_buf[7] = tmp;
+							}
+							else if(previous_char == 'Y'){
+								tmp = 'W'; text_buf[7] = tmp;
+							}
+							else{
+								tmp = 'W'; change_all = 1;
+							}
+						}
+						
+						previous_char = tmp;
+						
+						if(change_all == 1){ //한개씩 앞으로 미룬다.
+							for(i=0; i<7; i++){
+								text_buf[i] = text_buf[i+1];
+							}
+							text_buf[7] = tmp;
+						}
+						
+					}
+					else{//숫자 입력 모드일 경우
+						for(i=0; i<9 ;i++){
+							if(buf.value[i] == 1){
+								tmp = i + 1 + '0';
+							}
+						}
+						
 						for(i=0; i<7; i++){
 							text_buf[i] = text_buf[i+1];
 						}
 						text_buf[7] = tmp;
+						previous_char = tmp;
 					}
-					
 				}
-				else{//숫자 입력 모드일 경우
-					for(i=0; i<9 ;i++){
-						if(buf.value[i] == 1){
-							tmp = i + 1 + '0';
+				else if(n == 2){//동시에 스위치 2개가 눌려진 경우
+					text_count = (text_count + 1)%10000;
+					
+					if(shmaddr1[3] == 1 && shmaddr1[4] == 1){ //2,3번 버튼이 눌려짐
+						for(i=0; i<8; i++) //초기화
+							text_buf[i] = ' ';
+						previous_char = ' ';
+					}
+					else if(shmaddr1[6] == 1 && shmaddr1[7] == 1){//5,6번 버튼이 눌려짐, alphabet <-> number
+						if(text_mode == 0) text_mode = 1; //change to number mode
+						else text_mode = 0; //change to alphabet mode
+						previous_char = ' ';
+						//DOT MATRIX 출력을 바꾼다. output process에 메세지 전달.
+						shmaddr2[3] = '\0';
+						shmaddr2[1] = text_mode;
+						shmaddr2[2] = 0;
+						shmaddr2[0] = DOT;
+						usleep(100);
+					}
+					else if(shmaddr1[9] == 1 && shmaddr1[10] == 1){//8,9번 버튼이 눌려짐, insert a blank at the end
+						for(i=0; i<7; i++){
+							text_buf[i] = text_buf[i+1];
 						}
+						text_buf[7] = ' ';
+						previous_char = ' ';
 					}
-					
-					for(i=0; i<7; i++){
-						text_buf[i] = text_buf[i+1];
-					}
-					text_buf[7] = tmp;
-					previous_char = tmp;
 				}
+				//TEXT LCD 출력한다.
+				//text_count를 FND 출력한다. -> output process에 메세지 전달.
+				shmaddr2[3] = '/0';
+				shmaddr2[1] = text_count % 100;
+				shmaddr2[2] = text_count / 100;
+				shmaddr2[0] = FND;
+				usleep(100);
 			}
-			else if(buf.n == 2){//동시에 스위치 2개가 눌려진 경우
-				text_count = (text_count + 1)%10000;
-				
-				if(buf.value[1] == 1 && buf.value[2] == 1){ //2,3번 버튼이 눌려짐
-					for(i=0; i<8; i++) //초기화
-						text_buf[i] = ' ';
-					previous_char = ' ';
-				}
-				else if(buf.value[4] == 1 && buf.value[5] == 1){//5,6번 버튼이 눌려짐, alphabet <-> number
-					if(text_mode == 0) text_mode = 1; //change to number mode
-					else text_mode = 0; //change to alphabet mode
-					previous_char = ' ';
-					//DOT MATRIX 출력을 바꾼다. output process에 메세지 전달.
-					struct msgbuf buf2;
-					memset(buf2.text, 0, sizeof(buf2.text));
-					strcpy(buf2.text, "");
-					buf2.type = DOT;
-					buf2.num = text_mode;
-					key2 = msgget((key_t)1002, IPC_CREAT|0666);
-					if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
-						printf("key 2 msgsnd error\n");
-						exit(0);
-					}
-				}
-				else if(buf.value[7] == 1 && buf.value[8] == 1){//8,9번 버튼이 눌려짐, insert a blank at the end
-					for(i=0; i<7; i++){
-						text_buf[i] = text_buf[i+1];
-					}
-					text_buf[7] = ' ';
-					previous_char = ' ';
-				}
-			}
-			//TEXT LCD 출력한다.
-			//text_count를 FND 출력한다. -> output process에 메세지 전달.
-			struct msgbuf buf2;
-			memset(buf2.text, 0, sizeof(buf2.text));
-			strcpy(buf2.text, text_buf);
-			buf2.type = FND;
-			buf2.num = text_count;
-			key2 = msgget((key_t)1002, IPC_CREAT|0666);
-			if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
-				printf("key 2 msgsnd error\n");
-				exit(0);
-			}
-		}
-		else if(mode == DRAW_MODE){
-			if(buf.n == 1){
+			else if(mode == DRAW_MODE){
+			if(n == 1){
 				draw_count = (draw_count + 1)%10000;
 				
-				if(buf.value[0] == 1){ //1번 스위치, 그림을 reset
+				if(shmaddr1[2] == 1){ //1번 스위치, 그림을 reset
 					for(i=0; i<10; i++){
 						draw_board[i] = 0;
 					}
@@ -334,17 +310,17 @@ void receive_msg(){
 					cursorY = 6;
 					isCursor = 1;
 				}
-				else if(buf.value[1] == 1){ //2번 스위치, 커서를 위로 이동
+				else if(shmaddr1[3] == 1){ //2번 스위치, 커서를 위로 이동
 					if(cursorX > 0) cursorX--;
 				}
-				else if(buf.value[2] == 1){ //3번 스위치, 커서 보이기 <-> 커서 숨기기
+				else if(shmaddr1[4] == 1){ //3번 스위치, 커서 보이기 <-> 커서 숨기기
 					if(isCursor == 1) isCursor = 0;
 					else isCursor = 1;
 				}
-				else if(buf.value[3] == 1){//4번 스위치, 커서 왼쪽으로 이동
+				else if(shmaddr1[5] == 1){//4번 스위치, 커서 왼쪽으로 이동
 					if(cursorY < 6) cursorY++;
 				}
-				else if(buf.value[4] == 1){//5번 스위치, 현재위치 선택
+				else if(shmaddr1[6] == 1){//5번 스위치, 현재위치 선택
 					switch(cursorY){
 						case 6: draw_board[cursorX] = draw_board[cursorX] | 0b01000000; break;
 						case 5: draw_board[cursorX] = draw_board[cursorX] | 0b00100000; break;
@@ -355,76 +331,68 @@ void receive_msg(){
 						case 0: draw_board[cursorX] = draw_board[cursorX] | 0b00000001; break;
 					}
 				}
-				else if(buf.value[5] == 1){//6번 스위치, 커서 오른쪽으로 이동
+				else if(shmaddr1[7] == 1){//6번 스위치, 커서 오른쪽으로 이동
 					if(cursorY > 0) cursorY--;
 				}
-				else if(buf.value[6] == 1){//7번 스위치, 그림 reset
+				else if(shmaddr1[8] == 1){//7번 스위치, 그림 reset
 					for(i=0; i<10; i++){
 						draw_board[i] = 0;
 					}
 				}
-				else if(buf.value[7] == 1){//8번 스위치, 커서 아래로 이동
+				else if(shmaddr1[9] == 1){//8번 스위치, 커서 아래로 이동
 					if(cursorX < 9) cursorX++;
 				}
-				else if(buf.value[8] == 1){//9번 스위치, 그림 반전시키기
+				else if(shmaddr1[10] == 1){//9번 스위치, 그림 반전시키기
 					for(i=0; i<10; i++){
 						draw_board[i] = ~draw_board[i] % 128;
 					}
 				}
 				//그림 정보를 buf2.text에 담아 output process에 전달
-				struct msgbuf buf2;
-				memset(buf2.text, 0, sizeof(buf2.text));
 				for(i=0; i<10; i++)
-					buf2.text[i] = draw_board[i];
-				buf2.type = DOT;
-				buf2.num = 2;
-				key2 = msgget((key_t)1002, IPC_CREAT|0666);
-				if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
-					printf("key 2 msgsnd error\n");
-					exit(0);
-				}
+					shmaddr2[3+i] = draw_board[i];
+				shmaddr2[1] = 2;
+				shmaddr2[2] = 0;
+				shmaddr2[0] = DOT;
+				usleep(100);
+				
 				//draw_count정보를 FND에 출력
-				strcpy(buf2.text, "");
-				buf2.type = FND;
-				buf2.num = draw_count;
-				if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
-					printf("key 2 msgsnd error\n");
-					exit(0);
-				}
+				shmaddr2[3] = '\0';
+				shmaddr2[1] = draw_count%100;
+				shmaddr2[2] = draw_count/100;
+				shmaddr2[0] = FND;
+				usleep(100);
 			}
 		}
+		}
+		usleep(100);
 	}
 }
 
 /* event 버튼이 눌려진 경우 메세지를 받아서 처리하는 함수 */
 void change_mode(){
 
-	struct msgbuf buf2;
-	key_t key2 = msgget((key_t)1002, IPC_CREAT|0666);
-	memset(buf2.text, 0, sizeof(buf2.text));
+	int shmid2 = shmget((key_t)1002, 14, IPC_CREAT|0666);
+	char*shmaddr2 = (char*)shmat(shmid2, (char*)NULL, 0);
 	int i;
 	
 	time_t t = time(NULL);
 	struct tm *tm = localtime(&t);
 
 	//led 초기화
-	buf2.type = LED;
-	buf2.num = 128;
-	if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
-		printf("key 2 msgsnd error\n");
-		exit(0);
-	}
+	shmaddr2[3] = '\0';
+	shmaddr2[1] = 28;
+	shmaddr2[2] = 1;
+	shmaddr2[0] = LED;
+	usleep(100);
 	
 	//text fnd 초기화
 	hour = tm->tm_hour;
 	minuit=tm->tm_min;
-	buf2.type = FND;
-	buf2.num = hour*100 + minuit;
-	strcpy(buf2.text, "        ");
-	if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
-		printf("key 2 msgsnd error\n");
-		exit(0);
-	}
+	shmaddr2[3] = '\0';
+	shmaddr2[1] = minuit;
+	shmaddr2[2] = 0;
+	shmaddr2[0] = FND;
+	usleep(100);
 	
 	int shmid3 = shmget((key_t)1003, 2, IPC_CREAT|0666);
 	char* shmaddr = (char*)shmat(shmid3, (char*)NULL, 0);
@@ -433,8 +401,8 @@ void change_mode(){
 	while(1){
 		
 		if( *shmaddr == EVENT ){
-			printf("event msg received\n");
 			*shmaddr = '*';
+			printf("event msg received\n");
 			whichButton = shmaddr[1];
 			printf("%d\n",whichButton);			
 			if(whichButton == 115){ //volume up
@@ -448,28 +416,26 @@ void change_mode(){
 			}
 			else if(whichButton == 116){ //PROG버튼, 초기화하고 프로세스를 종료한다.
 				//DOT MATRIX 초기화
-				buf2.type = DOT;
-				buf2.num = -1;
-				if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
-					printf("key 2 msgsnd error\n");
-					exit(0);
-				}
+				shmaddr2[3] = '\0';
+				shmaddr2[1] = -1;
+				shmaddr2[2] = 0;
+				shmaddr2[0] = DOT;
+				usleep(100);
+				
 				//text fnd 초기화
-				buf2.type = FND;
-				buf2.num = 0;
-				strcpy(buf2.text, "        ");
-				if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
-					printf("key 2 msgsnd error\n");
-					exit(0);
-				}
+				shmaddr2[3] = '\0';
+				shmaddr2[1] = 0;
+				shmaddr2[2] = 0;
+				shmaddr2[0] = FND;
+				usleep(100);
+				
 				//led 초기화
-				buf2.type = LED;
-				buf2.num = 0;
-				if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
-					printf("key 2 msgsnd error\n");
-					exit(0);
-				}
+				shmaddr2[3] = '\0';
+				shmaddr2[1] = 0;
+				shmaddr2[2] = 0;
+				shmaddr2[0] = LED;
 				sleep(1);
+				
 				kill(pid_in, SIGINT);
 				kill(pid_out, SIGINT);
 				printf("Good bye\n");
@@ -482,7 +448,7 @@ void change_mode(){
 			isCursor = 0;
 			flag = 0;
 			//DOT MATRIX 빈칸으로 초기화
-			buf2.type = DOT;
+			/*buf2.type = DOT;
 			buf2.num = -1;
 			if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
 				printf("key 2 msgsnd error\n");
@@ -504,13 +470,13 @@ void change_mode(){
 			if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
 				printf("key 2 msgsnd error\n");
 				exit(0);
-			}
+			}*/
 		}
 		else if(mode == COUNTER_MODE){
 			flag = 0;
 			isCursor = 0;
 			//DOT MATRIX 빈칸으로 초기화
-			buf2.type = DOT;
+			/*buf2.type = DOT;
 			buf2.num = -1;
 			if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
 				printf("key 2 msgsnd error\n");
@@ -532,7 +498,7 @@ void change_mode(){
 			if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
 				printf("key 2 msgsnd error\n");
 				exit(0);
-			}
+			}*/
 		}
 		else if(mode == TEXT_MODE){
 			text_mode = 0;
@@ -541,7 +507,7 @@ void change_mode(){
 			strcpy(text_buf, "        ");
 			isCursor = 0;
 			//DOT MATRIX 알파벳 A로 초기화
-			buf2.type = DOT;
+			/*buf2.type = DOT;
 			buf2.num = 0;
 			if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
 				printf("key 2 msgsnd error\n");
@@ -561,7 +527,7 @@ void change_mode(){
 			if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
 				printf("key 2 msgsnd error\n");
 				exit(0);
-			}
+			}*/
 		}
 		else if(mode == DRAW_MODE){
 			flag = 0;
@@ -573,7 +539,7 @@ void change_mode(){
 				draw_board[i] = 0;
 			}
 			//DOT MATRIX 빈칸으로 초기화
-			buf2.type = DOT;
+			/*buf2.type = DOT;
 			buf2.num = -1;
 			if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
 				printf("key 2 msgsnd error\n");
@@ -593,7 +559,7 @@ void change_mode(){
 			if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
 				printf("key 2 msgsnd error\n");
 				exit(0);
-			}
+			}*/
 		}
 
 	}
@@ -700,7 +666,7 @@ int main(int argc, char *argv[]){
 	char* shmaddr;
 	
 	shmid1 = shmget((key_t)1001, 11, IPC_CREAT|0666);
-	shmid2 = shmget((key_t)1002, 13, IPC_CREAT|0666);
+	shmid2 = shmget((key_t)1002, 14, IPC_CREAT|0666);
 	shmid3 = shmget((key_t)1003, 2, IPC_CREAT|0666);
 	
 	if(shmid1<0)
@@ -724,10 +690,10 @@ int main(int argc, char *argv[]){
 		else{ //change_mode, receive_msg, snd_msg 함수가 동시에 작동하고 있다.
 			r_value = pthread_create(&p_thread[0], NULL, change_mode, (void *)NULL);
 			r_value = pthread_create(&p_thread[1], NULL, receive_msg, (void *)NULL);
-			r_value = pthread_create(&p_thread[2], NULL, snd_msg, (void *)NULL);
+			//r_value = pthread_create(&p_thread[2], NULL, snd_msg, (void *)NULL);
 			pthread_join(p_thread[0], (void**)NULL);
 			pthread_join(p_thread[1], (void**)NULL);
-			pthread_join(p_thread[2], (void**)NULL);
+			//pthread_join(p_thread[2], (void**)NULL);
 		}
 	}
 	return 0;

@@ -27,7 +27,6 @@ void event_input(){
 			shmaddr[1] = ev[0].code;
 			*shmaddr = EVENT;
 			sleep(1);
-			
 			//메인 프로세스에 메세지 전달.
 			printf("event button pressed\n");
 		}
@@ -38,12 +37,11 @@ void event_input(){
 
 /* 스위치 입력을 받으면 main process에 입력 정보를 전달해준다. */
 void switch_input(){
-	key_t key1;
-	struct switbuf buf;
-	key1 = msgget((key_t)1001, IPC_CREAT|0666);
-	buf.type = SWITCH;
-	buf.n = 0;
-	memset(buf.value, 0, sizeof(buf.value));
+	
+	int shmid1 = shmget((key_t)1001, 11, IPC_CREAT|0666);
+	char* shmaddr = (char*)shmat(shmid1, (char*)NULL, 0);
+	
+	*shmaddr = '*';
 	
 	int i;
 	int dev;
@@ -60,7 +58,7 @@ void switch_input(){
 	}
 	
 	while(1){
-		buf.n = 0;
+		shmaddr[1] = 0;
 		flag = 0;
 		
 		while(push_sw_buff[0] == 0 && push_sw_buff[1] == 0 && push_sw_buff[2] == 0 && push_sw_buff[3] == 0 
@@ -71,11 +69,11 @@ void switch_input(){
 		for(i=0; i<9; i++){
 			if(push_sw_buff[i] == 1)
 			{
-				buf.n++; //몇 개의 버튼이 눌려졌는 지 센다.
-				buf.value[i] = 1; //눌러짐 1
+				shmaddr[1]++; //몇 개의 버튼이 눌려졌는 지 센다.
+				shmaddr[2+i] = 1; //눌러짐 1
 			}
 			else{
-				buf.value[i] = 0; //안눌려짐 2
+				shmaddr[2+i] = 0; //안눌려짐 2
 			}
 		}
 		
@@ -87,30 +85,31 @@ void switch_input(){
 			/* 두개 입력받는 경우 처리 */
 			if(flag == 0 && (push_sw_buff[0] == 1 || push_sw_buff[1] == 1 || push_sw_buff[2] == 1 || push_sw_buff[3] == 1
 		|| push_sw_buff[4] == 1 || push_sw_buff[5] == 1 || push_sw_buff[6] == 1 || push_sw_buff[7] == 1 || push_sw_buff[8] == 1)){
-				buf.n = 0;
+				shmaddr[1] = 0;
 				
 				for(i=0; i<9; i++){
 					if(push_sw_buff[i] == 1)
 					{
-						buf.n++;
-						buf.value[i] = 1;
+						shmaddr[1]++;
+						shmaddr[2+i] = 1;
 					}
 					else{
-						buf.value[i] = 0;
+						shmaddr[2+i] = 0;
 					}
 				}
 				
-				if(buf.n == 2) flag = 1;
+				if(shmaddr[1] == 2) flag = 1;
 			}
 		}
 		
-		/* 버튼을 눌렀다가 뗀 경우 메세지 전달 */
-		if(msgsnd(key1, (void*)&buf, sizeof(buf) - sizeof(long), IPC_NOWAIT) == -1){
-			printf("msgsnd error\n");
-			exit(0);
-		}
+		*shmaddr = SWITCH;
+		sleep(1)
 		
-		printf("send switch message %d switches pressed\n", buf.n);
+		printf("send switch message %d switches pressed\n", shmaddr[1]);
+		for(i=0; i<9; i++){
+			printf("%d ", shmaddr[2+i]);
+		}
+		printf("\n");
 	}
 	close(dev);
 }
