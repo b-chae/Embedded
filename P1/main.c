@@ -422,6 +422,9 @@ void change_mode(){
 	text_mode = 0;
 	previous_char = ' ';
 	
+	hour = tm->tm_hour;
+	minuit = tm->tm_min;
+	
 	cursorX = 0;
 	cursorY = 6;
 	draw_count = 0;
@@ -478,14 +481,13 @@ void change_mode(){
 				flag = 0;
 				
 				//DOT 빈칸으로 초기화
+				shmaddr2[3] = '\0';
 				shmaddr2[1] = 50;
 				shmaddr2[2] = 0;
 				shmaddr2[0] = DOT;
 				while(*shmaddr2 != '*') usleep(100);
 
 				//text초기화 fnd 현재 시간으로 설정
-				hour = tm->tm_hour;
-				minuit = tm->tm_min;
 				shmaddr2[3] = '\0';
 				shmaddr2[1] = minuit;
 				shmaddr2[2] = hour;
@@ -518,8 +520,11 @@ void change_mode(){
 				
 				//led 초기화 2번으로 초기화
 				shmaddr2[3] = '\0';
-				shmaddr2[1] = 64;
 				shmaddr2[2] = 0;
+				if(counter_base == 10) shmaddr2[1] = 64;
+				else if(counter_base == 2) { shmaddr2[1] = 28; shmaddr2[2] = 1; }
+				else if(counter_base == 8) shmaddr2[1] = 32;
+				else if(counter_base == 4) shmaddr2[1] = 16;
 				shmaddr2[0] = LED;
 				while(*shmaddr2 != '*') usleep(100);
 			}
