@@ -138,7 +138,7 @@ void led_out(char n){
 /* output 출력 통괄, 메세지를 받으면 각각 맞는 출력을 할 수 있도록 */
 void output_process(){
 	
-	int shmid2 = shmget((key_t)1002, 14, IPC_CREAT|0666);
+	int shmid2 = shmget((key_t)1002, 14, 0);
 	char* shmaddr = (char*)shmat(shmid2, (char*)NULL, 0);
 	char text[10];
 	memset(text, 0, sizeof(text));

@@ -21,9 +21,9 @@ int draw_count; //DRAW_MODE에서 버튼이 눌러진 횟수
 /* input process에서 스위치 입력을 받은 경우 메세지를 처리하는 함수 */
 void receive_msg(){
 	
-	int shmid1 = shmget((key_t)1001, 11, IPC_CREAT|0666);
+	int shmid1 = shmget((key_t)1001, 11, 0);
 	char* shmaddr1 = (char*)shmat(shmid1, (char*)NULL, 0);
-	int shmid2 = shmget((key_t)1002, 14, IPC_CREAT|0666);
+	int shmid2 = shmget((key_t)1002, 14, 0);
 	char* shmaddr2 = (char*)shmat(shmid2, (char*)NULL, 0);
 	
 	time_t t = time(NULL);
@@ -383,7 +383,7 @@ void receive_msg(){
 /* event 버튼이 눌려진 경우 메세지를 받아서 처리하는 함수 */
 void change_mode(){
 
-	int shmid2 = shmget((key_t)1002, 14, IPC_CREAT|0666);
+	int shmid2 = shmget((key_t)1002, 14, 0);
 	char*shmaddr2 = (char*)shmat(shmid2, (char*)NULL, 0);
 	int i;
 	
@@ -406,7 +406,7 @@ void change_mode(){
 	shmaddr2[0] = FND;
 	while(*shmaddr2 != '*') usleep(100);
 	
-	int shmid3 = shmget((key_t)1003, 2, IPC_CREAT|0666);
+	int shmid3 = shmget((key_t)1003, 2, 0);
 	char* shmaddr = (char*)shmat(shmid3, (char*)NULL, 0);
 	char whichButton;
 
