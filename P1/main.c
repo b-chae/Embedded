@@ -352,13 +352,14 @@ void receive_msg(){
 				}
 				
 				//draw_count정보를 FND에 출력
+				while(shmaddr2[0] != '*') usleep(100);
 				shmaddr2[3] = '\0';
 				shmaddr2[1] = draw_count%100;
 				shmaddr2[2] = draw_count/100;
 				printf("?%d %d?", shmaddr2[1], shmaddr2[2]);
 				shmaddr2[0] = FND;
-				usleep(100);
 				
+				while(shmaddr2[0] != '*') usleep(100);
 				//그림 정보를 buf2.text에 담아 output process에 전달
 				for(i=0; i<10; i++)
 					shmaddr2[3+i] = draw_board[i];

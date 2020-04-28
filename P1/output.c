@@ -145,9 +145,9 @@ void output_process(){
 	int i;
 	
 	while(1){ //계속 메세지를 기다린다.
-		if(*shmaddr != '*'){
+		if(*shmaddr != '*' && *shmaddr != '#'){
 			int type = *shmaddr;
-			*shmaddr = '*';
+			*shmaddr = '#';
 			int n = shmaddr[1] + shmaddr[2]*100;
 			for(i=0; i<10; i++){
 				text[i] = shmaddr[3+i];
@@ -184,6 +184,7 @@ void output_process(){
 			else if(type == LED){//LED타입일 경우 해당 숫자를 출력한다.
 				led_out(n);
 			}
+			*shmaddr = '*';
 		}
 		usleep(1000);
 	}
