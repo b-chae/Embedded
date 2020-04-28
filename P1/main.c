@@ -389,7 +389,7 @@ void change_mode(){
 	shmaddr2[1] = 28;
 	shmaddr2[2] = 1;
 	shmaddr2[0] = LED;
-	sleep(1);
+	while(*shmaddr2 != '*') usleep(100);
 	
 	//text fnd 초기화
 	hour = tm->tm_hour;
@@ -398,7 +398,7 @@ void change_mode(){
 	shmaddr2[1] = minuit;
 	shmaddr2[2] = 0;
 	shmaddr2[0] = FND;
-	sleep(1);
+	while(*shmaddr2 != '*') usleep(100);
 	
 	int shmid3 = shmget((key_t)1003, 2, IPC_CREAT|0666);
 	char* shmaddr = (char*)shmat(shmid3, (char*)NULL, 0);
@@ -407,7 +407,6 @@ void change_mode(){
 	while(1){
 		
 		if( *shmaddr == EVENT ){
-			*shmaddr = '*';
 			printf("event msg received\n");
 			whichButton = shmaddr[1];
 			printf("%d\n",whichButton);			
@@ -426,27 +425,28 @@ void change_mode(){
 				shmaddr2[1] = -1;
 				shmaddr2[2] = 0;
 				shmaddr2[0] = DOT;
-				sleep(1);
+				while(*shmaddr2 != '*') usleep(100);
 				
 				//text fnd 초기화
 				shmaddr2[3] = '\0';
 				shmaddr2[1] = 0;
 				shmaddr2[2] = 0;
 				shmaddr2[0] = FND;
-				sleep(1);
+				while(*shmaddr2 != '*') usleep(100);
 				
 				//led 초기화
 				shmaddr2[3] = '\0';
 				shmaddr2[1] = 0;
 				shmaddr2[2] = 0;
 				shmaddr2[0] = LED;
-				sleep(1);
+				while(*shmaddr2 != '*') usleep(100);
 				
 				kill(pid_in, SIGINT);
 				kill(pid_out, SIGINT);
 				printf("Good bye\n");
 				exit(0);
 			}
+			*shmaddr = '*';
 		}
 		
 		/* initializaiton when mode changed */
