@@ -31,7 +31,8 @@ void receive_msg(){
 	flag = 0;
 	memset(text_buf, 0, sizeof(text_buf));
 	char tmp;
-	int i, n;
+	int i;
+	char n;
 	
 	memset(draw_board, 0, sizeof(draw_board));
 	
@@ -89,11 +90,13 @@ void receive_msg(){
 				}
 				counter_number = counter_number % (counter_base*counter_base*counter_base);
 
+				printf("ok!");
 				//바뀐 숫자를 FND에 출력. output process에 메세지 전달.
 				shmaddr2[3] = '\0';
 				shmaddr2[1] = counter_number % 100;
 				shmaddr2[2] = counter_number / 100;
 				shmaddr2[13] = counter_base;
+				printf("ok!");
 				shmaddr2[0] = FND_WITH_BASE;
 				sleep(1);
 				
