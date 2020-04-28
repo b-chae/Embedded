@@ -87,7 +87,6 @@ void switch_input(){
 			/* 두개 입력받는 경우 처리 */
 			if(flag == 0 && (push_sw_buff[0] == 1 || push_sw_buff[1] == 1 || push_sw_buff[2] == 1 || push_sw_buff[3] == 1
 		|| push_sw_buff[4] == 1 || push_sw_buff[5] == 1 || push_sw_buff[6] == 1 || push_sw_buff[7] == 1 || push_sw_buff[8] == 1)){
-				printf("!");
 				
 				shmaddr[1] = 0;
 				
@@ -101,8 +100,6 @@ void switch_input(){
 						shmaddr[2+i] = 0;
 					}
 				}
-				
-				printf("?");
 				
 				if(shmaddr[1] == 2) flag = 1;
 			}
