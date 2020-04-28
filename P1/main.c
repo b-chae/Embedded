@@ -119,6 +119,7 @@ void receive_msg(){
 			}
 			else if(mode == TEXT_MODE){
 				if(n == 1){ //동시에 눌려진 스위치가 한개이다.
+					printf("!");
 					text_count = (text_count + 1)%10000;
 					
 					if(text_mode == 0){ //알파벳 입력 모드일 경우
@@ -460,7 +461,6 @@ void change_mode(){
 				printf("Good bye\n");
 				exit(0);
 			}
-			*shmaddr = '*';
 		}
 		
 		/* initializaiton when mode changed */
@@ -581,6 +581,7 @@ void change_mode(){
 				exit(0);
 			}*/
 		}
+		*shmaddr = '*';
 
 	}
 }
