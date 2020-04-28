@@ -39,9 +39,14 @@ void receive_msg(){
 	while(1){
 		/* 스위치 입력을 받는다 */
 		if(*shmaddr1 == SWITCH){
-			usleep(100);
-			usleep(100);
-			usleep(100);
+			sleep(1);
+			sleep(1);
+			sleep(1);
+			sleep(1);
+			sleep(1);
+			sleep(1);
+			sleep(1);
+			sleep(1);sleep(1);sleep(1);sleep(1);
 			n = shmaddr1[1];
 			if(mode == CLOCK_MODE){
 				if(n == 1 && shmaddr1[2] == 1){ //1번 스위치, 시간 수정 모드 -> 시간 변경 끝, 시간 변경 끝 -> 시간 수정 모드

@@ -19,7 +19,7 @@ void event_input(){
 		
 		value = ev[0].value;
 		
-		if(value == KEY_PRESS){ //버튼이 눌렸다.
+		if(value == KEY_RELEASE){ //버튼이 눌렸다.
 		
 			int shmid3 = shmget((key_t)1003, 2, 0);
 			char* shmaddr = (char*)shmat(shmid3, (char*)NULL, 0);
