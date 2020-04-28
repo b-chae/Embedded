@@ -39,16 +39,7 @@ void receive_msg(){
 	while(1){
 		/* 스위치 입력을 받는다 */
 		if(*shmaddr1 == SWITCH){
-			sleep(1);
-			sleep(1);
-			sleep(1);
-			sleep(1);
-			sleep(1);
-			sleep(1);
-			sleep(1);
-			sleep(1);sleep(1);sleep(1);sleep(1);
 			n = shmaddr1[1];
-			printf("%d\n", n);
 			if(mode == CLOCK_MODE){
 				if(n == 1 && shmaddr1[2] == 1){ //1번 스위치, 시간 수정 모드 -> 시간 변경 끝, 시간 변경 끝 -> 시간 수정 모드
 					if(flag == 0){ //시간 변경 끝 -> 시간 수정모드
@@ -306,9 +297,11 @@ void receive_msg(){
 				}
 				//TEXT LCD 출력한다.
 				//text_count를 FND 출력한다. -> output process에 메세지 전달.
-				printf("here!");
 				while(*shmaddr2 != '*') usleep(100);
-				strcpy(&shmaddr2[3], text_buf);
+				for(i=0; i<8; i++){
+					shmaddr2[i+3] = text_buf[i];
+					printf("%c ",text_buf[i]);
+				}
 				shmaddr2[1] = text_count % 100;
 				shmaddr2[2] = text_count / 100;
 				shmaddr2[0] = FND;
