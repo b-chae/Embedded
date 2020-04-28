@@ -26,7 +26,7 @@ void fnd_out(int num, int base){
 }
 
 /* dot_out : dot matrix를 설정값에 따라 다르게 출력한다.
- * mode == -1 : 빈 화면 출력한다.
+ * mode == 50 : 빈 화면 출력한다.
  * mode == 0 : 알파벳 A를 출력한다.
  * mode == 1 : 숫자 1을 출력한다.
  */
@@ -59,7 +59,7 @@ void dot_out(int mode){
 	}
 	fpga_1[1] = 0x1c; fpga_1[2] = 0x1c; fpga_1[9] = 0x1e;
 	
-	if(mode == -1){
+	if(mode == 50){
 		write(dev, fpga_blank, sizeof(fpga_blank));
 	}
 	else if(mode == 0){
@@ -172,7 +172,7 @@ void output_process(){
 				}
 			}
 			else if(type == DOT){ //DOT타입일 경우
-				if(n == -1 || n == 0 || n == 1){ //특정 모드일 때는
+				if(n == 50 || n == 0 || n == 1){ //특정 모드일 때는
 					dot_out(n); //특정 모드에 맞는 dot matrix를 출력한다.
 				}
 				else{//그렇지 않을 경우에는 buf.text에 dot matrix 정보가 들어있다.
@@ -184,6 +184,6 @@ void output_process(){
 			}
 			*shmaddr = '*';
 		}
-		usleep(100);
+		usleep(10);
 	}
 }

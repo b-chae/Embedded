@@ -301,7 +301,6 @@ void receive_msg(){
 				while(*shmaddr2 != '*') usleep(100);
 				for(i=0; i<8; i++){
 					shmaddr2[i+3] = text_buf[i];
-					printf("%c ",text_buf[i]);
 				}
 				shmaddr2[1] = text_count % 100;
 				shmaddr2[2] = text_count / 100;
@@ -359,26 +358,24 @@ void receive_msg(){
 				}
 				
 				//draw_count정보를 FND에 출력
-				while(shmaddr2[0] != '*') usleep(100);
 				shmaddr2[3] = '\0';
 				shmaddr2[1] = draw_count%100;
 				shmaddr2[2] = draw_count/100;
-				printf("?%d %d?", shmaddr2[1], shmaddr2[2]);
 				shmaddr2[0] = FND;
-				
 				while(shmaddr2[0] != '*') usleep(100);
+				
 				//그림 정보를 buf2.text에 담아 output process에 전달
 				for(i=0; i<10; i++)
 					shmaddr2[3+i] = draw_board[i];
 				shmaddr2[1] = 2;
 				shmaddr2[2] = 0;
 				shmaddr2[0] = DOT;
-				usleep(100);
+				while(shmaddr2[0] != '*') usleep(100);
 			}
 		}
 			*shmaddr1 = '*';
 		}
-		usleep(100);
+		usleep(10);
 	}
 }
 
@@ -447,7 +444,7 @@ void change_mode(){
 			else if(whichButton == 158){ //BACK버튼, 초기화하고 프로세스를 종료한다.
 				//DOT MATRIX 초기화
 				shmaddr2[3] = '\0';
-				shmaddr2[1] = -1;
+				shmaddr2[1] = 50;
 				shmaddr2[2] = 0;
 				shmaddr2[0] = DOT;
 				while(*shmaddr2 != '*') usleep(100);
@@ -477,7 +474,7 @@ void change_mode(){
 				flag = 0;
 				
 				//DOT 빈칸으로 초기화
-				shmaddr2[1] = -1;
+				shmaddr2[1] = 50;
 				shmaddr2[2] = 0;
 				shmaddr2[0] = DOT;
 				while(*shmaddr2 != '*') usleep(100);
@@ -503,7 +500,7 @@ void change_mode(){
 				isCursor = 0;
 
 				//DOT 빈칸으로 초기화
-				shmaddr2[1] = -1;
+				shmaddr2[1] = 50;
 				shmaddr2[2] = 0;
 				shmaddr2[0] = DOT;
 				while(*shmaddr2 != '*') usleep(100);
