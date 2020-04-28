@@ -148,6 +148,7 @@ void output_process(){
 		if(*shmaddr != '*' && *shmaddr != '#'){
 			int type = *shmaddr;
 			*shmaddr = '#';
+			printf("(%d %d)\n", shmaddr[1], shmaddr[2]);
 			int n = shmaddr[1] + shmaddr[2]*100;
 			for(i=0; i<10; i++){
 				text[i] = shmaddr[3+i];
