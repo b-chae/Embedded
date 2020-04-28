@@ -56,7 +56,7 @@ void receive_msg(){
 					hour = tm->tm_hour;
 					minuit = tm->tm_min;
 					flag = 0;
-					
+					//시간 수정모드 -> 시간 변경 끝, LED 1번에 불이 들어오도록 한다.
 					shmaddr2[3] = '\0';
 					shmaddr2[1] = 28;
 					shmaddr2[2] = 1;
@@ -378,7 +378,7 @@ void receive_msg(){
 		}
 			*shmaddr1 = '*';
 		}
-		usleep(10);
+		usleep(100);
 	}
 }
 
@@ -407,7 +407,15 @@ void change_mode(){
 	shmaddr2[2] = 0;
 	shmaddr2[0] = FND;
 	while(*shmaddr2 != '*') usleep(100);
-	printf("output complete\n");
+	
+	//DOT matrix 초기화
+	shmaddr2[3] = '\0';
+	shmaddr2[1] = 50;
+	shmaddr2[2] = 0;
+	shmaddr2[0] = DOT;
+	while(*shmaddr2 != '*') usleep(100);
+	
+	printf("welcome!\n");
 	
 	int shmid3 = shmget((key_t)1003, 2, 0);
 	char* shmaddr = (char*)shmat(shmid3, (char*)NULL, 0);
@@ -470,6 +478,14 @@ void change_mode(){
 				shmaddr2[0] = LED;
 				while(*shmaddr2 != '*') usleep(100);
 				
+				//공유메모리 삭제
+				shmdt((char*)maddr1);
+				shmdt((char*)maddr2);
+				shmdt((char*)maddr3);
+				shmcl(mid1, IPC_RMID, (struct shmid_ds*)NULL);
+				shmcl(mid2, IPC_RMID, (struct shmid_ds*)NULL);
+				shmcl(mid3, IPC_RMID, (struct shmid_ds*)NULL);
+				
 				kill(pid_in, SIGINT);
 				kill(pid_out, SIGINT);
 				printf("Good bye\n");
@@ -518,7 +534,7 @@ void change_mode(){
 				shmaddr2[13] = counter_base;
 				while(*shmaddr2 != '*') usleep(100);
 				
-				//led 초기화 2번으로 초기화
+				//진수에 맞게 led 설정
 				shmaddr2[3] = '\0';
 				shmaddr2[2] = 0;
 				if(counter_base == 10) shmaddr2[1] = 64;
@@ -552,7 +568,7 @@ void change_mode(){
 				while(*shmaddr2 != '*') usleep(100);
 			}
 			else if(mode == DRAW_MODE){
-				isCursor  = 1;
+				isCursor  = 1;//커서보이기가 default
 				
 				//DOT MATRIX 설정
 				for(i=0; i<10; i++)
@@ -608,6 +624,7 @@ void snd_msg(){
 				case 0: tmp_board[tmpX] = tmp_board[tmpX] | 0b00000001; break;
 			}
 			
+			//DOT matrix 출력
 			for(i=0; i<10; i++)
 				shmaddr2[i+3] = tmp_board[i];
 			shmaddr2[1] = 2;
@@ -630,6 +647,7 @@ void snd_msg(){
 				case 0: tmp_board[tmpX] = tmp_board[tmpX] & 0b11111110; break;
 			}
 			
+			//DOT matrix 출력
 			for(i=0; i<10; i++)
 				shmaddr2[i+3] = tmp_board[i];
 			shmaddr2[1] = 2;
@@ -637,8 +655,9 @@ void snd_msg(){
 			shmaddr2[0] = DOT;
 			while(*shmaddr2 != '*') usleep(100);
 		}
-		if(flag == 1){ //CLOCK_MODE에서 시간 수정모드일 경우 3번, 4번 LED를 번갈아 깜빡이도록 설정한다.
+		else if(flag == 1){ //CLOCK_MODE에서 시간 수정모드일 경우 3번, 4번 LED를 번갈아 깜빡이도록 설정한다.
 		
+			//3번 LED에 불이 들어온다.
 			shmaddr2[3] = '\0';
 			shmaddr2[1] = 32;
 			shmaddr2[2] = 0;
@@ -647,6 +666,7 @@ void snd_msg(){
 			
 			sleep(1);
 			if(flag == 1){ //중간에 바뀌었는지 체크
+				//4번 LED에 불이 들어온다.
 				shmaddr2[3] = '\0';
 				shmaddr2[1] = 16;
 				shmaddr2[2] = 0;
@@ -663,22 +683,36 @@ int main(int argc, char *argv[]){
 	int r_value;
 	mode = CLOCK_MODE;
 	
-	int shmid1, shmid2, shmid3;
-	char* shmaddr;
+	/* (key_t) 1001 11바이트의 공간
+	 * shmaddr[0] type : '*' 스위치 입력 기다리는 중, SWITCH 스위치 입력 후
+	 * shmaddr[1] n : SWITCH가 동시에 눌려지는 개수 (1일경우 하나의 스위치가, 2일 경우 두개의 스위치가 눌려짐을 뜻한다.)
+	 * shmaddr[2] ~ shmaddr[10] : 9개의 switch에 대한 값, 0은 안눌려짐, 1은 눌려짐을 뜻한다.
+	 */
+	 mid1 = shmget((key_t)1001, 11, IPC_CREAT|0666);
+
+	/*
+	 * (key_t) 1002 14바이트의 공간
+	 * shmaddr[0] type : '*' OUTPUT 출력끝나고 기다리는 중, '#' 출력 중, FND, FND_WITH_BASE, DOT, LED4
+	 * shmaddr[1] shmaddr[2] : 최대 4자리 숫자를 shmaddr[1]에 하위 2자리, shmaddr[2]에 상위 2자리 나누어 담는다.
+	 * shmaddr[3] ~ shmaddr[12] : text lcd 출력을 위한 정보 또는 dot matrix 출력을 위한 정보를 담고 있다.
+	 * 							  fnd 출력을 위한 정보 또는 dot matrix 출력을 위한 정보 또는 led 출력을 위한 정보를 담고 있다.
+	 * shmaddr[13] base : type이 FND_WITH_BASE일 경우 base정보를 담고 있다.
+	 */
+	 mid2 = shmget((key_t)1002, 14, IPC_CREAT|0666);
+
+	/*
+	 * (key_t) 1003 2바이트의 공간
+	 * shmaddr[0] type : '*' 이벤트 입력 기다리는 중, EVENT 이벤트 입력 후
+	 * shmaddr[1] : 이벤트 버튼에 대한 정보를 담고 있다.
+	 */
+	mid3 = shmget((key_t)1003, 2, IPC_CREAT|0666);
 	
-	shmid1 = shmget((key_t)1001, 11, IPC_CREAT|0666);
-	shmid2 = shmget((key_t)1002, 14, IPC_CREAT|0666);
-	shmid3 = shmget((key_t)1003, 2, IPC_CREAT|0666);
-	
-	if(shmid1<0)
-		printf("error\n");
-	
-	shmaddr = (char*)shmat(shmid1, (char*)NULL, 0);
-	*shmaddr = '*';
-	shmaddr = (char*)shmat(shmid2, (char*)NULL, 0);
-	*shmaddr = '*';
-	shmaddr = (char*)shmat(shmid3, (char*)NULL, 0);
-	*shmaddr = '*';
+	maddr1 = (char*)shmat(mid1, (char*)NULL, 0);
+	*maddr1 = '*';
+	maddr2 = (char*)shmat(mid2, (char*)NULL, 0);
+	*maddr2 = '*';
+	maddr3 = (char*)shmat(mid3, (char*)NULL, 0);
+	*maddr3 = '*';
 	
 	pid_in = fork();
 	if(pid_in == 0){

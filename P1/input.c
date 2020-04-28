@@ -108,7 +108,7 @@ void switch_input(){
 		printf("\n");
 		*shmaddr = SWITCH;
 		
-		while(*shmaddr != '*') usleep(10);
+		while(*shmaddr != '*') usleep(100);
 	}
 	close(dev);
 }
