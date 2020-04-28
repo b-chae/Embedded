@@ -356,15 +356,15 @@ void receive_msg(){
 				shmaddr2[1] = 2;
 				shmaddr2[2] = 0;
 				shmaddr2[0] = DOT;
-				sleep(1);
+				usleep(10000);
 				
 				//draw_count정보를 FND에 출력
 				shmaddr2[3] = '\0';
-				shmaddr2[1] = draw_count%100;
-				shmaddr2[2] = draw_count/100;
+				shmaddr2[1] = (char)(draw_count%100);
+				shmaddr2[2] = (char)(draw_count/100);
 				printf("?%d %d?", shmaddr2[1], shmaddr2[2]);
 				shmaddr2[0] = FND;
-				sleep(1);
+				usleep(10000);
 			}
 		}
 		}
