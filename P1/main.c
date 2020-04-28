@@ -48,8 +48,8 @@ void receive_msg(){
 						flag = 0;
 
 						shmaddr2[3] = '\0';
-						shmaddr2[1] = 28
-						shmaddr2[2] = 1
+						shmaddr2[1] = 28;
+						shmaddr2[2] = 1;
 						shmaddr2[0] = LED;
 						usleep(100);			
 					}
@@ -251,7 +251,7 @@ void receive_msg(){
 					}
 					else{//숫자 입력 모드일 경우
 						for(i=0; i<9 ;i++){
-							if(buf.value[i] == 1){
+							if(shmaddr1[2+i] == 1){
 								tmp = i + 1 + '0';
 							}
 						}
@@ -292,7 +292,7 @@ void receive_msg(){
 				}
 				//TEXT LCD 출력한다.
 				//text_count를 FND 출력한다. -> output process에 메세지 전달.
-				shmaddr2[3] = '/0';
+				shmaddr2[3] = '\0';
 				shmaddr2[1] = text_count % 100;
 				shmaddr2[2] = text_count / 100;
 				shmaddr2[0] = FND;
