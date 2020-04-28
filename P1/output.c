@@ -148,12 +148,12 @@ void output_process(){
 		if(*shmaddr != '*' && *shmaddr != '#'){
 			int type = *shmaddr;
 			*shmaddr = '#';
-			printf("(%d %d)\n", shmaddr[1], shmaddr[2]);
+			printf("(%d %d)", shmaddr[1], shmaddr[2]);
 			int n = shmaddr[1] + shmaddr[2]*100;
 			for(i=0; i<10; i++){
 				text[i] = shmaddr[3+i];
 			}
-			
+			printf(" hoihoi ");
 			printf("message received in output process [%d] %d %s\n", type,n,text);
 			for(i=0; i<10; i++){
 				printf("%d ",shmaddr[3+i]);
