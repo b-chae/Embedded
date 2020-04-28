@@ -362,12 +362,12 @@ void receive_msg(){
 				shmaddr2[3] = '\0';
 				shmaddr2[1] = draw_count%100;
 				shmaddr2[2] = draw_count/100;
+				printf("?%d %d?", shmaddr2[1], shmaddr2[2]);
 				shmaddr2[0] = FND;
 				sleep(1);
 			}
 		}
 		}
-		sleep(1);
 	}
 }
 
