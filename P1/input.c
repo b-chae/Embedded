@@ -103,7 +103,7 @@ void switch_input(){
 		}
 		
 		*shmaddr = SWITCH;
-		sleep(1)
+		sleep(1);
 		
 		printf("send switch message %d switches pressed\n", shmaddr[1]);
 		for(i=0; i<9; i++){
