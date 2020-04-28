@@ -138,42 +138,47 @@ void led_out(char n){
 /* output 출력 통괄, 메세지를 받으면 각각 맞는 출력을 할 수 있도록 */
 void output_process(){
 	
-	key_t key2;
+	int shmid2 = shmget((key_t)1002, IPC_CREAT|0666);
+	char* shmaddr = (char*)shmat(shmid2, (char*)NULL, 0);
+	char text[10];
+	memset(text, 0, sizeof(text));
+	int i;
 	
 	while(1){ //계속 메세지를 기다린다.
-		struct msgbuf buf;
-		key2 = msgget((key_t)1002, IPC_CREAT|0666);
-		
-		if(msgrcv(key2, (void*)&buf, sizeof(buf) - sizeof(long), 0, MSG_NOERROR) == -1){
-			printf("msgrcv error\n");
-			exit(0);
-		}
-		else{
-			if(buf.type == FND){ //FND 타입일 경우
-				fnd_out(buf.num, 10); //10진수를 기본으로 출력한다.
-				if(strcmp(buf.text, "") != 0){ //text출력할 것이 있으면 한다.
-					buf.text[8] = '\0';
-					text_out(buf.text);
+		if(*shmaddr != '*'){
+			int type = *shmaddr;
+			*shmaddr = '*';
+			int n = shmaddr[1] + shmaddr[2]*100;
+			for(i=0; i<10; i++){
+				text[i] = shmaddr[3+i];
+			}
+			if(type == FND){ //FND 타입일 경우
+				fnd_out(n, 10); //10진수를 기본으로 출력한다.
+				if(strcmp(text, "") != 0){ //text출력할 것이 있으면 한다.
+					text[8] = '\0';
+					text_out(text);
 				}
 			}
-			else if(buf.type == FND_WITH_BASE){ //FND_WITH_BASE 타입일 경우
-				fnd_out(buf.num, buf.base); //buf.num을 buf.base진수로 하여 출력한다.
-				if(strcmp(buf.text, "")!=0){ //text출력할 것이 있으면 한다.
-					buf.text[8] = '\0';
-					text_out(buf.text);
+			else if(type == FND_WITH_BASE){ //FND_WITH_BASE 타입일 경우
+				fnd_out(n, shmaddr[13]); //buf.num을 buf.base진수로 하여 출력한다.
+				if(strcmp(text, "")!=0){ //text출력할 것이 있으면 한다.
+					text[8] = '\0';
+					text_out(text);
 				}
 			}
-			else if(buf.type == DOT){ //DOT타입일 경우
-				if(buf.num == -1 || buf.num == 0 || buf.num == 1){ //특정 모드일 때는
-					dot_out(buf.num); //특정 모드에 맞는 dot matrix를 출력한다.
+			else if(type == DOT){ //DOT타입일 경우
+				if(n == -1 || n == 0 || n == 1){ //특정 모드일 때는
+					dot_out(n); //특정 모드에 맞는 dot matrix를 출력한다.
 				}
 				else{//그렇지 않을 경우에는 buf.text에 dot matrix 정보가 들어있다.
-					dot_draw(buf.text);
+					dot_draw(text);
 				}
 			}
-			else if(buf.type == LED){//LED타입일 경우 해당 숫자를 출력한다.
-				led_out(buf.num);
+			else if(type == LED){//LED타입일 경우 해당 숫자를 출력한다.
+				led_out(n);
 			}
+			usleep(100);
 		}
+		ulseep(100);
 	}
 }
