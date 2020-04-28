@@ -185,6 +185,6 @@ void output_process(){
 				led_out(n);
 			}
 		}
-		sleep(1);
+		usleep(1000);
 	}
 }
