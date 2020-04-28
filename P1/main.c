@@ -49,12 +49,19 @@ void receive_msg(){
 						shmaddr2[1] = 28;
 						shmaddr2[2] = 1;
 						shmaddr2[0] = LED;
-						sleep(1);
+						while(*shmaddr2 != '*') usleep(100);
 					}
 				} //2번 스위치, 시간 수정 모드일 경우 보드의 시간으로 reset한다.
 				else if(n == 1 && shmaddr1[3] == 1 && flag == 1){
 					hour = tm->tm_hour;
 					minuit = tm->tm_min;
+					flag = 0;
+					
+					shmaddr2[3] = '\0';
+					shmaddr2[1] = 28;
+					shmaddr2[2] = 1;
+					shmaddr2[0] = LED;
+					while(*shmaddr2 != '*') usleep(100);
 				} //3번 스위치, 시간 수정 모드일 경우 시간 + 1
 				else if(n == 1 && shmaddr1[4] == 1 && flag == 1){
 					hour = ( hour + 1 ) % 24;
@@ -67,12 +74,10 @@ void receive_msg(){
 				shmaddr2[1] = minuit;
 				shmaddr2[2] = hour;
 				shmaddr2[0] = FND;
-				sleep(1);
+				while(*shmaddr2 != '*') usleep(100);
 			}
 			else if(mode == COUNTER_MODE){
 				if(n == 1 && shmaddr1[2] == 1){ //1번 스위치, 진수를 2 -> 10 -> 8 -> 4로 바꾼다.
-				
-				printf("%d %d\n", counter_number, counter_base);
 				
 					if(counter_base == 2) counter_base = 10;
 					else if(counter_base == 10) counter_base = 8;
@@ -90,15 +95,13 @@ void receive_msg(){
 				}
 				counter_number = counter_number % (counter_base*counter_base*counter_base);
 
-				printf("ok!");
 				//바뀐 숫자를 FND에 출력. output process에 메세지 전달.
 				shmaddr2[3] = '\0';
 				shmaddr2[1] = counter_number % 100;
 				shmaddr2[2] = counter_number / 100;
 				shmaddr2[13] = counter_base;
-				printf("ok!");
 				shmaddr2[0] = FND_WITH_BASE;
-				sleep(1);
+				while(*shmaddr2 != '*') usleep(100);
 				
 				//진수에 맞게 LED출력. output process에 메세지 전달.
 				shmaddr2[2] = 0;
@@ -107,7 +110,7 @@ void receive_msg(){
 				else if(counter_base == 8) shmaddr2[1] = 32;
 				else if(counter_base == 4) shmaddr2[1] = 16;
 				shmaddr2[0] = LED;
-				sleep(1);
+				while(*shmaddr2 != '*') usleep(100);
 			}
 			else if(mode == TEXT_MODE){
 				if(n == 1){ //동시에 눌려진 스위치가 한개이다.
