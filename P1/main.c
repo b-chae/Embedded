@@ -51,7 +51,7 @@ void receive_msg(){
 						shmaddr2[1] = 28;
 						shmaddr2[2] = 1;
 						shmaddr2[0] = LED;
-						usleep(100);			
+						sleep(1);
 					}
 				} //2번 스위치, 시간 수정 모드일 경우 보드의 시간으로 reset한다.
 				else if(n == 1 && shmaddr1[3] == 1 && flag == 1){
@@ -69,7 +69,7 @@ void receive_msg(){
 				shmaddr2[1] = minuit;
 				shmaddr2[2] = hour;
 				shmaddr2[0] = FND;
-				usleep(100);
+				sleep(1);
 			}
 			else if(mode == COUNTER_MODE){
 				if(n == 1 && shmaddr1[2] == 1){ //1번 스위치, 진수를 2 -> 10 -> 8 -> 4로 바꾼다.
@@ -95,7 +95,7 @@ void receive_msg(){
 				shmaddr2[2] = counter_number / 100;
 				shmaddr2[13] = counter_base;
 				shmaddr2[0] = FND_WITH_BASE;
-				usleep(100);
+				sleep(1);
 				
 				//진수에 맞게 LED출력. output process에 메세지 전달.
 				shmaddr2[2] = 0;
@@ -104,7 +104,7 @@ void receive_msg(){
 				else if(counter_base == 8) shmaddr2[1] = 32;
 				else if(counter_base == 4) shmaddr2[1] = 16;
 				shmaddr2[0] = LED;
-				usleep(100);
+				sleep(1);
 			}
 			else if(mode == TEXT_MODE){
 				if(n == 1){ //동시에 눌려진 스위치가 한개이다.
@@ -280,7 +280,7 @@ void receive_msg(){
 						shmaddr2[1] = text_mode;
 						shmaddr2[2] = 0;
 						shmaddr2[0] = DOT;
-						usleep(100);
+						sleep(1);
 					}
 					else if(shmaddr1[9] == 1 && shmaddr1[10] == 1){//8,9번 버튼이 눌려짐, insert a blank at the end
 						for(i=0; i<7; i++){
@@ -296,7 +296,7 @@ void receive_msg(){
 				shmaddr2[1] = text_count % 100;
 				shmaddr2[2] = text_count / 100;
 				shmaddr2[0] = FND;
-				usleep(100);
+				sleep(1);
 			}
 			else if(mode == DRAW_MODE){
 			if(n == 1){
@@ -353,18 +353,18 @@ void receive_msg(){
 				shmaddr2[1] = 2;
 				shmaddr2[2] = 0;
 				shmaddr2[0] = DOT;
-				usleep(100);
+				sleep(1);
 				
 				//draw_count정보를 FND에 출력
 				shmaddr2[3] = '\0';
 				shmaddr2[1] = draw_count%100;
 				shmaddr2[2] = draw_count/100;
 				shmaddr2[0] = FND;
-				usleep(100);
+				sleep(1);
 			}
 		}
 		}
-		usleep(100);
+		sleep(1);
 	}
 }
 
@@ -383,7 +383,7 @@ void change_mode(){
 	shmaddr2[1] = 28;
 	shmaddr2[2] = 1;
 	shmaddr2[0] = LED;
-	usleep(100);
+	sleep(1);
 	
 	//text fnd 초기화
 	hour = tm->tm_hour;
@@ -392,7 +392,7 @@ void change_mode(){
 	shmaddr2[1] = minuit;
 	shmaddr2[2] = 0;
 	shmaddr2[0] = FND;
-	usleep(100);
+	sleep(1);
 	
 	int shmid3 = shmget((key_t)1003, 2, IPC_CREAT|0666);
 	char* shmaddr = (char*)shmat(shmid3, (char*)NULL, 0);
@@ -421,14 +421,14 @@ void change_mode(){
 				shmaddr2[1] = -1;
 				shmaddr2[2] = 0;
 				shmaddr2[0] = DOT;
-				usleep(100);
+				sleep(1);
 				
 				//text fnd 초기화
 				shmaddr2[3] = '\0';
 				shmaddr2[1] = 0;
 				shmaddr2[2] = 0;
 				shmaddr2[0] = FND;
-				usleep(100);
+				sleep(1);
 				
 				//led 초기화
 				shmaddr2[3] = '\0';
