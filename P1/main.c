@@ -29,12 +29,10 @@ void receive_msg(){
 	time_t t = time(NULL);
 	struct tm *tm = localtime(&t);	
 	flag = 0;
-	memset(text_buf, 0, sizeof(text_buf));
+	
 	char tmp;
 	int i;
 	char n;
-	
-	memset(draw_board, 0, sizeof(draw_board));
 	
 	while(1){
 		/* 스위치 입력을 받는다 */
@@ -73,6 +71,9 @@ void receive_msg(){
 			}
 			else if(mode == COUNTER_MODE){
 				if(n == 1 && shmaddr1[2] == 1){ //1번 스위치, 진수를 2 -> 10 -> 8 -> 4로 바꾼다.
+				
+				printf("%d %d\n", counter_number, counter_base);
+				
 					if(counter_base == 2) counter_base = 10;
 					else if(counter_base == 10) counter_base = 8;
 					else if(counter_base == 8) counter_base = 4;
@@ -411,6 +412,23 @@ void change_mode(){
 	int shmid3 = shmget((key_t)1003, 2, 0);
 	char* shmaddr = (char*)shmat(shmid3, (char*)NULL, 0);
 	char whichButton;
+	
+	counter_number = 0;
+	counter_base = 10;
+	text_count = 0;
+	draw_count = 0;
+	memset(text_buf, 0, sizeof(text_buf));
+	strcpy(text_buf, "        ");
+	text_mode = 0;
+	previous_char = ' ';
+	
+	cursorX = 0;
+	cursorY = 6;
+	draw_count = 0;
+	memset(draw_board, 0, sizeof(draw_board));
+	for(i=0; i<10; i++){
+		draw_board[i] = 0;
+	}
 
 	while(1){
 		usleep(100);
@@ -457,119 +475,100 @@ void change_mode(){
 			if(mode == CLOCK_MODE){
 				isCursor = 0;
 				flag = 0;
-				//DOT MATRIX 빈칸으로 초기화
-				/*buf2.type = DOT;
-				buf2.num = -1;
-				if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
-					printf("key 2 msgsnd error\n");
-					exit(0);
-				}
-				//text fnd 현재 시간으로 초기화
+				
+				//DOT 빈칸으로 초기화
+				shmaddr2[1] = -1;
+				shmaddr2[2] = 0;
+				shmaddr2[0] = DOT;
+				while(*shmaddr2 != '*') usleep(100);
+
+				//text초기화 fnd 현재 시간으로 설정
 				hour = tm->tm_hour;
-				minuit=tm->tm_min;
-				buf2.type = FND;
-				buf2.num = hour*100 + minuit;
-				strcpy(buf2.text, "        ");
-				if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
-					printf("key 2 msgsnd error\n");
-					exit(0);
-				}
+				minuit = tm->tm_min;
+				shmaddr2[3] = '\0';
+				shmaddr2[1] = minuit;
+				shmaddr2[2] = hour;
+				shmaddr2[0] = FND;
+				while(*shmaddr2 != '*') usleep(100);
+				
 				//led 1번에 불이 들어온다.
-				buf2.type = LED;
-				buf2.num = 128;
-				if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
-					printf("key 2 msgsnd error\n");
-					exit(0);
-				}*/
+				shmaddr2[3] = '\0';
+				shmaddr2[1] = 28;
+				shmaddr2[2] = 1;
+				shmaddr2[0] = LED;
+				while(*shmaddr2 != '*') usleep(100);
 			}
 			else if(mode == COUNTER_MODE){
 				flag = 0;
 				isCursor = 0;
-				//DOT MATRIX 빈칸으로 초기화
-				/*buf2.type = DOT;
-				buf2.num = -1;
-				if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
-					printf("key 2 msgsnd error\n");
-					exit(0);
-				}
-				//text fnd 0으로 초기화
-				buf2.type = FND;
-				buf2.num = 0;
-				strcpy(buf2.text, "        ");
-				if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
-					printf("key 2 msgsnd error\n");
-					exit(0);
-				}
-				counter_number = 0;
-				counter_base = 10;
+
+				//DOT 빈칸으로 초기화
+				shmaddr2[1] = -1;
+				shmaddr2[2] = 0;
+				shmaddr2[0] = DOT;
+				while(*shmaddr2 != '*') usleep(100);
+
+				shmaddr2[3] = '\0';
+				shmaddr2[1] = counter_number%100;
+				shmaddr2[2] = counter_number/100;
+				shmaddr2[0] = FND_WITH_BASE;
+				shmaddr2[13] = counter_base;
+				while(*shmaddr2 != '*') usleep(100);
+				
 				//led 초기화 2번으로 초기화
-				buf2.type = LED;
-				buf2.num = 64;
-				if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
-					printf("key 2 msgsnd error\n");
-					exit(0);
-				}*/
+				shmaddr2[3] = '\0';
+				shmaddr2[1] = 64;
+				shmaddr2[2] = 0;
+				shmaddr2[0] = LED;
+				while(*shmaddr2 != '*') usleep(100);
 			}
 			else if(mode == TEXT_MODE){
-				text_mode = 0;
-				previous_char = ' ';
-				text_count = 0;
-				strcpy(text_buf, "        ");
+				flag = 0;
 				isCursor = 0;
-				//DOT MATRIX 알파벳 A로 초기화
-				/*buf2.type = DOT;
-				buf2.num = 0;
-				if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
-					printf("key 2 msgsnd error\n");
-					exit(0);
-				}
-				//text fnd 0으로 초기화
-				buf2.type = FND;
-				buf2.num = 0;
-				strcpy(buf2.text, "        ");
-				if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
-					printf("key 2 msgsnd error\n");
-					exit(0);
-				}
+				//DOT 빈칸으로 초기화
+				shmaddr2[1] = text_mode;
+				shmaddr2[2] = 0;
+				shmaddr2[0] = DOT;
+				while(*shmaddr2 != '*') usleep(100);
+				
+				//text 설정 fnd counter 설정
+				strcpy(&shmaddr2[3], text_buf);
+				shmaddr2[1] = text_count%100;
+				shmaddr2[2] = text_count/100;
+				shmaddr2[0] = FND;
+				while(*shmaddr2 != '*') usleep(100);
+				
 				//led 0으로 초기화
-				buf2.type = LED;
-				buf2.num = 0;
-				if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
-					printf("key 2 msgsnd error\n");
-					exit(0);
-				}*/
+				shmaddr2[3] = '\0';
+				shmaddr2[1] = 0;
+				shmaddr2[2] = 0;
+				shmaddr2[0] = LED;
+				while(*shmaddr2 != '*') usleep(100);
 			}
 			else if(mode == DRAW_MODE){
-				flag = 0;
 				isCursor  = 1;
-				cursorX = 0;
-				cursorY = 6;
-				draw_count = 0;
-				for(i=0; i<10; i++){
-					draw_board[i] = 0;
-				}
-				//DOT MATRIX 빈칸으로 초기화
-				/*buf2.type = DOT;
-				buf2.num = -1;
-				if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
-					printf("key 2 msgsnd error\n");
-					exit(0);
-				}
-				//text fnd 초기화
-				buf2.type = FND;
-				buf2.num = 0;
-				strcpy(buf2.text, "        ");
-				if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
-					printf("key 2 msgsnd error\n");
-					exit(0);
-				}
+				
+				//DOT MATRIX 설정
+				for(i=0; i<10; i++)
+					shmaddr2[3+i] = draw_board[i];
+				shmaddr2[1] = 2;
+				shmaddr2[2] = 0;
+				shmaddr2[0] = DOT;
+				while(*shmaddr2 != '*') usleep(100);
+				
+				//text 설정 fnd counter 설정
+				strcpy(&shmaddr2[3], "");
+				shmaddr2[1] = draw_count%100;
+				shmaddr2[2] = draw_count/100;
+				shmaddr2[0] = FND;
+				while(*shmaddr2 != '*') usleep(100);
+				
 				//led 0으로 초기화
-				buf2.type = LED;
-				buf2.num = 0;
-				if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
-					printf("key 2 msgsnd error\n");
-					exit(0);
-				}*/
+				shmaddr2[3] = '\0';
+				shmaddr2[1] = 0;
+				shmaddr2[2] = 0;
+				shmaddr2[0] = LED;
+				while(*shmaddr2 != '*') usleep(100);
 			}
 			*shmaddr = '*';
 		}
