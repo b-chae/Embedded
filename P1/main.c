@@ -428,51 +428,54 @@ void change_mode(){
 	
 	int shmid3 = shmget((key_t)1003, 2, IPC_CREAT|0644);
 	char* shmaddr = (char*)shmat(shmid3, (char*)NULL, 0);
+	char whichButton;
 
 	while(1){
 		
 		if( *shmaddr == EVENT ){
 			printf("event msg received\n");
-		}
-		/*
-		if(buf.n == 115){ //volume up
-			mode = (mode + 1) % 4;
-			printf("mode changed : %d\n", mode);
-		}
-		else if(buf.n == 114){ //volume down
-			mode--;
-			if(mode < 0) mode = mode + 4;
-			printf("mode changed : %d\n", mode);
-		}
-		else if(buf.n == 116){ //PROG버튼, 초기화하고 프로세스를 종료한다.
-			//DOT MATRIX 초기화
-			buf2.type = DOT;
-			buf2.num = -1;
-			if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
-				printf("key 2 msgsnd error\n");
+			*shmaddr = '*';
+			whichButton = shmaddr[1];
+			
+			if(whichButton == 115){ //volume up
+				mode = (mode + 1) % 4;
+				printf("mode changed : %d\n", mode);
+			}
+			else if(whichButton == 114){ //volume down
+				mode--;
+				if(mode < 0) mode = mode + 4;
+				printf("mode changed : %d\n", mode);
+			}
+			else if(whichButton == 116){ //PROG버튼, 초기화하고 프로세스를 종료한다.
+				//DOT MATRIX 초기화
+				buf2.type = DOT;
+				buf2.num = -1;
+				if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
+					printf("key 2 msgsnd error\n");
+					exit(0);
+				}
+				//text fnd 초기화
+				buf2.type = FND;
+				buf2.num = 0;
+				strcpy(buf2.text, "        ");
+				if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
+					printf("key 2 msgsnd error\n");
+					exit(0);
+				}
+				//led 초기화
+				buf2.type = LED;
+				buf2.num = 0;
+				if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
+					printf("key 2 msgsnd error\n");
+					exit(0);
+				}
+				sleep(1);
+				kill(pid_in, SIGINT);
+				kill(pid_out, SIGINT);
+				printf("Good bye\n");
 				exit(0);
 			}
-			//text fnd 초기화
-			buf2.type = FND;
-			buf2.num = 0;
-			strcpy(buf2.text, "        ");
-			if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
-				printf("key 2 msgsnd error\n");
-				exit(0);
-			}
-			//led 초기화
-			buf2.type = LED;
-			buf2.num = 0;
-			if(msgsnd(key2, (void*)&buf2, sizeof(buf2)-sizeof(long), IPC_NOWAIT) == -1){
-				printf("key 2 msgsnd error\n");
-				exit(0);
-			}
-			sleep(1);
-			kill(pid_in, SIGINT);
-			kill(pid_out, SIGINT);
-			printf("Good bye\n");
-			exit(0);
-		}*/
+		}
 		
 		/* initializaiton when mode changed */
 		if(mode == CLOCK_MODE){

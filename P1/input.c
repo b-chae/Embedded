@@ -26,10 +26,10 @@ void event_input(){
 			
 			shmaddr[1] = ev[0].code;
 			*shmaddr = EVENT;
+			sleep(1);
 			
 			//메인 프로세스에 메세지 전달.
 			printf("event button pressed\n");
-			usleep(100);
 		}
 		
 	}
