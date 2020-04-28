@@ -48,6 +48,7 @@ void receive_msg(){
 			sleep(1);
 			sleep(1);sleep(1);sleep(1);sleep(1);
 			n = shmaddr1[1];
+			printf("%d\n", n);
 			if(mode == CLOCK_MODE){
 				if(n == 1 && shmaddr1[2] == 1){ //1번 스위치, 시간 수정 모드 -> 시간 변경 끝, 시간 변경 끝 -> 시간 수정 모드
 					if(flag == 0){ //시간 변경 끝 -> 시간 수정모드
