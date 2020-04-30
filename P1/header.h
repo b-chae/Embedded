@@ -44,16 +44,18 @@
 #define LED 13
 
 /* function declaration */
-void change_mode();
+void* change_mode();
 void input_process();
 void fnd_out(int num, int base);
 void output_process();
-void receive_msg();
+void* receive_msg();
 void dot_out(int mode);
 void text_out(const char*);
 void dot_draw(unsigned char*);
-void snd_msg();
+void* snd_msg();
 void led_out(char n);
+void* switch_input();
+void* event_input();
 
 /* global variables */
 int mode; //현재 모드 (CLOCK_MODE, COUNTER_MODE, TEXT_MODE, DRAW_MODE)

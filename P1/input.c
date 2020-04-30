@@ -1,7 +1,7 @@
 #include "header.h"
 
 /* 이벤트 입력을 받으면 main process에 입력 정보를 전달해준다. */
-void event_input(){
+void* event_input(){
 	
 	struct input_event ev[BUFF_SIZE];
 	int fd, rd, value, size = sizeof(struct input_event);
@@ -36,7 +36,7 @@ void event_input(){
 }
 
 /* 스위치 입력을 받으면 main process에 입력 정보를 전달해준다. */
-void switch_input(){
+void* switch_input(){
 	
 	int shmid1 = shmget((key_t)1001, 11, 0);
 	char* shmaddr = (char*)shmat(shmid1, (char*)NULL, 0);

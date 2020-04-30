@@ -19,7 +19,7 @@ int cursorX; int cursorY; //커서 X, Y좌표
 int draw_count; //DRAW_MODE에서 버튼이 눌러진 횟수
 
 /* input process에서 스위치 입력을 받은 경우 메세지를 처리하는 함수 */
-void receive_msg(){
+void* receive_msg(){
 	
 	int shmid1 = shmget((key_t)1001, 11, 0);
 	char* shmaddr1 = (char*)shmat(shmid1, (char*)NULL, 0);
@@ -384,7 +384,7 @@ void receive_msg(){
 }
 
 /* event 버튼이 눌려진 경우 메세지를 받아서 처리하는 함수 */
-void change_mode(){
+void* change_mode(){
 
 	int shmid2 = shmget((key_t)1002, 14, 0);
 	char*shmaddr2 = (char*)shmat(shmid2, (char*)NULL, 0);
@@ -598,7 +598,7 @@ void change_mode(){
 }
 
 /* 커서가 보일 경우, CLOCK_MODE 수정 중일 경우 1초마다 출력이 바뀌도록 메세지를 전달하는 함수 */
-void snd_msg(){
+void* snd_msg(){
 	
 	int i;
 	int shmid2 = shmget((key_t)1002, 14, 0);
