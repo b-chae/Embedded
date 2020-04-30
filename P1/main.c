@@ -482,9 +482,9 @@ void change_mode(){
 				shmdt((char*)maddr1);
 				shmdt((char*)maddr2);
 				shmdt((char*)maddr3);
-				shmcl(mid1, IPC_RMID, (struct shmid_ds*)NULL);
-				shmcl(mid2, IPC_RMID, (struct shmid_ds*)NULL);
-				shmcl(mid3, IPC_RMID, (struct shmid_ds*)NULL);
+				shmctl(mid1, IPC_RMID, (struct shmid_ds*)NULL);
+				shmctl(mid2, IPC_RMID, (struct shmid_ds*)NULL);
+				shmctl(mid3, IPC_RMID, (struct shmid_ds*)NULL);
 				
 				kill(pid_in, SIGINT);
 				kill(pid_out, SIGINT);
