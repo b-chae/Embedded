@@ -28,7 +28,7 @@ void event_input(){
 			*shmaddr = EVENT;
 			printf("event button pressed\n");
 			while(*shmaddr != '*') usleep(100);
-			//메인 프로세스에 메세지 전달.
+			//메인 프로세스에 메세지 전달. 처리 완료될 때까지 대기
 		}
 		
 	}
@@ -106,8 +106,9 @@ void switch_input(){
 			printf("%d ", shmaddr[2+i]);
 		}
 		printf("\n");
+		//메인 프로세스에 메시지 전달.
 		*shmaddr = SWITCH;
-		
+		//처리 완료될 때까지 대기
 		while(*shmaddr != '*') usleep(100);
 	}
 	close(dev);

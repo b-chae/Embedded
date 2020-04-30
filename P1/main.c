@@ -333,14 +333,15 @@ void receive_msg(){
 					if(cursorY < 6) cursorY++;
 				}
 				else if(shmaddr1[6] == 1){//5번 스위치, 현재위치 선택
+					//해당 비트가 1일 경우 -> 0으로 바꾼다, 해당 비트가 0일 경우 -> 1로 바꾼다.
 					switch(cursorY){
-						case 6: draw_board[cursorX] = draw_board[cursorX] | 0b01000000; break;
-						case 5: draw_board[cursorX] = draw_board[cursorX] | 0b00100000; break;
-						case 4: draw_board[cursorX] = draw_board[cursorX] | 0b00010000; break;
-						case 3: draw_board[cursorX] = draw_board[cursorX] | 0b00001000; break;
-						case 2: draw_board[cursorX] = draw_board[cursorX] | 0b00000100; break;
-						case 1: draw_board[cursorX] = draw_board[cursorX] | 0b00000010; break;
-						case 0: draw_board[cursorX] = draw_board[cursorX] | 0b00000001; break;
+						case 6: draw_board[cursorX] = draw_board[cursorX] ^ 0b1000000; break;
+						case 5: draw_board[cursorX] = draw_board[cursorX] ^ 0b0100000; break;
+						case 4: draw_board[cursorX] = draw_board[cursorX] ^ 0b0010000; break;
+						case 3: draw_board[cursorX] = draw_board[cursorX] ^ 0b0001000; break;
+						case 2: draw_board[cursorX] = draw_board[cursorX] ^ 0b0000100; break;
+						case 1: draw_board[cursorX] = draw_board[cursorX] ^ 0b0000010; break;
+						case 0: draw_board[cursorX] = draw_board[cursorX] ^ 0b0000001; break;
 					}
 				}
 				else if(shmaddr1[7] == 1){//6번 스위치, 커서 오른쪽으로 이동
@@ -677,8 +678,8 @@ void snd_msg(){
 		sleep(1);
 	}
 }
-/* input process --메세지전달--> main --메세지전달--> output process */
-/* 메인에서 받은 메세지를 처리하고 출력을 위한 메세지 전달을 통괄한다. */
+/* input process --IPC--> main --IPC--> output process */
+/* 메인에서 input process와 output process를 생성한다! */
 int main(int argc, char *argv[]){
 	int r_value;
 	mode = CLOCK_MODE;
@@ -695,7 +696,6 @@ int main(int argc, char *argv[]){
 	 * shmaddr[0] type : '*' OUTPUT 출력끝나고 기다리는 중, '#' 출력 중, FND, FND_WITH_BASE, DOT, LED4
 	 * shmaddr[1] shmaddr[2] : 최대 4자리 숫자를 shmaddr[1]에 하위 2자리, shmaddr[2]에 상위 2자리 나누어 담는다.
 	 * shmaddr[3] ~ shmaddr[12] : text lcd 출력을 위한 정보 또는 dot matrix 출력을 위한 정보를 담고 있다.
-	 * 							  fnd 출력을 위한 정보 또는 dot matrix 출력을 위한 정보 또는 led 출력을 위한 정보를 담고 있다.
 	 * shmaddr[13] base : type이 FND_WITH_BASE일 경우 base정보를 담고 있다.
 	 */
 	 mid2 = shmget((key_t)1002, 14, IPC_CREAT|0666);

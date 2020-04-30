@@ -8,7 +8,6 @@
 #include <sys/select.h>
 #include <sys/time.h>
 #include <termios.h>
-#include <termios.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,7 +15,6 @@
 #include <time.h>
 #include <sys/ipc.h>
 #include <pthread.h>
-#include <sys/msg.h>
 #include <sys/mman.h>
 #include <sys/shm.h>
 
@@ -45,7 +43,7 @@
 #define DOT 12
 #define LED 13
 
-/* function definition */
+/* function declaration */
 void change_mode();
 void input_process();
 void fnd_out(int num, int base);
