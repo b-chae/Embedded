@@ -447,7 +447,6 @@ void* change_mode(){
 		if( *shmaddr == EVENT ){
 			printf("event msg received\n");
 			whichButton = shmaddr[1];
-			
 			if(whichButton == 115){ //volume up
 				mode = (mode + 1) % 4;
 				printf("mode changed : %d\n", mode);
