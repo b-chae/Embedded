@@ -23,10 +23,13 @@ AUTH : largest@huins.com */
 #define IOM_FND_NAME "dev_driver"		// ioboard fpga device name
 
 #define IOM_FND_ADDRESS 0x08000004 // pysical address
+#define IOM_LED_ADDRESS 0x08000016 // pysical address
 
 //Global variable
 static int fpga_fnd_port_usage = 0;
 static unsigned char *iom_fpga_fnd_addr;
+static int ledport_usage = 0;
+static unsigned char *iom_fpga_led_addr;
 
 // define functions...
 ssize_t iom_fpga_fnd_write(struct file *inode, const char *gdata, size_t length, loff_t *off_what);
@@ -48,8 +51,10 @@ struct file_operations iom_fpga_fnd_fops =
 int iom_fpga_fnd_open(struct inode *minode, struct file *mfile) 
 {	
 	if(fpga_fnd_port_usage != 0) return -EBUSY;
+	if(ledport_usage != 0) return -EBUSY;
 
 	fpga_fnd_port_usage = 1;
+	ledport_usage = 1;
 
 	return 0;
 }
@@ -58,6 +63,7 @@ int iom_fpga_fnd_open(struct inode *minode, struct file *mfile)
 int iom_fpga_fnd_release(struct inode *minode, struct file *mfile) 
 {
 	fpga_fnd_port_usage = 0;
+	ledport_usage = 0;
 
 	return 0;
 }
@@ -68,13 +74,42 @@ ssize_t iom_fpga_fnd_write(struct file *inode, const char *gdata, size_t length,
 	int i;
 	unsigned char value[4];
 	unsigned short int value_short = 0;
+	unsigned short _s_value = 0;
 	const char *tmp = gdata;
 
 	if (copy_from_user(&value, tmp, 4))
 		return -EFAULT;
 
     value_short = value[0] << 12 | value[1] << 8 |value[2] << 4 |value[3];
-    outw(value_short,(unsigned int)iom_fpga_fnd_addr);	    
+    if(value[0] != 0){
+		if(value[0] == 1){
+			_s_value = 128;
+		}
+		else if(value[0] == 2){
+			_s_value = 64;
+		}
+		else if(value[0] == 3){
+			_s_value = 32;
+		}
+		else if(value[0] == 4){
+			_s_value = 16;
+		}
+		else if(value[0] == 5){
+			_s_value = 8;
+		}
+		else if(value[0] == 6){
+			_s_value = 4;
+		}
+		else if(value[0] == 7){
+			_s_value = 2;
+		}
+		else if(value[0] == 8){
+			_s_value = 1;
+		}
+	}
+	
+	outw(value_short,(unsigned int)iom_fpga_fnd_addr);
+	outw(_s_value, (unsigned int)iom_fpga_led_addr);
 
 	return length;
 }
@@ -110,6 +145,7 @@ int __init iom_fpga_fnd_init(void)
 	}
 
 	iom_fpga_fnd_addr = ioremap(IOM_FND_ADDRESS, 0x4);
+	iom_fpga_led_addr = ioremap(IOM_LED_ADDRESS, 0x1);
 
 	printk("init module, %s major number : %d\n", IOM_FND_NAME, IOM_FND_MAJOR);
 
