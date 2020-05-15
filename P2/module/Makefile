@@ -1,6 +1,6 @@
 #Makefile for a basic kernel module
 
-obj-m   := fpga_fnd_driver.o
+obj-m   := dev_driver.o
 
 KDIR    :=/work/achroimx_kernel
 PWD     :=$(shell pwd)
@@ -15,7 +15,7 @@ app:
 	arm-none-linux-gnueabi-gcc -static -o fpga_test_fnd fpga_test_fnd.c
 
 install:
-	cp -a fpga_fnd_driver.ko /nfsroot
+	cp -a dev_driver.ko /nfsroot
 	cp -a fpga_test_fnd /nfsroot
 clean:
 	rm -rf *.ko
