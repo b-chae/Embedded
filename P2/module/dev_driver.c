@@ -71,8 +71,7 @@ struct file_operations iom_device_fops =
 	.open		=	iom_device_open,
 	.write		=	iom_device_write,	
 	.read		=	iom_device_read,	
-	.release	=	iom_device_write,
-};
+	.release	=	iom_device_release,
 
 // when fnd device open ,call this function
 int iom_device_open(struct inode *minode, struct file *mfile) 
@@ -106,39 +105,41 @@ ssize_t iom_device_write(struct file *inode, const char *gdata, size_t length, l
 	unsigned short int value_short = 0;
 	unsigned short _s_value = 0;
 	unsigned short int tmp_value;
+	unsigned char real_value = 0;
 	const char *tmp = gdata;
 
 	if (copy_from_user(&value, tmp, 4))
 		return -EFAULT;
 
     value_short = value[0] << 12 | value[1] << 8 |value[2] << 4 |value[3];
-    if(value[0] != 0){
-		if(value[0] == 1){
-			_s_value = 128;
-			for(i=0; i<10; i++){
-				outw(fpga_number[1][i], (unsigned int)iom_fpga_dot_addr + i*2);
-			}
+  
+	if(value[0] != 0){
+		real_value = value[0];
+	}
+	else if(value[1] != 0){
+		real_value = value[1];
+	}
+	else if(value[2] != 0){
+		real_value = value[2];
+	}
+	else if(value[3] != 0){
+		real_value = value[3];
+	}
+	
+    if(real_value != 0){
+		switch(real_value){
+			case 1 : _s_value = 128; break;
+			case 2 : _s_value = 64; break;
+			case 3 : _s_value = 32; break;
+			case 4 : _s_value = 16; break;
+			case 5 : _s_value = 8; break;
+			case 6 : _s_value = 4; break;
+			case 7 : _s_value = 2; break;
+			case 8 : _s_value = 1; break;
 		}
-		else if(value[0] == 2){
-			_s_value = 64;
-		}
-		else if(value[0] == 3){
-			_s_value = 32;
-		}
-		else if(value[0] == 4){
-			_s_value = 16;
-		}
-		else if(value[0] == 5){
-			_s_value = 8;
-		}
-		else if(value[0] == 6){
-			_s_value = 4;
-		}
-		else if(value[0] == 7){
-			_s_value = 2;
-		}
-		else if(value[0] == 8){
-			_s_value = 1;
+
+		for(i=0; i<10; i++){
+			outw(fpga_number[real_value][i], (unsigned int)iom_fpga_dot_addr + 2*i);
 		}
 	}
 	
@@ -172,7 +173,8 @@ int __init iom_device_init(void)
 {
 	int result;
 
-	result = register_chrdev(IOM_DEVICE_MAJOR, IOM_DEVICE_NAME, &iom_fpga_fnd_fops);
+	result = register_chrdev(IOM_DEVICE_MAJOR, IOM_DEVICE_NAME, &iom_device_fops);
+  
 	if(result < 0) {
 		printk(KERN_WARNING"Can't get any major\n");
 		return result;
@@ -180,6 +182,7 @@ int __init iom_device_init(void)
 
 	iom_fpga_fnd_addr = ioremap(IOM_FND_ADDRESS, 0x4);
 	iom_fpga_led_addr = ioremap(IOM_LED_ADDRESS, 0x1);
+	iom_fpga_dot_addr = ioremap(IOM_FPGA_DOT_ADDRESS, 0x10);
 
 	printk("init module, %s major number : %d\n", IOM_DEVICE_NAME, IOM_DEVICE_MAJOR);
 
@@ -190,6 +193,7 @@ void __exit iom_device_exit(void)
 {
 	iounmap(iom_fpga_fnd_addr);
 	iounmap(iom_fpga_led_addr);
+	iounmap(iom_fpga_dot_addr);
 	unregister_chrdev(IOM_DEVICE_MAJOR, IOM_DEVICE_NAME);
 }
 
