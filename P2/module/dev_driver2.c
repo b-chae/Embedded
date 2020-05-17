@@ -112,11 +112,19 @@ static void kernel_timer_blink(unsigned long timeout) {
 
 ssize_t iom_device_write(struct file *inode, const char *gdata, size_t length, loff_t *off_what) {
 
+	unsigned char value[4];
+	unsigned short _s_value = 0;
+	
 	printk("write\n");
 	// 1 byte
 	if (copy_from_user(&option, gdata, sizeof(option))) {
 		return -EFAULT;
 	}
+
+	value[0] = option.timer_init/1000;
+	value[1] = option.timer_init/100%10;
+	value[2] = option.timer_init%100/10;
+	value[3] = option.timer_init%10;
 
 	mydata.count = 0;
 
