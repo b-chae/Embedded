@@ -91,7 +91,7 @@ static struct struct_timer_data{
 };
 
 struct mydata option;
-struct struct_timer_data timer_data;
+struct struct_timer_data mydata;
 int major;
 
 // when fnd device close ,call this function
