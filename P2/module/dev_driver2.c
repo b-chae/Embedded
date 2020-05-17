@@ -6,6 +6,8 @@
 #include <linux/uaccess.h>
 #include <linux/slab.h>
 
+#include <asm/io.h>
+
 #define IOM_DEVICE_MAJOR 242
 #define IOM_DEVICE_NAME "dev_driver2"
 
@@ -129,7 +131,6 @@ void __exit iom_device_exit(void)
 	iounmap(iom_fpga_led_addr);
 	iounmap(iom_fpga_dot_addr);
 	iounmap(iom_fpga_text_lcd_addr);
-	
 	
 	printk("kernel_timer_exit\n");
 	printk("%d\n", howmany[0]);
