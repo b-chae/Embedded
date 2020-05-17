@@ -125,18 +125,6 @@ ssize_t iom_device_write(struct file *inode, const char *gdata, size_t length, l
 	value[1] = option.timer_init/100%10;
 	value[2] = option.timer_init%100/10;
 	value[3] = option.timer_init%10;
-	
-	if(value[0] != 0){
-		real_value = value[0];
-	}
-	else if(value[1] != 0){
-		real_value = value[1];
-	}
-	else if(value[2] != 0){
-		real_value = value[2];
-	}
-	else if(value[3] != 0){
-		real_value = value[3];
 
 	mydata.count = 0;
 
