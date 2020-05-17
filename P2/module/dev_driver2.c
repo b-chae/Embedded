@@ -52,7 +52,7 @@ unsigned char fpga_set_blank[10] = {
 int iom_device_open(struct inode *, struct file *);
 int iom_device_release(struct inode *, struct file *);
 ssize_t iom_device_write(struct file *, const char *, size_t, loff_t *);
-void deal_with_data();
+void deal_with_data(void);
 void fnd_write(const char* value);
 void dot_write(int n);
 void led_write(unsigned char n);
@@ -111,7 +111,7 @@ static void kernel_timer_blink(unsigned long timeout) {
 	add_timer(&mydata.timer);
 }
 
-void deal_with_data(){
+void deal_with_data(void){
 	unsigned char value[4];
 	unsigned short real_value = 0;
 	
