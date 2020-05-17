@@ -14,6 +14,14 @@ Auth : largest@huins.com */
 #define MAX_DIGIT 4
 #define FND_DEVICE "/dev/fpga_fnd"
 
+struct mydata{
+	int timer_interval;
+	int timer_count;
+	int timer_init;
+};
+
+struct mydata my_option;
+
 int main(int argc, char **argv)
 {
 	int dev;
@@ -21,21 +29,40 @@ int main(int argc, char **argv)
 	unsigned char retval;
 	int i;
 	int str_size;
+	int tmp;
 
 
 	memset(data,0,sizeof(data));
 
-	if(argc!=2) {
+	if(argc!=4) {
 		printf("please input the parameter! \n");
-		printf("ex)./test_led a1\n");
+		printf("ex)./app TIMER_INTERVAL[1-100] TIMER_CNT[1-100] TIMER_INIT[0001-8000]\n");
 		return -1;
 	}
 
-    str_size=(strlen(argv[1]));
+	//TIMER_INTERVAL
+	tmp = atoi(argv[1]);
+	if(tmp < 0 || tmp > 100){
+		printf("TIMER_INTERVAL out of range");
+		exit(1);
+	}
+	my_option.timer_interval = tmp;
+
+	//TIMER_CNT
+	tmp = atoi(argv[2]);
+	if(tmp < 0 || tmp > 100){
+		printf("TIMER_CNT out of range");
+		exit(1);
+	}
+	my_option.timer_count = tmp;
+
+	//TIMER_INIT parameter 처리
+    str_size=(strlen(argv[3]));
     if(str_size>MAX_DIGIT)
     {
-        printf("Warning! 4 Digit number only!\n");
+        printf("Warning! TIMER_INIT 4 Digit number only!\n");
         str_size=MAX_DIGIT;
+		exit(1);
     }
 
     for(i=0;i<str_size;i++)
@@ -46,7 +73,7 @@ int main(int argc, char **argv)
         }
         data[i]=argv[1][i]-0x30;
     }
-
+	my_option.timer_init = atoi(argv[3]);
 
     dev = open(FND_DEVICE, O_RDWR);
     if (dev<0) {
@@ -54,8 +81,7 @@ int main(int argc, char **argv)
         exit(1);
     }
 
-
-    retval=write(dev,&data,4);	
+    retval=write(dev,&my_option,sizeof(my_option));	
     if(retval<0) {
         printf("Write Error!\n");
         return -1;

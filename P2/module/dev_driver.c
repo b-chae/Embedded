@@ -124,8 +124,13 @@ ssize_t iom_device_write(struct file *inode, const char *gdata, size_t length, l
 	unsigned char real_value = 0;
 	const char *tmp = gdata;
 
-	if (copy_from_user(&value, tmp, 4))
+	if (copy_from_user(&option, gdata, sizeof(option)))
 		return -EFAULT;
+
+	value[0] = option.timer_init/1000;
+	value[1] = option.timer_init/100%10;
+	value[2] = option.timer_init%100/10;
+	value[3] = option.timer_init%10;
 
     fnd_write(value);
 
