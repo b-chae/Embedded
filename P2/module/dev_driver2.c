@@ -6,8 +6,6 @@
 #include <linux/uaccess.h>
 #include <linux/slab.h>
 
-#include <asm/io.h>
-
 #define IOM_DEVICE_MAJOR 242
 #define IOM_DEVICE_NAME "dev_driver2"
 
@@ -16,40 +14,11 @@
 #define IOM_FPGA_DOT_ADDRESS 0x08000210
 #define IOM_FPGA_TEXT_LCD_ADDRESS 0x08000090
 
-#define STRLEN_STUDENT_NUMBER 8
-#define STRLEN_MY_NAME 11
-
 static int device_usage = 0;
 static unsigned char *iom_fpga_fnd_addr;
 static unsigned char *iom_fpga_led_addr;
 static unsigned char *iom_fpga_dot_addr;
 static unsigned char *iom_fpga_text_lcd_addr;
-
-const char* student_number = "20171696";
-const char* my_name = "byeori chae";
-
-unsigned char fpga_number[10][10] = {
-	{0x3e,0x7f,0x63,0x73,0x73,0x6f,0x67,0x63,0x7f,0x3e}, // 0
-	{0x0c,0x1c,0x1c,0x0c,0x0c,0x0c,0x0c,0x0c,0x0c,0x1e}, // 1
-	{0x7e,0x7f,0x03,0x03,0x3f,0x7e,0x60,0x60,0x7f,0x7f}, // 2
-	{0xfe,0x7f,0x03,0x03,0x7f,0x7f,0x03,0x03,0x7f,0x7e}, // 3
-	{0x66,0x66,0x66,0x66,0x66,0x66,0x7f,0x7f,0x06,0x06}, // 4
-	{0x7f,0x7f,0x60,0x60,0x7e,0x7f,0x03,0x03,0x7f,0x7e}, // 5
-	{0x60,0x60,0x60,0x60,0x7e,0x7f,0x63,0x63,0x7f,0x3e}, // 6
-	{0x7f,0x7f,0x63,0x63,0x03,0x03,0x03,0x03,0x03,0x03}, // 7
-	{0x3e,0x7f,0x63,0x63,0x7f,0x7f,0x63,0x63,0x7f,0x3e}, // 8
-	{0x3e,0x7f,0x63,0x63,0x7f,0x3f,0x03,0x03,0x03,0x03} // 9
-};
-
-unsigned char fpga_set_full[10] = {
-	// memset(array,0x7e,sizeof(array));
-	0x7f,0x7f,0x7f,0x7f,0x7f,0x7f,0x7f,0x7f,0x7f,0x7f
-};
-
-unsigned char fpga_set_blank[10] = {
-	// memset(array,0x00,sizeof(array));
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
-};
 
 int iom_device_open(struct inode *, struct file *);
 int iom_device_release(struct inode *, struct file *);
@@ -73,14 +42,7 @@ struct mydata{
 struct struct_mydata mydata;
 struct mydata option;
 int major;
-
-ssize_t iom_device_write(struct file *inode, const char *gdata, size_t length, loff_t *off_what);
-int iom_device_open(struct inode *minode, struct file *mfile);
-int iom_device_release(struct inode *minode, struct file *mfile);
-void fnd_write(const char* value);
-void dot_write(int n);
-void led_write(unsigned char n);
-void text_write(int, int);
+char* howmany;
 
 int iom_device_release(struct inode *minode, struct file *mfile) {
 	printk("kernel_timer_release\n");
@@ -117,8 +79,6 @@ static void kernel_timer_blink(unsigned long timeout) {
 
 ssize_t iom_device_write(struct file *inode, const char *gdata, size_t length, loff_t *off_what) {
 
-	unsigned char value[4];
-	unsigned char real_value = 0;
 	printk("write\n");
 	// 1 byte
 	if (copy_from_user(&option, gdata, sizeof(option))) {
@@ -126,27 +86,11 @@ ssize_t iom_device_write(struct file *inode, const char *gdata, size_t length, l
 	}
 
 	mydata.count = 0;
-	
-	value[0] = option.timer_init/1000;
-	value[1] = option.timer_init/100%10;
-	value[2] = option.timer_init%100/10;
-	value[3] = option.timer_init%10;
-	
-	if(value[0] != 0){
-		real_value = value[0];
-	}
-	else if(value[1] != 0){
-		real_value = value[1];
-	}
-	else if(value[2] != 0){
-		real_value = value[2];
-	}
-	else if(value[3] != 0){
-		real_value = value[3];
 
 	printk("data  : %d \n",mydata.count);
 
 	del_timer_sync(&mydata.timer);
+	howmany[0] = 0;
 
 	mydata.timer.expires = jiffies + (1 * HZ);
 	mydata.timer.data = (unsigned long)&mydata;
@@ -185,6 +129,7 @@ void __exit iom_device_exit(void)
 	iounmap(iom_fpga_led_addr);
 	iounmap(iom_fpga_dot_addr);
 	iounmap(iom_fpga_text_lcd_addr);
+	
 	
 	printk("kernel_timer_exit\n");
 	printk("%d\n", howmany[0]);
