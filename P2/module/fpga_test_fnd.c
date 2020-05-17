@@ -12,7 +12,7 @@ Auth : largest@huins.com */
 #include <string.h>
 
 #define MAX_DIGIT 4
-#define FND_DEVICE "/dev/fpga_fnd"
+#define FND_DEVICE "/dev/dev_driver"
 
 struct mydata{
 	int timer_interval;
@@ -67,11 +67,11 @@ int main(int argc, char **argv)
 
     for(i=0;i<str_size;i++)
     {
-        if((argv[1][i]<0x30)||(argv[1][i])>0x39) {
+        if((argv[3][i]<0x30)||(argv[3][i])>0x39) {
             printf("Error! Invalid Value!\n");
             return -1;
         }
-        data[i]=argv[1][i]-0x30;
+        data[i]=argv[3][i]-0x30;
     }
 	my_option.timer_init = atoi(argv[3]);
 
