@@ -6,7 +6,7 @@
 #include <linux/uaccess.h>
 #include <linux/slab.h>
 
-#define KERNEL_TIMER_NAME "kernel_timer"
+#define KERNEL_TIMER_NAME "dev_driver2"
 
 static int kernel_timer_usage = 0;
 

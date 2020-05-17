@@ -1,6 +1,6 @@
 #Makefile for a basic kernel module
 
-obj-m   := dev_driver.o
+obj-m   := dev_driver2.o
 
 KDIR    :=/work/achroimx_kernel
 PWD     :=$(shell pwd)
