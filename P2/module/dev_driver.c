@@ -72,6 +72,10 @@ ssize_t iom_device_write(struct file *inode, const char *gdata, size_t length, l
 ssize_t iom_device_read(struct file *inode, char *gdata, size_t length, loff_t *off_what);
 int iom_device_open(struct inode *minode, struct file *mfile);
 int iom_device_release(struct inode *minode, struct file *mfile);
+void fnd_write(const char* value);
+void dot_write(int n);
+void led_write(unsigned char n);
+void text_write(unsigned char *value);
 
 // define file_operations structure 
 struct file_operations iom_device_fops =
