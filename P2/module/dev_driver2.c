@@ -6,6 +6,8 @@
 #include <linux/uaccess.h>
 #include <linux/slab.h>
 
+#include <asm/io.h>
+
 #define IOM_DEVICE_MAJOR 242
 #define IOM_DEVICE_NAME "dev_driver2"
 
