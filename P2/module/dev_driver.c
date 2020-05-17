@@ -71,7 +71,7 @@ struct file_operations iom_device_fops =
 	.open		=	iom_device_open,
 	.write		=	iom_device_write,	
 	.read		=	iom_device_read,	
-	.release	=	iom_device_write,
+	.release	=	iom_device_release,
 };
 
 // when fnd device open ,call this function
@@ -172,7 +172,7 @@ int __init iom_device_init(void)
 {
 	int result;
 
-	result = register_chrdev(IOM_DEVICE_MAJOR, IOM_DEVICE_NAME, &iom_fpga_fnd_fops);
+	result = register_chrdev(IOM_DEVICE_MAJOR, IOM_DEVICE_NAME, &iom_device_fops);
 	if(result < 0) {
 		printk(KERN_WARNING"Can't get any major\n");
 		return result;
