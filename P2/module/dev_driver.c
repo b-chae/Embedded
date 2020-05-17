@@ -30,13 +30,10 @@ AUTH : largest@huins.com */
 #define STRLEN_MY_NAME 11
 
 //Global variable
-static int fpga_fnd_port_usage = 0;
+static int device_usage = 0;
 static unsigned char *iom_fpga_fnd_addr;
-static int ledport_usage = 0;
 static unsigned char *iom_fpga_led_addr;
-static int fpga_dot_port_usage = 0;
 static unsigned char *iom_fpga_dot_addr;
-static int fpga_text_lcd_port_usage = 0;
 static unsigned char *iom_fpga_text_lcd_addr;
 
 const char* student_number = "20171696";
@@ -71,7 +68,13 @@ struct mydata{
 	int timer_init;
 };
 
+struct struct_timer_data{
+	struct timer_list timer;
+	int count;
+};
+
 struct mydata option;
+struct struct_timer_data timer_data;
 
 // define functions...
 ssize_t iom_device_write(struct file *inode, const char *gdata, size_t length, loff_t *off_what);
@@ -96,15 +99,9 @@ struct file_operations iom_device_fops =
 // when fnd device open ,call this function
 int iom_device_open(struct inode *minode, struct file *mfile) 
 {	
-	if(fpga_fnd_port_usage != 0) return -EBUSY;
-	if(ledport_usage != 0) return -EBUSY;
-	if(fpga_dot_port_usage != 0) return -EBUSY;
-	if(fpga_text_lcd_port_usage != 0) return -EBUSY;
-
-	fpga_fnd_port_usage = 1;
-	ledport_usage = 1;
-	fpga_dot_port_usage = 1;
-	fpga_text_lcd_port_usage = 1;
+	if(device_usage != 0) return -EBUSY;
+	
+	device_usage = 1;
 
 	return 0;
 }
@@ -112,12 +109,25 @@ int iom_device_open(struct inode *minode, struct file *mfile)
 // when fnd device close ,call this function
 int iom_device_release(struct inode *minode, struct file *mfile) 
 {
-	fpga_fnd_port_usage = 0;
-	ledport_usage = 0;
-	fpga_dot_port_usage = 0;
-	fpga_text_lcd_port_usage = 0;
+	device_usage = 0;
 
 	return 0;
+}
+
+void timer_func(unsigned long param){
+	struct struct_timer_data *p_data = (struct struct_timer_data*)param;
+	printk("timer func %d\n", p_data->count);
+
+	p_data->count++;
+	if(p_data->count >= option->timer_count){
+		return;
+	}
+	
+	timer_data.timer.expires = get_jiffies_64() + (option->timer_interval * HZ);
+	timer_data.data = (unsigned long)&timer_data;
+	timer_data.function = timer_func;
+	
+	add_timer(&timer_data.timer);
 }
 
 // when write to fnd device  ,call this function
@@ -133,7 +143,6 @@ ssize_t iom_device_write(struct file *inode, const char *gdata, size_t length, l
 
 	if (copy_from_user(&option, gdata, sizeof(option)))
 		return -EFAULT;
-
 	value[0] = option.timer_init/1000;
 	value[1] = option.timer_init/100%10;
 	value[2] = option.timer_init%100/10;
@@ -152,11 +161,18 @@ ssize_t iom_device_write(struct file *inode, const char *gdata, size_t length, l
 	}
 	else if(value[3] != 0){
 		real_value = value[3];
-	}
 	
 	dot_write(real_value);
 	led_write(real_value);
 	text_write(0, 0);
+
+	timer_data.count = 0;
+	del_timer_sync(&timer_data.timer);
+	timer_data.timer.expires = jiffies + option.timer_interval * HZ;
+	timer_data.timer.data = (unsigned long)&timer_data;
+	timer_data.timer.function = timer_func;
+	
+	add_timer(&timer_data.timer);
 
 	return length;
 }
@@ -267,6 +283,8 @@ int __init iom_device_init(void)
 
 	printk("init module, %s major number : %d\n", IOM_DEVICE_NAME, IOM_DEVICE_MAJOR);
 
+	init_timer(&(timer_data.timer));
+
 	return 0;
 }
 
@@ -276,6 +294,7 @@ void __exit iom_device_exit(void)
 	iounmap(iom_fpga_led_addr);
 	iounmap(iom_fpga_dot_addr);
 	iounmap(iom_fpga_text_lcd_addr);
+	del_timer_sync(&timer_data.timer);
 	unregister_chrdev(IOM_DEVICE_MAJOR, IOM_DEVICE_NAME);
 }
 
