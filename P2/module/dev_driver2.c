@@ -99,6 +99,23 @@ int iom_device_open(struct inode *minode, struct file *mfile) {
 	return 0;
 }
 
+void update_data(void){
+	
+	mydata.rotation_count++;
+	if(mydata.rotation_count >= 8){
+		mydata.rotation_count = 0;
+		
+		mydata.fnd_index++;
+		if(mydata.fnd_index >= 4){
+			mydata.fnd_index = 0;
+		}
+	}
+	mydata.current_num++;
+	if(mydata.current_num >= 9){
+		mydata.current_num = 1;
+	}
+}
+
 static void kernel_timer_blink(unsigned long timeout) {
 	struct struct_mydata *p_data = (struct struct_mydata*)timeout;
 	howmany[0]++;
@@ -109,11 +126,18 @@ static void kernel_timer_blink(unsigned long timeout) {
 		return;
 	}
 
-	mydata.timer.expires = get_jiffies_64() + (option.timer_interval * HZ);
+	mydata.timer.expires = get_jiffies_64() + (option.timer_interval * 0.1 * HZ);
 	mydata.timer.data = (unsigned long)&mydata;
 	mydata.timer.function = kernel_timer_blink;
 
 	add_timer(&mydata.timer);
+	
+	update_data();
+	
+	fnd_write(mydata.current_num, mydata.fnd_index);
+	dot_write(mydata.current_num);
+	led_write(mydata.current_num);
+	text_write(mydata.text_index_i,mydata.text_index_j);
 }
 
 void deal_with_data(void){
@@ -166,7 +190,7 @@ ssize_t iom_device_write(struct file *inode, const char *gdata, size_t length, l
 
 	del_timer_sync(&mydata.timer);
 
-	mydata.timer.expires = jiffies + (option.timer_interval * HZ);
+	mydata.timer.expires = jiffies + (option.timer_interval * 0.1 * HZ);
 	mydata.timer.data = (unsigned long)&mydata;
 	mydata.timer.function = kernel_timer_blink;
 	
