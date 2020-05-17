@@ -133,7 +133,6 @@ ssize_t iom_device_write(struct file *inode, const char *gdata, size_t length, l
 
 	if (copy_from_user(&option, gdata, sizeof(option)))
 		return -EFAULT;
-
 	value[0] = option.timer_init/1000;
 	value[1] = option.timer_init/100%10;
 	value[2] = option.timer_init%100/10;
@@ -152,7 +151,6 @@ ssize_t iom_device_write(struct file *inode, const char *gdata, size_t length, l
 	}
 	else if(value[3] != 0){
 		real_value = value[3];
-	}
 	
 	dot_write(real_value);
 	led_write(real_value);
