@@ -9,7 +9,16 @@
 #define IOM_DEVICE_MAJOR 242
 #define IOM_DEVICE_NAME "dev_driver2"
 
+#define IOM_FND_ADDRESS 0x08000004 // pysical address
+#define IOM_LED_ADDRESS 0x08000016 // pysical address
+#define IOM_FPGA_DOT_ADDRESS 0x08000210
+#define IOM_FPGA_TEXT_LCD_ADDRESS 0x08000090
+
 static int device_usage = 0;
+static unsigned char *iom_fpga_fnd_addr;
+static unsigned char *iom_fpga_led_addr;
+static unsigned char *iom_fpga_dot_addr;
+static unsigned char *iom_fpga_text_lcd_addr;
 
 int iom_device_open(struct inode *, struct file *);
 int iom_device_release(struct inode *, struct file *);
@@ -69,8 +78,6 @@ static void kernel_timer_blink(unsigned long timeout) {
 }
 
 ssize_t iom_device_write(struct file *inode, const char *gdata, size_t length, loff_t *off_what) {
-	const char *tmp = gdata;
-	char kernel_timer_buff = 0;
 
 	printk("write\n");
 	// 1 byte
@@ -105,6 +112,11 @@ int __init iom_device_init(void)
 	}
 	printk( "dev_file : /dev/%s , major : %d\n",IOM_DEVICE_NAME,major);
 
+	iom_fpga_fnd_addr = ioremap(IOM_FND_ADDRESS, 0x4);
+	iom_fpga_led_addr = ioremap(IOM_LED_ADDRESS, 0x1);
+	iom_fpga_dot_addr = ioremap(IOM_FPGA_DOT_ADDRESS, 0x10);
+	iom_fpga_text_lcd_addr = ioremap(IOM_FPGA_TEXT_LCD_ADDRESS, 0x32);
+
 	init_timer(&(mydata.timer));
 
 	printk("init module\n");
@@ -113,6 +125,11 @@ int __init iom_device_init(void)
 
 void __exit iom_device_exit(void)
 {
+	iounmap(iom_fpga_fnd_addr);
+	iounmap(iom_fpga_led_addr);
+	iounmap(iom_fpga_dot_addr);
+	iounmap(iom_fpga_text_lcd_addr);
+	
 	printk("kernel_timer_exit\n");
 	printk("%d\n", howmany[0]);
 	device_usage = 0;
