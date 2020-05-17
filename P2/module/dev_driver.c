@@ -200,23 +200,23 @@ void text_write(int l_index, int r_index)
     unsigned short int _s_value = 0;
 	
 	for(i=0; i<l_index; i++){
-		value[i] = " ";
+		value[i] = ' ';
 	}
 	for(i=l_index; i<l_index+STRLEN_STUDENT_NUMBER; i++){
 		value[i] = student_number[i-l_index];
 	}
 	for(i=i; i<16; i++){
-		value[i] = " ";
+		value[i] = ' ';
 	}
 	
 	for(i=16; i<r_index+16; i++){
-		value[i] = " ";
+		value[i] = ' ';
 	}
 	for(i=i; i<r_index+16+STRLEN_MY_NAME; i++){
 		value[i] = my_name[i-r_index-16];
 	}
 	for(i=i; i<32; i++){
-		value[i] = " ";
+		value[i] = ' ';
 	}
 
 	for(i=0;i<32;i++)
