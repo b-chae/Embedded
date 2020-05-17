@@ -248,12 +248,12 @@ int __init iom_device_init(void)
 	
 	printk("kernel_timer_init\n");
 
-	major = register_chrdev(0, KERNEL_TIMER_NAME, &kernel_timer_fops);
+	major = register_chrdev(0, IOM_DEVICE_NAME, &iom_device_fops);
 	if(major <0) {
 		printk( "error %d\n",major);
 		return major;
 	}
-	printk( "dev_file : /dev/%s , major : %d\n",KERNEL_TIMER_NAME,major);
+	printk( "dev_file : /dev/%s , major : %d\n",IOM_DEVICE_NAME,major);
 
 	init_timer(&(mydata.timer));
 
@@ -267,7 +267,7 @@ void __exit iom_device_exit(void)
 	kernel_timer_usage = 0;
 	del_timer_sync(&mydata.timer);
 
-	unregister_chrdev(major, KERNEL_TIMER_NAME);
+	unregister_chrdev(major, IOM_DEVICE_NAME);
 }
 
 module_init(iom_device_init);
