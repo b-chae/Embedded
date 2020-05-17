@@ -6,17 +6,18 @@
 #include <linux/uaccess.h>
 #include <linux/slab.h>
 
-#define KERNEL_TIMER_NAME "dev_driver2"
+#define IOM_DEVICE_MAJOR 242
+#define IOM_DEVICE_NAME "dev_driver2"
 
-static int kernel_timer_usage = 0;
+static int device_usage = 0;
 
-int kernel_timer_open(struct inode *, struct file *);
-int kernel_timer_release(struct inode *, struct file *);
-ssize_t kernel_timer_write(struct file *, const char *, size_t, loff_t *);
+int iom_device_open(struct inode *, struct file *);
+int iom_device_release(struct inode *, struct file *);
+ssize_t iom_device_write(struct file *, const char *, size_t, loff_t *);
 
-static struct file_operations kernel_timer_fops =
-{ .open = kernel_timer_open, .write = kernel_timer_write,
-	.release = kernel_timer_release };
+static struct file_operations iom_device_fops =
+{ .open = iom_device_open, .write = iom_device_write,
+	.release = iom_device_release };
 
 static struct struct_mydata {
 	struct timer_list timer;
@@ -34,18 +35,18 @@ struct mydata option;
 int major;
 char* howmany;
 
-int kernel_timer_release(struct inode *minode, struct file *mfile) {
+int iom_device_release(struct inode *minode, struct file *mfile) {
 	printk("kernel_timer_release\n");
-	kernel_timer_usage = 0;
+	device_usage = 0;
 	return 0;
 }
 
-int kernel_timer_open(struct inode *minode, struct file *mfile) {
+int iom_device_open(struct inode *minode, struct file *mfile) {
 	printk("kernel_timer_open\n");
-	if (kernel_timer_usage != 0) {
+	if (device_usage != 0) {
 		return -EBUSY;
 	}
-	kernel_timer_usage = 1;
+	device_usage = 1;
 	howmany = kmalloc(PAGE_SIZE, GFP_KERNEL);
 	return 0;
 }
@@ -67,7 +68,7 @@ static void kernel_timer_blink(unsigned long timeout) {
 	add_timer(&mydata.timer);
 }
 
-ssize_t kernel_timer_write(struct file *inode, const char *gdata, size_t length, loff_t *off_what) {
+ssize_t iom_device_write(struct file *inode, const char *gdata, size_t length, loff_t *off_what) {
 	const char *tmp = gdata;
 	char kernel_timer_buff = 0;
 
@@ -97,12 +98,12 @@ int __init iom_device_init(void)
 	
 	printk("kernel_timer_init\n");
 
-	major = register_chrdev(0, KERNEL_TIMER_NAME, &kernel_timer_fops);
+	major = register_chrdev(0, IOM_DEVICE_NAME, &iom_device_fops);
 	if(major <0) {
 		printk( "error %d\n",major);
 		return major;
 	}
-	printk( "dev_file : /dev/%s , major : %d\n",KERNEL_TIMER_NAME,major);
+	printk( "dev_file : /dev/%s , major : %d\n",IOM_DEVICE_NAME,major);
 
 	init_timer(&(mydata.timer));
 
@@ -114,11 +115,11 @@ void __exit iom_device_exit(void)
 {
 	printk("kernel_timer_exit\n");
 	printk("%d\n", howmany[0]);
-	kernel_timer_usage = 0;
+	device_usage = 0;
 	del_timer_sync(&mydata.timer);
 	kfree(howmany);
 
-	unregister_chrdev(major, KERNEL_TIMER_NAME);
+	unregister_chrdev(major, IOM_DEVICE_NAME);
 }
 
 module_init(iom_device_init);
