@@ -6,6 +6,33 @@
 #include <linux/uaccess.h>
 #include <linux/slab.h>
 
+#include <linux/module.h>
+#include <linux/fs.h>
+#include <linux/init.h>
+#include <linux/slab.h>
+#include <linux/platform_device.h>
+#include <linux/delay.h>
+
+#include <asm/io.h>
+#include <asm/uaccess.h>
+#include <linux/kernel.h>
+#include <linux/ioport.h>
+#include <linux/module.h>
+#include <linux/fs.h>
+#include <linux/init.h>
+#include <linux/version.h>
+
+#define IOM_DEVICE_MAJOR 242		// ioboard fpga device major number
+#define IOM_DEVICE_NAME "dev_driver"		// ioboard fpga device name
+
+#define IOM_FND_ADDRESS 0x08000004 // pysical address
+#define IOM_LED_ADDRESS 0x08000016 // pysical address
+#define IOM_FPGA_DOT_ADDRESS 0x08000210
+#define IOM_FPGA_TEXT_LCD_ADDRESS 0x08000090
+
+#define STRLEN_STUDENT_NUMBER 8
+#define STRLEN_MY_NAME 11
+
 #define KERNEL_TIMER_NAME "dev_driver2"
 
 static int kernel_timer_usage = 0;
@@ -32,7 +59,6 @@ struct mydata{
 struct struct_mydata mydata;
 struct mydata option;
 int major;
-char* howmany;
 
 int kernel_timer_release(struct inode *minode, struct file *mfile) {
 	printk("kernel_timer_release\n");
@@ -46,13 +72,11 @@ int kernel_timer_open(struct inode *minode, struct file *mfile) {
 		return -EBUSY;
 	}
 	kernel_timer_usage = 1;
-	howmany = kmalloc(PAGE_SIZE, GFP_KERNEL);
 	return 0;
 }
 
 static void kernel_timer_blink(unsigned long timeout) {
 	struct struct_mydata *p_data = (struct struct_mydata*)timeout;
-	howmany[0]++;
 	printk("kernel_timer_blink %d\n", p_data->count);
 
 	p_data->count++;
@@ -60,7 +84,7 @@ static void kernel_timer_blink(unsigned long timeout) {
 		return;
 	}
 
-	mydata.timer.expires = get_jiffies_64() + (3 * HZ);
+	mydata.timer.expires = get_jiffies_64() + (option.timer_interval * 0.1 * HZ);
 	mydata.timer.data = (unsigned long)&mydata;
 	mydata.timer.function = kernel_timer_blink;
 
@@ -82,9 +106,8 @@ ssize_t kernel_timer_write(struct file *inode, const char *gdata, size_t length,
 	printk("data  : %d \n",mydata.count);
 
 	del_timer_sync(&mydata.timer);
-	howmany[0] = 0;
 
-	mydata.timer.expires = jiffies + (1 * HZ);
+	mydata.timer.expires = jiffies + (0.1 * option.timer_interval * HZ);
 	mydata.timer.data = (unsigned long)&mydata;
 	mydata.timer.function = kernel_timer_blink;
 
@@ -113,10 +136,8 @@ int __init kernel_timer_init(void)
 void __exit kernel_timer_exit(void)
 {
 	printk("kernel_timer_exit\n");
-	printk("%d\n", howmany[0]);
 	kernel_timer_usage = 0;
 	del_timer_sync(&mydata.timer);
-	kfree(howmany);
 
 	unregister_chrdev(major, KERNEL_TIMER_NAME);
 }
