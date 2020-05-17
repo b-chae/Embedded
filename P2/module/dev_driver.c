@@ -67,7 +67,6 @@ static struct mydata{
 	int timer_count;
 	int timer_init;
 };
-
 static struct struct_timer_data{
 	struct timer_list timer;
 	int count;
@@ -147,8 +146,8 @@ ssize_t iom_device_write(struct file *inode, const char *gdata, size_t length, l
 	value[1] = option.timer_init/100%10;
 	value[2] = option.timer_init%100/10;
 	value[3] = option.timer_init%10;
-
-   	 fnd_write(value);
+  
+  fnd_write(value);
 
 	if(value[0] != 0){
 		real_value = value[0];
@@ -191,7 +190,6 @@ void dot_write(int n){
 }
 
 void led_write(unsigned char n){
-	
 	unsigned short _s_value = 0;
 	
 	switch(n){
@@ -213,7 +211,7 @@ void text_write(int l_index, int r_index)
 	int i;
 
 	unsigned char value[32];
-   	unsigned short int _s_value = 0;
+  unsigned short int _s_value = 0;
 	
 	for(i=0; i<l_index; i++){
 		value[i] = ' ';
@@ -238,7 +236,7 @@ void text_write(int l_index, int r_index)
 	for(i=0;i<32;i++)
     	{
         _s_value = (value[i] & 0xFF) << 8 | value[i + 1] & 0xFF;
-	outw(_s_value,(unsigned int)iom_fpga_text_lcd_addr+i);
+	      outw(_s_value,(unsigned int)iom_fpga_text_lcd_addr+i);
         i++;
     	}
 }
