@@ -42,18 +42,20 @@ unsigned char fpga_number[10][10] = {
 };
 
 unsigned char fpga_set_full[10] = {
-	// memset(array,0x7e,sizeof(array));
 	0x7f,0x7f,0x7f,0x7f,0x7f,0x7f,0x7f,0x7f,0x7f,0x7f
 };
 
 unsigned char fpga_set_blank[10] = {
-	// memset(array,0x00,sizeof(array));
 	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
 };
 
 int iom_device_open(struct inode *, struct file *);
 int iom_device_release(struct inode *, struct file *);
 ssize_t iom_device_write(struct file *, const char *, size_t, loff_t *);
+void fnd_write(const char* value);
+void dot_write(int n);
+void led_write(unsigned char n);
+void text_write(int, int);
 
 static struct file_operations iom_device_fops =
 { .open = iom_device_open, .write = iom_device_write,
