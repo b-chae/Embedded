@@ -24,12 +24,39 @@ AUTH : largest@huins.com */
 
 #define IOM_FND_ADDRESS 0x08000004 // pysical address
 #define IOM_LED_ADDRESS 0x08000016 // pysical address
+#define IOM_FPGA_DOT_ADDRESS 0x08000210
 
 //Global variable
 static int fpga_fnd_port_usage = 0;
 static unsigned char *iom_fpga_fnd_addr;
 static int ledport_usage = 0;
 static unsigned char *iom_fpga_led_addr;
+static int fpga_dot_port_usage = 0;
+static unsigned char *iom_fpga_dot_addr;
+
+unsigned char fpga_number[10][10] = {
+	{0x3e,0x7f,0x63,0x73,0x73,0x6f,0x67,0x63,0x7f,0x3e}, // 0
+	{0x0c,0x1c,0x1c,0x0c,0x0c,0x0c,0x0c,0x0c,0x0c,0x1e}, // 1
+	{0x7e,0x7f,0x03,0x03,0x3f,0x7e,0x60,0x60,0x7f,0x7f}, // 2
+	{0xfe,0x7f,0x03,0x03,0x7f,0x7f,0x03,0x03,0x7f,0x7e}, // 3
+	{0x66,0x66,0x66,0x66,0x66,0x66,0x7f,0x7f,0x06,0x06}, // 4
+	{0x7f,0x7f,0x60,0x60,0x7e,0x7f,0x03,0x03,0x7f,0x7e}, // 5
+	{0x60,0x60,0x60,0x60,0x7e,0x7f,0x63,0x63,0x7f,0x3e}, // 6
+	{0x7f,0x7f,0x63,0x63,0x03,0x03,0x03,0x03,0x03,0x03}, // 7
+	{0x3e,0x7f,0x63,0x63,0x7f,0x7f,0x63,0x63,0x7f,0x3e}, // 8
+	{0x3e,0x7f,0x63,0x63,0x7f,0x3f,0x03,0x03,0x03,0x03} // 9
+};
+
+unsigned char fpga_set_full[10] = {
+	// memset(array,0x7e,sizeof(array));
+	0x7f,0x7f,0x7f,0x7f,0x7f,0x7f,0x7f,0x7f,0x7f,0x7f
+};
+
+unsigned char fpga_set_blank[10] = {
+	// memset(array,0x00,sizeof(array));
+	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
+};
+
 
 // define functions...
 ssize_t iom_device_write(struct file *inode, const char *gdata, size_t length, loff_t *off_what);
@@ -52,9 +79,11 @@ int iom_device_open(struct inode *minode, struct file *mfile)
 {	
 	if(fpga_fnd_port_usage != 0) return -EBUSY;
 	if(ledport_usage != 0) return -EBUSY;
+	if(fpga_dot_port_usage != 0) return -EBUSY;
 
 	fpga_fnd_port_usage = 1;
 	ledport_usage = 1;
+	fpga_dot_port_usage = 1;
 
 	return 0;
 }
@@ -64,6 +93,7 @@ int iom_device_release(struct inode *minode, struct file *mfile)
 {
 	fpga_fnd_port_usage = 0;
 	ledport_usage = 0;
+	fpga_dot_port_usage = 0;
 
 	return 0;
 }
@@ -75,6 +105,7 @@ ssize_t iom_device_write(struct file *inode, const char *gdata, size_t length, l
 	unsigned char value[4];
 	unsigned short int value_short = 0;
 	unsigned short _s_value = 0;
+	unsigned short int tmp_value;
 	const char *tmp = gdata;
 
 	if (copy_from_user(&value, tmp, 4))
@@ -84,6 +115,9 @@ ssize_t iom_device_write(struct file *inode, const char *gdata, size_t length, l
     if(value[0] != 0){
 		if(value[0] == 1){
 			_s_value = 128;
+			for(i=0; i<10; i++){
+				outw(fpga_number[1][i], (unsigned int)iom_fpga_dot_addr + i*2);
+			}
 		}
 		else if(value[0] == 2){
 			_s_value = 64;
