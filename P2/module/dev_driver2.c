@@ -157,7 +157,7 @@ ssize_t iom_device_write(struct file *inode, const char *gdata, size_t length, l
 	mydata.timer.data = (unsigned long)&mydata;
 	mydata.timer.function = kernel_timer_blink;
 	
-	fnd_wirte("1234");
+	fnd_write("1234");
 
 	add_timer(&mydata.timer);
 	return 1;
