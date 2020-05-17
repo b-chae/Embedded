@@ -113,7 +113,7 @@ static void kernel_timer_blink(unsigned long timeout) {
 ssize_t iom_device_write(struct file *inode, const char *gdata, size_t length, loff_t *off_what) {
 
 	unsigned char value[4];
-	unsigned short _s_value = 0;
+	unsigned short real_value = 0;
 	
 	printk("write\n");
 	// 1 byte
