@@ -72,7 +72,6 @@ struct file_operations iom_device_fops =
 	.write		=	iom_device_write,	
 	.read		=	iom_device_read,	
 	.release	=	iom_device_release,
-};
 
 // when fnd device open ,call this function
 int iom_device_open(struct inode *minode, struct file *mfile) 
@@ -113,7 +112,7 @@ ssize_t iom_device_write(struct file *inode, const char *gdata, size_t length, l
 		return -EFAULT;
 
     value_short = value[0] << 12 | value[1] << 8 |value[2] << 4 |value[3];
-	
+  
 	if(value[0] != 0){
 		real_value = value[0];
 	}
@@ -175,6 +174,7 @@ int __init iom_device_init(void)
 	int result;
 
 	result = register_chrdev(IOM_DEVICE_MAJOR, IOM_DEVICE_NAME, &iom_device_fops);
+  
 	if(result < 0) {
 		printk(KERN_WARNING"Can't get any major\n");
 		return result;
