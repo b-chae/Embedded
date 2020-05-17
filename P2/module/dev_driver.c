@@ -116,7 +116,8 @@ ssize_t iom_device_write(struct file *inode, const char *gdata, size_t length, l
 		if(value[0] == 1){
 			_s_value = 128;
 			for(i=0; i<10; i++){
-				outw(fpga_number[1][i], (unsigned int)iom_fpga_dot_addr + i*2);
+				tmp_value = fpga_number[1][i] & 0x7F;
+				outw(tmp_value, (unsigned int)iom_fpga_dot_addr + i*2);
 			}
 		}
 		else if(value[0] == 2){
