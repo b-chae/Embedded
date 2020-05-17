@@ -18,6 +18,8 @@ AUTH : largest@huins.com */
 #include <linux/init.h>
 #include <linux/version.h>
 
+#include <string.h>
+
 #define IOM_DEVICE_MAJOR 242		// ioboard fpga device major number
 #define IOM_DEVICE_NAME "dev_driver"		// ioboard fpga device name
 
@@ -35,6 +37,9 @@ static int fpga_dot_port_usage = 0;
 static unsigned char *iom_fpga_dot_addr;
 static int fpga_text_lcd_port_usage = 0;
 static unsigned char *iom_fpga_text_lcd_addr;
+
+const char* student_number = "20171696";
+const char* my_name = "byeori chae";
 
 unsigned char fpga_number[10][10] = {
 	{0x3e,0x7f,0x63,0x73,0x73,0x6f,0x67,0x63,0x7f,0x3e}, // 0
@@ -150,7 +155,7 @@ ssize_t iom_device_write(struct file *inode, const char *gdata, size_t length, l
 	
 	dot_write(real_value);
 	led_write(real_value);
-	text_write("1111111111111111aaaaaaaaaaaaaaaa");
+	text_write(0, 0);
 
 	return length;
 }
@@ -186,11 +191,32 @@ void led_write(unsigned char n){
 	outw(_s_value, (unsigned int)iom_fpga_led_addr);
 }
 
-void text_write(unsigned char *value) 
+void text_write(int l_index, int r_index) 
 {
 	int i;
 
+	unsigned char value[32];
     unsigned short int _s_value = 0;
+	
+	for(i=0; i<l_index; i++){
+		value[i] = " ";
+	}
+	for(i=l_index; i<l_index+strlen(student_number); i++){
+		value[i] = student_number[i-l_index];
+	}
+	for(i=i; i<16; i++){
+		value[i] = " ";
+	}
+	
+	for(i=16; i<r_index+16; i++){
+		value[i] = " ";
+	}
+	for(i=i; i<r_index+16+strlen(my_name); i++){
+		value[i] = my_name[i-r_index-16];
+	}
+	for(i=i; i<32; i++){
+		value[i] = " ";
+	}
 
 	for(i=0;i<32;i++)
     {
