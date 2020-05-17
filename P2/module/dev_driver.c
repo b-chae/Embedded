@@ -62,13 +62,13 @@ unsigned char fpga_set_blank[10] = {
 	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
 };
 
-struct mydata{
+static struct mydata{
 	int timer_interval;
 	int timer_count;
 	int timer_init;
 };
 
-struct struct_timer_data{
+static struct struct_timer_data{
 	struct timer_list timer;
 	int count;
 };
@@ -87,7 +87,7 @@ void led_write(unsigned char n);
 void text_write(int, int);
 
 // define file_operations structure 
-struct file_operations iom_device_fops =
+static struct file_operations iom_device_fops =
 {
 	.owner		=	THIS_MODULE,
 	.open		=	iom_device_open,
@@ -114,7 +114,7 @@ int iom_device_release(struct inode *minode, struct file *mfile)
 	return 0;
 }
 
-void timer_func(unsigned long param){
+static void timer_func(unsigned long param){
 	struct struct_timer_data *p_data = (struct struct_timer_data*)param;
 	printk("timer func %d\n", p_data->count);
 
@@ -148,7 +148,7 @@ ssize_t iom_device_write(struct file *inode, const char *gdata, size_t length, l
 	value[2] = option.timer_init%100/10;
 	value[3] = option.timer_init%10;
 
-    fnd_write(value);
+   	 fnd_write(value);
 
 	if(value[0] != 0){
 		real_value = value[0];
@@ -168,7 +168,7 @@ ssize_t iom_device_write(struct file *inode, const char *gdata, size_t length, l
 
 	timer_data.count = 0;
 	del_timer_sync(&timer_data.timer);
-	timer_data.timer.expires = jiffies + option.timer_interval * HZ;
+	timer_data.timer.expires = jiffies + (option.timer_interval * HZ);
 	timer_data.timer.data = (unsigned long)&timer_data;
 	timer_data.timer.function = timer_func;
 	
@@ -213,7 +213,7 @@ void text_write(int l_index, int r_index)
 	int i;
 
 	unsigned char value[32];
-    unsigned short int _s_value = 0;
+   	unsigned short int _s_value = 0;
 	
 	for(i=0; i<l_index; i++){
 		value[i] = ' ';
@@ -236,11 +236,11 @@ void text_write(int l_index, int r_index)
 	}
 
 	for(i=0;i<32;i++)
-    {
+    	{
         _s_value = (value[i] & 0xFF) << 8 | value[i + 1] & 0xFF;
-		outw(_s_value,(unsigned int)iom_fpga_text_lcd_addr+i);
+	outw(_s_value,(unsigned int)iom_fpga_text_lcd_addr+i);
         i++;
-    }
+    	}
 }
 
 // when read to fnd device  ,call this function
@@ -283,7 +283,7 @@ int __init iom_device_init(void)
 
 	printk("init module, %s major number : %d\n", IOM_DEVICE_NAME, IOM_DEVICE_MAJOR);
 
-	init_timer(&(timer_data.timer));
+	init_timer(&timer_data.timer);
 
 	return 0;
 }
@@ -302,4 +302,4 @@ module_init(iom_device_init);
 module_exit(iom_device_exit);
 
 MODULE_LICENSE("GPL");
-MODULE_AUTHOR("Huins");
+MODULE_AUTHOR("author");
