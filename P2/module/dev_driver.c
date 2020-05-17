@@ -59,13 +59,13 @@ unsigned char fpga_set_blank[10] = {
 	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
 };
 
-typedef struct mydata{
+struct mydata{
 	int timer_interval;
 	int timer_count;
 	int timer_init;
 };
 
-mydata option;
+struct mydata option;
 
 // define functions...
 ssize_t iom_device_write(struct file *inode, const char *gdata, size_t length, loff_t *off_what);
