@@ -68,7 +68,7 @@ struct mydata{
 	int timer_init;
 };
 
-struct struct_timer_data{
+static struct struct_timer_data{
 	struct timer_list timer;
 	int count;
 };
@@ -114,7 +114,7 @@ int iom_device_release(struct inode *minode, struct file *mfile)
 	return 0;
 }
 
-void timer_func(unsigned long param){
+static void timer_func(unsigned long param){
 	struct struct_timer_data *p_data = (struct struct_timer_data*)param;
 	printk("timer func %d\n", p_data->count);
 
