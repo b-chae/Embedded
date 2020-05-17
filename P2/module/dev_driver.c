@@ -117,7 +117,7 @@ ssize_t iom_device_write(struct file *inode, const char *gdata, size_t length, l
 			_s_value = 128;
 			for(i=0; i<10; i++){
 				tmp_value = fpga_number[1][i] & 0x7F;
-				outw(tmp_value, (unsigned int)iom_fpga_dot_addr + i*2);
+				outw(fpga_number[1][i], (unsigned int)iom_fpga_dot_addr + 2*i);
 			}
 		}
 		else if(value[0] == 2){
@@ -181,6 +181,7 @@ int __init iom_device_init(void)
 
 	iom_fpga_fnd_addr = ioremap(IOM_FND_ADDRESS, 0x4);
 	iom_fpga_led_addr = ioremap(IOM_LED_ADDRESS, 0x1);
+	iom_fpga_dot_addr = ioremap(IOM_FPGA_DOT_ADDRESS, 0x10);
 
 	printk("init module, %s major number : %d\n", IOM_DEVICE_NAME, IOM_DEVICE_MAJOR);
 
@@ -191,6 +192,7 @@ void __exit iom_device_exit(void)
 {
 	iounmap(iom_fpga_fnd_addr);
 	iounmap(iom_fpga_led_addr);
+	iounmap(iom_fpga_dot_addr);
 	unregister_chrdev(IOM_DEVICE_MAJOR, IOM_DEVICE_NAME);
 }
 
