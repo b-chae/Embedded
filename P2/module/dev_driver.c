@@ -119,13 +119,13 @@ void timer_func(unsigned long param){
 	printk("timer func %d\n", p_data->count);
 
 	p_data->count++;
-	if(p_data->count >= option->timer_count){
+	if(p_data->count >= option.timer_count){
 		return;
 	}
 	
-	timer_data.timer.expires = get_jiffies_64() + (option->timer_interval * HZ);
-	timer_data.data = (unsigned long)&timer_data;
-	timer_data.function = timer_func;
+	timer_data.timer.expires = get_jiffies_64() + (option.timer_interval * HZ);
+	timer_data.timer.data = (unsigned long)&timer_data;
+	timer_data.timer.function = timer_func;
 	
 	add_timer(&timer_data.timer);
 }
