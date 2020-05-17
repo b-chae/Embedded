@@ -81,7 +81,7 @@ struct file_operations iom_device_fops =
 	.write		=	iom_device_write,	
 	.read		=	iom_device_read,	
 	.release	=	iom_device_release,
-
+}
 // when fnd device open ,call this function
 int iom_device_open(struct inode *minode, struct file *mfile) 
 {	
