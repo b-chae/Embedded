@@ -126,7 +126,7 @@ static void kernel_timer_blink(unsigned long timeout) {
 		return;
 	}
 
-	mydata.timer.expires = get_jiffies_64() + (option.timer_interval * 0.1 * HZ);
+	mydata.timer.expires = get_jiffies_64() + (option.timer_interval * HZ);
 	mydata.timer.data = (unsigned long)&mydata;
 	mydata.timer.function = kernel_timer_blink;
 
@@ -190,7 +190,7 @@ ssize_t iom_device_write(struct file *inode, const char *gdata, size_t length, l
 
 	del_timer_sync(&mydata.timer);
 
-	mydata.timer.expires = jiffies + (option.timer_interval * 0.1 * HZ);
+	mydata.timer.expires = jiffies + (option.timer_interval * HZ);
 	mydata.timer.data = (unsigned long)&mydata;
 	mydata.timer.function = kernel_timer_blink;
 	
