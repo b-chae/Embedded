@@ -52,6 +52,7 @@ unsigned char fpga_set_blank[10] = {
 int iom_device_open(struct inode *, struct file *);
 int iom_device_release(struct inode *, struct file *);
 ssize_t iom_device_write(struct file *, const char *, size_t, loff_t *);
+void deal_with_data();
 void fnd_write(const char* value);
 void dot_write(int n);
 void led_write(unsigned char n);
@@ -131,6 +132,8 @@ void deal_with_data(){
 	else if(value[3] != 0){
 		real_value = value[3];
 	}
+	
+	fnd_write(value);
 }
 
 ssize_t iom_device_write(struct file *inode, const char *gdata, size_t length, loff_t *off_what) {
@@ -156,6 +159,12 @@ ssize_t iom_device_write(struct file *inode, const char *gdata, size_t length, l
 
 	add_timer(&mydata.timer);
 	return 1;
+}
+
+void fnd_write(const char* value){
+	unsigned short int value_short;
+	value_short = value[0] << 12 | value[1] << 8 |value[2] << 4 |value[3];
+	outw(value_short,(unsigned int)iom_fpga_fnd_addr);
 }
 
 int __init iom_device_init(void)
