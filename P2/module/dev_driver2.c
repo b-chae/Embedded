@@ -53,7 +53,7 @@ int iom_device_open(struct inode *, struct file *);
 int iom_device_release(struct inode *, struct file *);
 ssize_t iom_device_write(struct file *, const char *, size_t, loff_t *);
 void deal_with_data(void);
-void fnd_write(const char* value);
+void fnd_write(int n, int index);
 void dot_write(int n);
 void led_write(unsigned char n);
 void text_write(int, int);
@@ -65,6 +65,11 @@ static struct file_operations iom_device_fops =
 static struct struct_mydata {
 	struct timer_list timer;
 	int count;
+	int rotation_count;
+	int current_num;
+	int fnd_index;
+	int text_index_i;
+	int text_index_j;
 };
 
 struct mydata{
@@ -94,6 +99,23 @@ int iom_device_open(struct inode *minode, struct file *mfile) {
 	return 0;
 }
 
+void update_data(void){
+	
+	mydata.rotation_count++;
+	if(mydata.rotation_count >= 8){
+		mydata.rotation_count = 0;
+		
+		mydata.fnd_index++;
+		if(mydata.fnd_index >= 4){
+			mydata.fnd_index = 0;
+		}
+	}
+	mydata.current_num++;
+	if(mydata.current_num >= 9){
+		mydata.current_num = 1;
+	}
+}
+
 static void kernel_timer_blink(unsigned long timeout) {
 	struct struct_mydata *p_data = (struct struct_mydata*)timeout;
 	howmany[0]++;
@@ -104,11 +126,18 @@ static void kernel_timer_blink(unsigned long timeout) {
 		return;
 	}
 
-	mydata.timer.expires = get_jiffies_64() + (3 * HZ);
+	mydata.timer.expires = get_jiffies_64() + (option.timer_interval * HZ);
 	mydata.timer.data = (unsigned long)&mydata;
 	mydata.timer.function = kernel_timer_blink;
 
 	add_timer(&mydata.timer);
+	
+	update_data();
+	
+	fnd_write(mydata.current_num, mydata.fnd_index);
+	dot_write(mydata.current_num);
+	led_write(mydata.current_num);
+	text_write(mydata.text_index_i,mydata.text_index_j);
 }
 
 void deal_with_data(void){
@@ -122,41 +151,47 @@ void deal_with_data(void){
 	
 	if(value[0] != 0){
 		real_value = value[0];
+		mydata.fnd_index = 0;
 	}
 	else if(value[1] != 0){
 		real_value = value[1];
+		mydata.fnd_index = 1;
 	}
 	else if(value[2] != 0){
 		real_value = value[2];
+		mydata.fnd_index = 2;
 	}
 	else if(value[3] != 0){
 		real_value = value[3];
+		mydata.fnd_index = 3;
 	}
 	
-	fnd_write(value);
+	mydata.count = 0;
+	mydata.rotation_count = 0;
+	mydata.current_num = real_value;
+	mydata.text_index_i = 0;
+	mydata.text_index_j = 0;
+	
+	fnd_write(real_value, mydata.fnd_index);
 	dot_write(real_value);
 	led_write(real_value);
 	text_write(0,0);
 }
 
 ssize_t iom_device_write(struct file *inode, const char *gdata, size_t length, loff_t *off_what) {
-	
-	printk("write\n");
+
 	// 1 byte
 	if (copy_from_user(&option, gdata, sizeof(option))) {
 		return -EFAULT;
 	}
 	
 	deal_with_data();
-
-	mydata.count = 0;
-
+	
 	printk("data  : %d \n",mydata.count);
 
 	del_timer_sync(&mydata.timer);
-	howmany[0] = 0;
 
-	mydata.timer.expires = jiffies + (1 * HZ);
+	mydata.timer.expires = jiffies + (option.timer_interval * HZ);
 	mydata.timer.data = (unsigned long)&mydata;
 	mydata.timer.function = kernel_timer_blink;
 	
@@ -164,7 +199,11 @@ ssize_t iom_device_write(struct file *inode, const char *gdata, size_t length, l
 	return 1;
 }
 
-void fnd_write(const char* value){
+void fnd_write(int n, int index){
+	const char value[4];
+	int i;
+	for(i=0; i<4; i++) value[i] = 0;
+	value[index] = n;
 	unsigned short int value_short;
 	value_short = value[0] << 12 | value[1] << 8 |value[2] << 4 |value[3];
 	outw(value_short,(unsigned int)iom_fpga_fnd_addr);
