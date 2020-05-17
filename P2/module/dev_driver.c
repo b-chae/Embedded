@@ -81,7 +81,7 @@ int iom_device_release(struct inode *minode, struct file *mfile);
 void fnd_write(const char* value);
 void dot_write(int n);
 void led_write(unsigned char n);
-void text_write(unsigned char *value);
+void text_write(int, int);
 
 // define file_operations structure 
 struct file_operations iom_device_fops =
