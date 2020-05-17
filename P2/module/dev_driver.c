@@ -18,8 +18,6 @@ AUTH : largest@huins.com */
 #include <linux/init.h>
 #include <linux/version.h>
 
-#include <string.h>
-
 #define IOM_DEVICE_MAJOR 242		// ioboard fpga device major number
 #define IOM_DEVICE_NAME "dev_driver"		// ioboard fpga device name
 
@@ -27,6 +25,9 @@ AUTH : largest@huins.com */
 #define IOM_LED_ADDRESS 0x08000016 // pysical address
 #define IOM_FPGA_DOT_ADDRESS 0x08000210
 #define IOM_FPGA_TEXT_LCD_ADDRESS 0x08000090
+
+#define STRLEN_STUDENT_NUMBER 8
+#define STRLEN_MY_NAME 11
 
 //Global variable
 static int fpga_fnd_port_usage = 0;
@@ -201,7 +202,7 @@ void text_write(int l_index, int r_index)
 	for(i=0; i<l_index; i++){
 		value[i] = " ";
 	}
-	for(i=l_index; i<l_index+strlen(student_number); i++){
+	for(i=l_index; i<l_index+STRLEN_STUDENT_NUMBER; i++){
 		value[i] = student_number[i-l_index];
 	}
 	for(i=i; i<16; i++){
@@ -211,7 +212,7 @@ void text_write(int l_index, int r_index)
 	for(i=16; i<r_index+16; i++){
 		value[i] = " ";
 	}
-	for(i=i; i<r_index+16+strlen(my_name); i++){
+	for(i=i; i<r_index+16+STRLEN_MY_NAME; i++){
 		value[i] = my_name[i-r_index-16];
 	}
 	for(i=i; i<32; i++){
