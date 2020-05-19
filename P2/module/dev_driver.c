@@ -1,13 +1,13 @@
 #include "driver_header.h"
 
 int iom_device_release(struct inode *minode, struct file *mfile) {
-	printk("kernel_timer_release\n");
+	printk("dev_driver_release\n");
 	device_usage = 0;
 	return 0;
 }
 
 int iom_device_open(struct inode *minode, struct file *mfile) {
-	printk("kernel_timer_open\n");
+	printk("dev_driver_open\n");
 	if (device_usage != 0) {
 		return -EBUSY;
 	}
@@ -84,9 +84,9 @@ void clear_device(void){
     }
 }
 
-static void kernel_timer_blink(unsigned long timeout) {
+static void timer_func(unsigned long timeout) {
 	struct struct_mydata *p_data = (struct struct_mydata*)timeout;
-	printk("kernel_timer_blink %d\n", p_data->count);
+	printk("timer_func %d\n", p_data->count);
 
 	p_data->count++;
 	if( p_data->count >= option.timer_count ) {
@@ -96,7 +96,7 @@ static void kernel_timer_blink(unsigned long timeout) {
 
 	mydata.timer.expires = get_jiffies_64() + (option.timer_interval * HZ);
 	mydata.timer.data = (unsigned long)&mydata;
-	mydata.timer.function = kernel_timer_blink;
+	mydata.timer.function = timer_func;
 
 	add_timer(&mydata.timer);
 	
@@ -162,7 +162,7 @@ ssize_t iom_device_write(struct file *inode, const char *gdata, size_t length, l
 
 	mydata.timer.expires = jiffies + (option.timer_interval * HZ);
 	mydata.timer.data = (unsigned long)&mydata;
-	mydata.timer.function = kernel_timer_blink;
+	mydata.timer.function = timer_func;
 	
 	add_timer(&mydata.timer);
 	return 1;
@@ -247,9 +247,9 @@ void text_write(int l_index, int r_index)
 int __init iom_device_init(void)
 {
 	
-	printk("kernel_timer_init\n");
+	printk("dev_driver_init\n");
 
-	major = register_chrdev(0, IOM_DEVICE_NAME, &iom_device_fops);
+	major = register_chrdev(IOM_DEVICE_MAJOR, IOM_DEVICE_NAME, &iom_device_fops);
 	if(major <0) {
 		printk( "error %d\n",major);
 		return major;
@@ -274,7 +274,7 @@ void __exit iom_device_exit(void)
 	iounmap(iom_fpga_dot_addr);
 	iounmap(iom_fpga_text_lcd_addr);
 	
-	printk("kernel_timer_exit\n");
+	printk("dev_driver_exit\n");
 	device_usage = 0;
 	del_timer_sync(&mydata.timer);
 

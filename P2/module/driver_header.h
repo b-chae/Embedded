@@ -58,7 +58,7 @@ ssize_t iom_device_write(struct file *, const char *, size_t, loff_t *);
 void update_data(void);
 void clear_device(void);
 void deal_with_data(void);
-static void kernel_timer_blink(unsigned long timeout);
+static void timer_func(unsigned long timeout);
 void fnd_write(int n, int index);
 void dot_write(int n);
 void led_write(unsigned char n);
