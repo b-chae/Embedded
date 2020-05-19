@@ -1,82 +1,18 @@
-#ifndef _HEADER_H_
-#define _HEADER_H_
+/* FPGA FND Test Application
+File : fpga_test_fnd.c
+Auth : largest@huins.com */
 
-#include <linux/module.h>
-#include <linux/fs.h>
-#include <linux/init.h>
-#include <linux/platform_device.h>
-#include <linux/kernel.h>
-#include <linux/uaccess.h>
-#include <linux/slab.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
-#include <asm/io.h>
+#include <string.h>
 
-#define IOM_DEVICE_MAJOR 242
-#define IOM_DEVICE_NAME "dev_driver2"
-
-#define IOM_FND_ADDRESS 0x08000004 // pysical address
-#define IOM_LED_ADDRESS 0x08000016 // pysical address
-#define IOM_FPGA_DOT_ADDRESS 0x08000210
-#define IOM_FPGA_TEXT_LCD_ADDRESS 0x08000090
-
-#define STRLEN_STUDENT_NUMBER 8
-#define STRLEN_MY_NAME 11
-
-static int device_usage = 0;
-static unsigned char *iom_fpga_fnd_addr;
-static unsigned char *iom_fpga_led_addr;
-static unsigned char *iom_fpga_dot_addr;
-static unsigned char *iom_fpga_text_lcd_addr;
-
-const char* student_number = "20171696";
-const char* my_name = "byeori chae";
-
-unsigned char fpga_number[10][10] = {
-	{0x3e,0x7f,0x63,0x73,0x73,0x6f,0x67,0x63,0x7f,0x3e}, // 0
-	{0x0c,0x1c,0x1c,0x0c,0x0c,0x0c,0x0c,0x0c,0x0c,0x1e}, // 1
-	{0x7e,0x7f,0x03,0x03,0x3f,0x7e,0x60,0x60,0x7f,0x7f}, // 2
-	{0xfe,0x7f,0x03,0x03,0x7f,0x7f,0x03,0x03,0x7f,0x7e}, // 3
-	{0x66,0x66,0x66,0x66,0x66,0x66,0x7f,0x7f,0x06,0x06}, // 4
-	{0x7f,0x7f,0x60,0x60,0x7e,0x7f,0x03,0x03,0x7f,0x7e}, // 5
-	{0x60,0x60,0x60,0x60,0x7e,0x7f,0x63,0x63,0x7f,0x3e}, // 6
-	{0x7f,0x7f,0x63,0x63,0x03,0x03,0x03,0x03,0x03,0x03}, // 7
-	{0x3e,0x7f,0x63,0x63,0x7f,0x7f,0x63,0x63,0x7f,0x3e}, // 8
-	{0x3e,0x7f,0x63,0x63,0x7f,0x3f,0x03,0x03,0x03,0x03} // 9
-};
-
-unsigned char fpga_set_full[10] = {
-	0x7f,0x7f,0x7f,0x7f,0x7f,0x7f,0x7f,0x7f,0x7f,0x7f
-};
-
-unsigned char fpga_set_blank[10] = {
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
-};
-
-int iom_device_open(struct inode *, struct file *);
-int iom_device_release(struct inode *, struct file *);
-ssize_t iom_device_write(struct file *, const char *, size_t, loff_t *);
-void update_data(void);
-void clear_device(void);
-void deal_with_data(void);
-static void kernel_timer_blink(unsigned long timeout);
-void fnd_write(int n, int index);
-void dot_write(int n);
-void led_write(unsigned char n);
-void text_write(int, int);
-
-static struct file_operations iom_device_fops =
-{ .open = iom_device_open, .write = iom_device_write,
-	.release = iom_device_release };
-
-static struct struct_mydata {
-	struct timer_list timer;
-	int count;
-	int rotation_count;
-	int current_num;
-	int fnd_index;
-	int text_index_i;
-	int text_index_j;
-};
+#define MAX_DIGIT 4
+#define FND_DEVICE "/dev/dev_driver2"
 
 struct mydata{
 	int timer_interval;
@@ -84,8 +20,89 @@ struct mydata{
 	int timer_init;
 };
 
-struct struct_mydata mydata;
-struct mydata option;
-int major;
+struct mydata my_option;
 
-#endif
+int main(int argc, char **argv)
+{
+	int dev;
+	unsigned char data[4];
+	unsigned char retval;
+	int i;
+	int str_size;
+	int tmp;
+
+
+	memset(data,0,sizeof(data));
+
+	if(argc!=4) {
+		printf("please input the parameter! \n");
+		printf("ex)./app TIMER_INTERVAL[1-100] TIMER_CNT[1-100] TIMER_INIT[0001-8000]\n");
+		return -1;
+	}
+
+	//TIMER_INTERVAL
+	tmp = atoi(argv[1]);
+	if(tmp < 0 || tmp > 100){
+		printf("TIMER_INTERVAL out of range");
+		exit(1);
+	}
+	my_option.timer_interval = tmp;
+
+	//TIMER_CNT
+	tmp = atoi(argv[2]);
+	if(tmp < 0 || tmp > 100){
+		printf("TIMER_CNT out of range");
+		exit(1);
+	}
+	my_option.timer_count = tmp;
+
+	//TIMER_INIT parameter 처리
+    str_size=(strlen(argv[3]));
+    if(str_size>MAX_DIGIT)
+    {
+        printf("Warning! TIMER_INIT 4 Digit number only!\n");
+        str_size=MAX_DIGIT;
+		exit(1);
+    }
+
+    for(i=0;i<str_size;i++)
+    {
+        if((argv[3][i]<0x30)||(argv[3][i])>0x39) {
+            printf("Error! Invalid Value!\n");
+            return -1;
+        }
+        data[i]=argv[3][i]-0x30;
+    }
+	my_option.timer_init = atoi(argv[3]);
+
+    dev = open(FND_DEVICE, O_RDWR);
+    if (dev<0) {
+        printf("Device open error : %s\n",FND_DEVICE);
+        exit(1);
+    }
+
+    retval=write(dev,&my_option,sizeof(my_option));	
+    if(retval<0) {
+        printf("Write Error!\n");
+        return -1;
+    }
+
+	memset(data,0,sizeof(data));
+
+	sleep(1);
+
+	retval=read(dev,&data,4);
+	if(retval<0) {
+		printf("Read Error!\n");
+		return -1;
+	}
+
+	printf("Current FND Value : ");
+	for(i=0;i<str_size;i++)	
+		printf("%d",data[i]);
+	printf("\n");
+
+	close(dev);
+
+	return(0);
+}
