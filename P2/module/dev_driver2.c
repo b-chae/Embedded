@@ -32,7 +32,7 @@ void update_data(void){
 	}
 	
 	if(mydata.i_direction == 1){
-		if(mydata.text_index_i + STRLEN_STUDENT_NUMBER - 1 < 16){
+		if(mydata.text_index_i + STRLEN_STUDENT_NUMBER - 1 < 15){
 			mydata.text_index_i++;
 		}
 		else{
@@ -51,7 +51,7 @@ void update_data(void){
 	}
 	
 	if(mydata.j_direction == 1){
-		if(mydata.text_index_j + STRLEN_MY_NAME - 1 < 16){
+		if(mydata.text_index_j + STRLEN_MY_NAME - 1 < 15){
 			mydata.text_index_j++;
 		}
 		else{
