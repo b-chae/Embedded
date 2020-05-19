@@ -12,7 +12,7 @@ Auth : largest@huins.com */
 #include <string.h>
 
 #define MAX_DIGIT 4
-#define FND_DEVICE "/dev/dev_driver2"
+#define FND_DEVICE "/dev/dev_driver"
 
 struct mydata{
 	int timer_interval;
