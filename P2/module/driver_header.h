@@ -1,5 +1,5 @@
-#ifndef _HEADER_H_
-#define _HEADER_H_
+#ifndef _DRIVER_HEADER_H_
+#define _DRIVER_HEADER_H_
 
 #include <linux/module.h>
 #include <linux/fs.h>
