@@ -81,7 +81,6 @@ struct mydata{
 struct struct_mydata mydata;
 struct mydata option;
 int major;
-char* howmany;
 
 int iom_device_release(struct inode *minode, struct file *mfile) {
 	printk("kernel_timer_release\n");
@@ -95,7 +94,6 @@ int iom_device_open(struct inode *minode, struct file *mfile) {
 		return -EBUSY;
 	}
 	device_usage = 1;
-	howmany = kmalloc(PAGE_SIZE, GFP_KERNEL);
 	return 0;
 }
 
@@ -116,13 +114,19 @@ void update_data(void){
 	}
 }
 
+void clear_device(void){
+	fnd_write(0, 0);
+	dot_write(-1);
+	led_write(0);
+}
+
 static void kernel_timer_blink(unsigned long timeout) {
 	struct struct_mydata *p_data = (struct struct_mydata*)timeout;
-	howmany[0]++;
 	printk("kernel_timer_blink %d\n", p_data->count);
 
 	p_data->count++;
 	if( p_data->count >= option.timer_count ) {
+		clear_device();
 		return;
 	}
 
@@ -210,6 +214,11 @@ void fnd_write(int n, int index){
 
 void dot_write(int n){
 	int i;
+	if(n == -1){
+		for(i=0; i<10; i++){
+			outw(fpga_set_blank[i], (unsigned int)iom_fpga_dot_addr + 2*i);
+		}
+	}
 	for(i=0; i<10; i++){
 		outw(fpga_number[n][i], (unsigned int)iom_fpga_dot_addr + 2*i);
 	}
@@ -299,10 +308,8 @@ void __exit iom_device_exit(void)
 	iounmap(iom_fpga_text_lcd_addr);
 	
 	printk("kernel_timer_exit\n");
-	printk("%d\n", howmany[0]);
 	device_usage = 0;
 	del_timer_sync(&mydata.timer);
-	kfree(howmany);
 
 	unregister_chrdev(major, IOM_DEVICE_NAME);
 }
