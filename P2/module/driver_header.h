@@ -76,6 +76,8 @@ static struct struct_mydata {
 	int fnd_index;
 	int text_index_i;
 	int text_index_j;
+	int i_direction;
+	int j_direction;
 };
 
 struct mydata{
