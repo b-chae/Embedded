@@ -51,7 +51,7 @@ void update_data(void){
 	}
 	
 	if(mydata.j_direction == 1){
-		if(mydata.text_index_j + STRLEN_MY_NAME - 1 < 32){
+		if(mydata.text_index_j + STRLEN_MY_NAME - 1 < 16){
 			mydata.text_index_j++;
 		}
 		else{
@@ -60,7 +60,7 @@ void update_data(void){
 		}
 	}
 	else{
-		if(mydata.text_index_j > 16){
+		if(mydata.text_index_j > 0){
 			mydata.text_index_j--;
 		}
 		else{
