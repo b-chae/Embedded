@@ -30,6 +30,44 @@ void update_data(void){
 	if(mydata.current_num >= 9){
 		mydata.current_num = 1;
 	}
+	
+	if(mydata.i_direction == 1){
+		if(mydata.text_index_i + STRLEN_STUDENT_NUMBER - 1 < 16){
+			mydata.text_index_i++;
+		}
+		else{
+			mydata.i_direction = -1;
+			mydata.text_index_i--;
+		}
+	}
+	else{
+		if(mydata.text_index_i > 0){
+			mydata.text_index_i--;
+		}
+		else{
+			mydata.i_direction = 1;
+			mydata.text_index_i++;
+		}
+	}
+	
+	if(mydata.j_direction == 1){
+		if(mydata.text_index_j + STRLEN_MY_NAME - 1 < 32){
+			mydata.text_index_j++;
+		}
+		else{
+			mydata.j_direction = -1;
+			mydata.text_index_j--;
+		}
+	}
+	else{
+		if(mydata.text_index_j > 16){
+			mydata.text_index_j--;
+		}
+		else{
+			mydata.j_direction = 1;
+			mydata.text_index_j++;
+		}
+	}
 }
 
 void clear_device(void){
@@ -101,6 +139,8 @@ void deal_with_data(void){
 	mydata.current_num = real_value;
 	mydata.text_index_i = 0;
 	mydata.text_index_j = 0;
+	mydata.i_direction = 1;
+	mydata.j_direction = 1;
 	
 	fnd_write(real_value, mydata.fnd_index);
 	dot_write(real_value);
@@ -143,8 +183,8 @@ void dot_write(int n){
 	if(n == -1){
 		for(i=0; i<10; i++){
 			outw(fpga_set_blank[i], (unsigned int)iom_fpga_dot_addr + 2*i);
-			return;
 		}
+		return;
 	}
 	for(i=0; i<10; i++){
 		outw(fpga_number[n][i], (unsigned int)iom_fpga_dot_addr + 2*i);
