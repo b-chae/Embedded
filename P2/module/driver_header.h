@@ -12,7 +12,7 @@
 #include <asm/io.h>
 
 #define IOM_DEVICE_MAJOR 242
-#define IOM_DEVICE_NAME "dev_driver2"
+#define IOM_DEVICE_NAME "dev_driver"
 
 #define IOM_FND_ADDRESS 0x08000004 // pysical address
 #define IOM_LED_ADDRESS 0x08000016 // pysical address
