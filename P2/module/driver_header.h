@@ -12,7 +12,7 @@
 #include <asm/io.h>
 
 #define IOM_DEVICE_MAJOR 242
-#define IOM_DEVICE_NAME "dev_driver"
+#define IOM_DEVICE_NAME "dev_driver2"
 
 #define IOM_FND_ADDRESS 0x08000004 // pysical address
 #define IOM_LED_ADDRESS 0x08000016 // pysical address
@@ -58,7 +58,7 @@ ssize_t iom_device_write(struct file *, const char *, size_t, loff_t *);
 void update_data(void);
 void clear_device(void);
 void deal_with_data(void);
-static void timer_func(unsigned long timeout);
+static void kernel_timer_blink(unsigned long timeout);
 void fnd_write(int n, int index);
 void dot_write(int n);
 void led_write(unsigned char n);
