@@ -169,7 +169,7 @@ ssize_t iom_device_write(struct file *inode, const char *gdata, size_t length, l
 }
 
 void fnd_write(int n, int index){
-	const char value[4];
+	char value[4];
 	int i;
 	for(i=0; i<4; i++) value[i] = 0;
 	value[index] = n;
