@@ -18,7 +18,7 @@ int iom_device_open(struct inode *minode, struct file *mfile) {
 
 int iom_device_ioctl(struct inode *minode, struct file *mfile, unsigned int cmd, unsigned long arg){
 	int ret;
-	mydata param;
+	struct mydata param;
 	
 	switch(cmd){
 		case IOCTL_SEND_ARG:
