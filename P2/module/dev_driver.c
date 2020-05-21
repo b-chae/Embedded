@@ -307,7 +307,7 @@ void __exit iom_device_exit(void)
 	device_usage = 0;
 	del_timer_sync(&mydata.timer);
 
-	unregister_chrdev(major, IOM_DEVICE_NAME);
+	unregister_chrdev(IOM_DEVICE_MAJOR, IOM_DEVICE_NAME);
 }
 
 module_init(iom_device_init);
