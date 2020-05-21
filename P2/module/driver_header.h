@@ -63,10 +63,11 @@ void fnd_write(int n, int index);
 void dot_write(int n);
 void led_write(unsigned char n);
 void text_write(int, int);
+int iom_device_ioctl(struct inode *minode, struct file *mfile, unsigned int cmd, unsigned long arg);
 
 static struct file_operations iom_device_fops =
 { .open = iom_device_open, .write = iom_device_write,
-	.release = iom_device_release };
+	.release = iom_device_release, .unlocked_ioctl = device_ioctl };
 
 static struct struct_mydata {
 	struct timer_list timer;
