@@ -1,4 +1,5 @@
 #include "driver_header.h"
+#include "ioctl.h"
 
 int iom_device_release(struct inode *minode, struct file *mfile) {
 	printk("dev_driver_release\n");
@@ -12,6 +13,33 @@ int iom_device_open(struct inode *minode, struct file *mfile) {
 		return -EBUSY;
 	}
 	device_usage = 1;
+	return 0;
+}
+
+int iom_device_ioctl(struct inode *minode, struct file *mfile, unsigned int cmd, unsigned long arg){
+	int ret;
+	mydata param;
+	
+	switch(cmd){
+		case IOCTL_SEND_ARG:
+			ret = copy_from_user((void*)&param, (void*)arg, sizeof(param));
+			option.timer_interval = param.timer_interval;
+			option.timer_count = param.timer_count;
+			option.timer_init = param.timer_init;
+
+			deal_with_data();
+
+			printk("IOCTL_SEND_ARG START\n");
+
+			del_timer_sync(&mydata.timer);
+
+			mydata.timer.expires = jiffies + (option.timer_interval * HZ);
+			mydata.timer.data = (unsigned long)&mydata;
+			mydata.timer.function = timer_func;
+			
+			add_timer(&mydata.timer);		
+			break;
+	}
 	return 0;
 }
 
