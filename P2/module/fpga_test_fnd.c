@@ -22,6 +22,8 @@ struct mydata{
 
 struct mydata my_option;
 
+#include "ioctl.h"
+
 int main(int argc, char **argv)
 {
 	int dev;
@@ -81,9 +83,16 @@ int main(int argc, char **argv)
         exit(1);
     }
 
-    retval=write(dev,&my_option,sizeof(my_option));	
+    //retval=write(dev,&my_option,sizeof(my_option));	
+	retval = ioctl(dev, IOCTL_SEND_ARG, &my_option);
     if(retval<0) {
-        printf("Write Error!\n");
+        printf("ioctl1 Error!\n");
+        return -1;
+    }
+	
+	retval = ioctl(dev, IOCTL_START, NULL);
+    if(retval<0) {
+        printf("ioctl2 Error!\n");
         return -1;
     }
 
