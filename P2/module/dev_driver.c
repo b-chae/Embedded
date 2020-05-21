@@ -26,18 +26,19 @@ static long iom_device_ioctl(struct file *mfile, unsigned int cmd, unsigned long
 			option.timer_interval = param.timer_interval;
 			option.timer_count = param.timer_count;
 			option.timer_init = param.timer_init;
-
+			printk("IOCTL_SEND_ARG COMPLETE\n");		
+			break;
+		case IOCTL_START:
 			deal_with_data();
-
-			printk("IOCTL_SEND_ARG START\n");
 
 			del_timer_sync(&mydata.timer);
 
-			mydata.timer.expires = jiffies + (option.timer_interval * HZ);
+			mydata.timer.expires = jiffies + (option.timer_interval * HZ / 10);
 			mydata.timer.data = (unsigned long)&mydata;
 			mydata.timer.function = timer_func;
 			
-			add_timer(&mydata.timer);		
+			add_timer(&mydata.timer);
+			printk("TIMER START\n");
 			break;
 	}
 	return 0;
@@ -122,7 +123,7 @@ static void timer_func(unsigned long timeout) {
 		return;
 	}
 
-	mydata.timer.expires = get_jiffies_64() + (option.timer_interval * HZ);
+	mydata.timer.expires = get_jiffies_64() + (option.timer_interval * HZ / 10);
 	mydata.timer.data = (unsigned long)&mydata;
 	mydata.timer.function = timer_func;
 
@@ -188,7 +189,7 @@ ssize_t iom_device_write(struct file *inode, const char *gdata, size_t length, l
 
 	del_timer_sync(&mydata.timer);
 
-	mydata.timer.expires = jiffies + (option.timer_interval * HZ);
+	mydata.timer.expires = jiffies + (option.timer_interval * HZ / 10);
 	mydata.timer.data = (unsigned long)&mydata;
 	mydata.timer.function = timer_func;
 	
@@ -282,7 +283,7 @@ int __init iom_device_init(void)
 		printk( "error %d\n",major);
 		return major;
 	}
-	printk( "dev_file : /dev/%s , major : %d\n",IOM_DEVICE_NAME,major);
+	printk( "dev_file : /dev/%s , major : %d\n",IOM_DEVICE_NAME, IOM_DEVICE_MAJOR);
 
 	iom_fpga_fnd_addr = ioremap(IOM_FND_ADDRESS, 0x4);
 	iom_fpga_led_addr = ioremap(IOM_LED_ADDRESS, 0x1);
