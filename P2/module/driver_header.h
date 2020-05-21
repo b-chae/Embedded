@@ -12,14 +12,11 @@
 #include <asm/io.h>
 
 #define IOM_DEVICE_MAJOR 242
-<<<<<<< HEAD
-#define IOM_DEVICE_NAME "dev_driver2"
-=======
 #define IOM_DEVICE_NAME "dev_driver"
->>>>>>> test
 
-#define IOM_FND_ADDRESS 0x08000004 // pysical address
-#define IOM_LED_ADDRESS 0x08000016 // pysical address
+/* physical address*/
+#define IOM_FND_ADDRESS 0x08000004
+#define IOM_LED_ADDRESS 0x08000016
 #define IOM_FPGA_DOT_ADDRESS 0x08000210
 #define IOM_FPGA_TEXT_LCD_ADDRESS 0x08000090
 
@@ -35,38 +32,16 @@ static unsigned char *iom_fpga_text_lcd_addr;
 const char* student_number = "20171696";
 const char* my_name = "byeori chae";
 
-unsigned char fpga_number[10][10] = {
-	{0x3e,0x7f,0x63,0x73,0x73,0x6f,0x67,0x63,0x7f,0x3e}, // 0
-	{0x0c,0x1c,0x1c,0x0c,0x0c,0x0c,0x0c,0x0c,0x0c,0x1e}, // 1
-	{0x7e,0x7f,0x03,0x03,0x3f,0x7e,0x60,0x60,0x7f,0x7f}, // 2
-	{0xfe,0x7f,0x03,0x03,0x7f,0x7f,0x03,0x03,0x7f,0x7e}, // 3
-	{0x66,0x66,0x66,0x66,0x66,0x66,0x7f,0x7f,0x06,0x06}, // 4
-	{0x7f,0x7f,0x60,0x60,0x7e,0x7f,0x03,0x03,0x7f,0x7e}, // 5
-	{0x60,0x60,0x60,0x60,0x7e,0x7f,0x63,0x63,0x7f,0x3e}, // 6
-	{0x7f,0x7f,0x63,0x63,0x03,0x03,0x03,0x03,0x03,0x03}, // 7
-	{0x3e,0x7f,0x63,0x63,0x7f,0x7f,0x63,0x63,0x7f,0x3e}, // 8
-	{0x3e,0x7f,0x63,0x63,0x7f,0x3f,0x03,0x03,0x03,0x03} // 9
-};
+#include "fpga_dot.h"
 
-unsigned char fpga_set_full[10] = {
-	0x7f,0x7f,0x7f,0x7f,0x7f,0x7f,0x7f,0x7f,0x7f,0x7f
-};
-
-unsigned char fpga_set_blank[10] = {
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
-};
-
+/* function declaration*/
 int iom_device_open(struct inode *, struct file *);
 int iom_device_release(struct inode *, struct file *);
 ssize_t iom_device_write(struct file *, const char *, size_t, loff_t *);
 void update_data(void);
 void clear_device(void);
 void deal_with_data(void);
-<<<<<<< HEAD
-static void kernel_timer_blink(unsigned long timeout);
-=======
 static void timer_func(unsigned long timeout);
->>>>>>> test
 void fnd_write(int n, int index);
 void dot_write(int n);
 void led_write(unsigned char n);
@@ -77,6 +52,17 @@ static struct file_operations iom_device_fops =
 { .open = iom_device_open, .write = iom_device_write,
 	.release = iom_device_release, .unlocked_ioctl = iom_device_ioctl, };
 
+/* struct struct_mydata
+ * timer 함수에 전달할 정보를 가지고 있는 구조체
+ * count : 현재 timer_func 실행 횟수
+ * rotation_count : 로테이션 횟수(한 자리에서 모든 문양이 한 번씩 출력되는 것이 끝나면 0으로 초기화된다.)
+ * current_num : 현재 출력하는 문양(1~8)
+ * fnd_index : 현재 FND에 출력되는 위치(0~3)
+ * text_index_i : 학번이 text lcd에 출력되는 위치 (0~15)
+ * text_index_j : 내 이름이 text lcd에 출력되는 위치 (0~15)
+ * i_direction : 현재 학번이 text lcd에서 움직이는 방향 (1이면 오른쪽 -1이면 왼쪽)
+ * j_direction : 현재 이름이 text lcd에서 움직이는 방향 (1이면 오른쪽 -1이면 왼쪽)
+ */
 static struct struct_mydata {
 	struct timer_list timer;
 	int count;
@@ -89,6 +75,11 @@ static struct struct_mydata {
 	int j_direction;
 };
 
+/* struct mydata : 사용자 옵션을 저장하는 구조체
+ * timer_interval : 1-100 HZ값(1~100)
+ * timer_count : 디바이스 출력 변경 횟수(1~100)
+ * timer_init : fnd에 출력되는 초기 문양과 위치(0001~8000)
+ */
 struct mydata{
 	int timer_interval;
 	int timer_count;
