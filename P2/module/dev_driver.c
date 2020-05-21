@@ -27,7 +27,7 @@ static long iom_device_ioctl(struct file *mfile, unsigned int cmd, unsigned long
 			ret = copy_from_user((void*)&param, (void*)arg, sizeof(param));
 			if(ret < 0){
 				printk("copy_from_user error\n");
-				exit(1);
+				return -1;
 			}
 			
 			option.timer_interval = param.timer_interval;
