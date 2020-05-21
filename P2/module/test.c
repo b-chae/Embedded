@@ -27,14 +27,10 @@ struct mydata my_option;
 int main(int argc, char **argv)
 {
 	int dev;
-	unsigned char data[4];
 	unsigned char retval;
 	int i;
 	int str_size;
 	int tmp;
-
-
-	memset(data,0,sizeof(data));
 
 	if(argc!=4) {
 		printf("please input the parameter! \n");
@@ -73,7 +69,6 @@ int main(int argc, char **argv)
             printf("Error! Invalid Value!\n");
             return -1;
         }
-        data[i]=argv[3][i]-0x30;
     }
 	my_option.timer_init = atoi(argv[3]);
 
@@ -84,32 +79,19 @@ int main(int argc, char **argv)
     }
 
     //retval=write(dev,&my_option,sizeof(my_option));	
+	/* IOCTL을 사용하여 사용자 옵션 전달*/
 	retval = ioctl(dev, IOCTL_SEND_ARG, &my_option);
     if(retval<0) {
         printf("ioctl1 Error!\n");
         return -1;
     }
 	
+	/* IOCTL을 사용하여 프로그램 시작*/
 	retval = ioctl(dev, IOCTL_START, NULL);
     if(retval<0) {
         printf("ioctl2 Error!\n");
         return -1;
     }
-
-	memset(data,0,sizeof(data));
-
-	sleep(1);
-
-	retval=read(dev,&data,4);
-	if(retval<0) {
-		printf("Read Error!\n");
-		return -1;
-	}
-
-	printf("Current FND Value : ");
-	for(i=0;i<str_size;i++)	
-		printf("%d",data[i]);
-	printf("\n");
 
 	close(dev);
 
