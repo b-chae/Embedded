@@ -75,19 +75,19 @@ static struct struct_mydata {
 	int j_direction;
 };
 
-/* struct mydata : 사용자 옵션을 저장하는 구조체
+/* struct timer_option : 사용자 옵션을 저장하는 구조체
  * timer_interval : 1-100 HZ값(1~100)
  * timer_count : 디바이스 출력 변경 횟수(1~100)
  * timer_init : fnd에 출력되는 초기 문양과 위치(0001~8000)
  */
-struct mydata{
+struct timer_option{
 	int timer_interval;
 	int timer_count;
 	int timer_init;
 };
 
 struct struct_mydata mydata;
-struct mydata option;
+struct timer_option option;
 int major;
 
 #endif

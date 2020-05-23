@@ -1,6 +1,7 @@
 #include "fpga_dot.h"
 #include "driver_header.h"
 #include "ioctl.h"
+#include "write.h"
 
 int iom_device_release(struct inode *minode, struct file *mfile) {
 	printk("dev_driver_release\n");
@@ -20,7 +21,7 @@ int iom_device_open(struct inode *minode, struct file *mfile) {
 /* ioctl 명령 실행 */
 static long iom_device_ioctl(struct file *mfile, unsigned int cmd, unsigned long arg){
 	int ret;
-	struct mydata param;
+	struct timer_option param;
 	
 	switch(cmd){
 		case IOCTL_SEND_ARG: //option전달
@@ -30,6 +31,7 @@ static long iom_device_ioctl(struct file *mfile, unsigned int cmd, unsigned long
 				return -1;
 			}
 			
+			//사용자가 전해 준 옵션(timer_interval, timer_count, timer_init)을 저장한다. 
 			option.timer_interval = param.timer_interval;
 			option.timer_count = param.timer_count;
 			option.timer_init = param.timer_init;
@@ -49,6 +51,51 @@ static long iom_device_ioctl(struct file *mfile, unsigned int cmd, unsigned long
 			break;
 	}
 	return 0;
+}
+
+/* 사용자 옵션 정보를 정제하여 mydata에 넣기 */
+void deal_with_data(void){
+	unsigned char value[4];
+	unsigned short real_value = 0;
+	
+	/* 현재 option.timer_init은 4-digit integer로 되어있다. 이것을 자리수별로 끊기 */
+	value[0] = option.timer_init/1000;
+	value[1] = option.timer_init/100%10;
+	value[2] = option.timer_init%100/10;
+	value[3] = option.timer_init%10;
+	
+	/* 0이 아닌 숫자의 값과 인덱스 real_value와 fnd_index 변수에 넣기 */
+	if(value[0] != 0){
+		real_value = value[0];
+		mydata.fnd_index = 0;
+	}
+	else if(value[1] != 0){
+		real_value = value[1];
+		mydata.fnd_index = 1;
+	}
+	else if(value[2] != 0){
+		real_value = value[2];
+		mydata.fnd_index = 2;
+	}
+	else if(value[3] != 0){
+		real_value = value[3];
+		mydata.fnd_index = 3;
+	}
+	
+	/* 초기화 */
+	mydata.count = 0;
+	mydata.rotation_count = 0;
+	mydata.current_num = real_value;
+	mydata.text_index_i = 0;
+	mydata.text_index_j = 0;
+	mydata.i_direction = 1;
+	mydata.j_direction = 1;
+	
+	/* 출력 초기화 */
+	fnd_write(real_value, mydata.fnd_index);
+	dot_write(real_value);
+	led_write(real_value);
+	text_write(0,0);
 }
 
 /* timer_func가 수행되기 전 데이터 업데이트 */
@@ -113,21 +160,6 @@ void update_data(void){
 	}
 }
 
-/* 출력 초기화 */
-void clear_device(void){
-	int i;
-	unsigned short _s_value;
-	fnd_write(0, 0);
-	dot_write(-1);
-	led_write(0);
-	for(i=0;i<32;i++)
-    {
-        _s_value = (' ' & 0xFF) << 8 | ' ' & 0xFF;
-		outw(_s_value,(unsigned int)iom_fpga_text_lcd_addr+i);
-        i++;
-    }
-}
-
 /* timer가 timer_interval마다 구동하는 함수 */
 static void timer_func(unsigned long timeout) {
 	struct struct_mydata *p_data = (struct struct_mydata*)timeout;
@@ -153,151 +185,14 @@ static void timer_func(unsigned long timeout) {
 	text_write(mydata.text_index_i,mydata.text_index_j);
 }
 
-/* 사용자 옵션 정보를 정제하여 mydata에 넣기 */
-void deal_with_data(void){
-	unsigned char value[4];
-	unsigned short real_value = 0;
-	
-	/* 현재 option.timer_init은 4-digit integer로 되어있다. 이것을 자리수별로 끊기 */
-	value[0] = option.timer_init/1000;
-	value[1] = option.timer_init/100%10;
-	value[2] = option.timer_init%100/10;
-	value[3] = option.timer_init%10;
-	
-	/* 0이 아닌 숫자의 값고 인덱스 real_value와 fnd_index 변수에 넣기 */
-	if(value[0] != 0){
-		real_value = value[0];
-		mydata.fnd_index = 0;
-	}
-	else if(value[1] != 0){
-		real_value = value[1];
-		mydata.fnd_index = 1;
-	}
-	else if(value[2] != 0){
-		real_value = value[2];
-		mydata.fnd_index = 2;
-	}
-	else if(value[3] != 0){
-		real_value = value[3];
-		mydata.fnd_index = 3;
-	}
-	
-	/* 초기화 */
-	mydata.count = 0;
-	mydata.rotation_count = 0;
-	mydata.current_num = real_value;
-	mydata.text_index_i = 0;
-	mydata.text_index_j = 0;
-	mydata.i_direction = 1;
-	mydata.j_direction = 1;
-	
-	/* 출력 초기화 */
-	fnd_write(real_value, mydata.fnd_index);
-	dot_write(real_value);
-	led_write(real_value);
-	text_write(0,0);
-}
-
 ssize_t iom_device_write(struct file *inode, const char *gdata, size_t length, loff_t *off_what) {
 
 	printk("not implemented yet\n");
 	return 1;
 }
 
-/* fnd 출력 
- * n이라는 1 digit 숫자를 index 번째에 출력
- * ex) n = 5, index = 3 일경우 0005
- *     n = 1, index = 1 일경우 0100
- */
-void fnd_write(int n, int index){
-	char value[4];
-	int i;
-	unsigned short int value_short;
-	
-	for(i=0; i<4; i++) value[i] = 0;
-	value[index] = n;
-	
-	value_short = value[0] << 12 | value[1] << 8 |value[2] << 4 |value[3];
-	outw(value_short,(unsigned int)iom_fpga_fnd_addr);
-}
-
-/* dot matrix 출력 */
-void dot_write(int n){
-	int i;
-	if(n == -1){ //빈 matrix로 초기화
-		for(i=0; i<10; i++){
-			outw(fpga_set_blank[i], (unsigned int)iom_fpga_dot_addr + 2*i);
-		}
-		return;
-	}
-	for(i=0; i<10; i++){
-		outw(fpga_number[n][i], (unsigned int)iom_fpga_dot_addr + 2*i);
-	}
-}
-
-/* led 불켜기 */
-void led_write(unsigned char n){
-	
-	unsigned short _s_value = 0;
-	
-	switch(n){
-		case 1 : _s_value = 128; break;
-		case 2 : _s_value = 64; break;
-		case 3 : _s_value = 32; break;
-		case 4 : _s_value = 16; break;
-		case 5 : _s_value = 8; break;
-		case 6 : _s_value = 4; break;
-		case 7 : _s_value = 2; break;
-		case 8 : _s_value = 1; break;
-	}
-
-	outw(_s_value, (unsigned int)iom_fpga_led_addr);
-}
-
-/* text lcd에 학번과 이름을 표시한다
- * l_index : 학번이 시작되는 index
- * r_index : 이름이 시작되는 index
- */
-void text_write(int l_index, int r_index) 
-{
-	int i;
-
-	unsigned char value[32];
-   	unsigned short int _s_value = 0;
-	
-	/* l_index 위치부터 학번 print */
-	for(i=0; i<l_index; i++){
-		value[i] = ' ';
-	}
-	for(i=l_index; i<l_index+STRLEN_STUDENT_NUMBER; i++){
-		value[i] = student_number[i-l_index];
-	}
-	for(i=i; i<16; i++){
-		value[i] = ' ';
-	}
-	
-	/* r_index 위치부터 이름 print */
-	for(i=16; i<r_index+16; i++){
-		value[i] = ' ';
-	}
-	for(i=i; i<r_index+16+STRLEN_MY_NAME; i++){
-		value[i] = my_name[i-r_index-16];
-	}
-	for(i=i; i<32; i++){
-		value[i] = ' ';
-	}
-
-	for(i=0;i<32;i++)
-    {
-        _s_value = (value[i] & 0xFF) << 8 | value[i + 1] & 0xFF;
-	outw(_s_value,(unsigned int)iom_fpga_text_lcd_addr+i);
-        i++;
-    }
-}
-
 int __init iom_device_init(void)
-{
-	
+{	
 	printk("dev_driver_init\n");
 
 	major = register_chrdev(IOM_DEVICE_MAJOR, IOM_DEVICE_NAME, &iom_device_fops);
