@@ -22,7 +22,7 @@ struct mydata{
 
 struct mydata my_option;
 
-#include "ioctl.h"
+#include "../module/ioctl.h"
 
 int main(int argc, char **argv)
 {
