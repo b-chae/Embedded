@@ -10,7 +10,6 @@ irqreturn_t inter_handler1(int irq, void* dev_id, struct pt_regs* reg) {
 	fnd_write(0);
 	
 	printk("timer start\n");
-	
 	return IRQ_HANDLED;
 }
 
@@ -34,17 +33,15 @@ irqreturn_t inter_handler3(int irq, void* dev_id,struct pt_regs* reg) {
 }
 
 irqreturn_t inter_handler4(int irq, void* dev_id, struct pt_regs* reg) {
-        printk(KERN_ALERT "volume down! = %x\n", gpio_get_value(IMX_GPIO_NR(5, 14)));
-
-        __wake_up(&wq_write, 1, 1, NULL);
+      printk(KERN_ALERT "volume down! = %x\n", gpio_get_value(IMX_GPIO_NR(5, 14)));
+      __wake_up(&wq_write, 1, 1, NULL);
 		//wake_up_interruptible(&wq_write);
 		printk("wake up\n");
 		
 		del_timer_sync(&mydata.timer);
 		mydata.time = 0;
 		fnd_write(0);
-
-        return IRQ_HANDLED;
+    return IRQ_HANDLED;
 }
 
 
@@ -117,7 +114,7 @@ static void timer_func(unsigned long timeout){
 
 static int inter_write(struct file *filp, const char *buf, size_t count, loff_t *f_pos ){
 	fnd_write(0);
-    printk("sleep on\n");
+  printk("sleep on\n");
 	interruptible_sleep_on(&wq_write);
 	return 0;
 }
