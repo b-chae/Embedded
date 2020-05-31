@@ -21,6 +21,7 @@ static struct cdev inter_cdev;
 static int inter_open(struct inode *, struct file *);
 static int inter_release(struct inode *, struct file *);
 static int inter_write(struct file *filp, const char *buf, size_t count, loff_t *f_pos);
+static void timer_func(unsigned long timeout);
 
 irqreturn_t inter_handler1(int irq, void* dev_id, struct pt_regs* reg);
 irqreturn_t inter_handler2(int irq, void* dev_id, struct pt_regs* reg);
