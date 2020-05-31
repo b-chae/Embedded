@@ -10,10 +10,10 @@ void clear_device(void){
 void fnd_write(int n){
 	char value[4];
 	unsigned short int value_short;
-	
-	value[0] = n/1000;
-	value[1] = n/100%10;
-	value[2] = n%100/10;
+
+	value[0] = n/60/10;
+	value[1] = n/60%10;
+	value[2] = n%60/10;
 	value[3] = n%10;
 	
 	value_short = value[0] << 12 | value[1] << 8 |value[2] << 4 |value[3];

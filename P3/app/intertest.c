@@ -7,9 +7,9 @@ int main(void){
 	int retn;
 	char buf[2] = {0,};
 
-	fd = open("/dev/inter", O_RDWR);
+	fd = open("/dev/stopwatch", O_RDWR);
 	if(fd < 0) {
-		perror("/dev/inter error");
+		perror("/dev/stopwatch error");
 		exit(-1);
 	}
         else { printf("< inter Device has been detected > \n"); }

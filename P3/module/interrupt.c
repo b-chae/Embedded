@@ -1,65 +1,15 @@
-#include <linux/module.h>
-#include <linux/kernel.h>
-#include <linux/interrupt.h>
-#include <asm/irq.h>
-#include <mach/gpio.h>
-#include <linux/platform_device.h>
-#include <asm/gpio.h>
-#include <linux/wait.h>
-#include <linux/fs.h>
-#include <linux/init.h>
-#include <asm/io.h>
-#include <asm/uaccess.h>
-#include <linux/ioport.h>
-#include <linux/version.h>
-#include <linux/cdev.h>
-
-static int inter_major=0, inter_minor=0;
-static int result;
-static dev_t inter_dev;
-static struct cdev inter_cdev;
-static int inter_open(struct inode *, struct file *);
-static int inter_release(struct inode *, struct file *);
-static int inter_write(struct file *filp, const char *buf, size_t count, loff_t *f_pos);
-
-irqreturn_t inter_handler1(int irq, void* dev_id, struct pt_regs* reg);
-irqreturn_t inter_handler2(int irq, void* dev_id, struct pt_regs* reg);
-irqreturn_t inter_handler3(int irq, void* dev_id, struct pt_regs* reg);
-irqreturn_t inter_handler4(int irq, void* dev_id, struct pt_regs* reg);
-
-static inter_usage=0;
-int interruptCount=0;
-
 #include "driver_header.h"
 #include "write.h"
 
-wait_queue_head_t wq_write;
-DECLARE_WAIT_QUEUE_HEAD(wq_write);
-
-static struct timer_data{
-	struct timer_list timer;
-	int time;
-};
-
-struct timer_data mydata;
-
-static struct file_operations inter_fops =
-{
-	.open = inter_open,
-	.write = inter_write,
-	.release = inter_release,
-};
-
 irqreturn_t inter_handler1(int irq, void* dev_id, struct pt_regs* reg) {
 	printk(KERN_ALERT "volume up! = %x\n", gpio_get_value(IMX_GPIO_NR(1, 11)));
-
-	if(++interruptCount>=5) {
-		interruptCount=0;
-                __wake_up(&wq_write, 1, 1, NULL);
-		//wake_up_interruptible(&wq_write);
-		printk("wake up\n");
-        }
-
+	
+	del_timer_sync(&mydata.timer);
+	
+	mydata.time = 0;
+	fnd_write(0);
+	
+	printk("timer start\n");
 	return IRQ_HANDLED;
 }
 
@@ -69,13 +19,29 @@ irqreturn_t inter_handler2(int irq, void* dev_id, struct pt_regs* reg) {
 }
 
 irqreturn_t inter_handler3(int irq, void* dev_id,struct pt_regs* reg) {
-        printk(KERN_ALERT "home! = %x\n", gpio_get_value(IMX_GPIO_NR(2, 15)));
-        return IRQ_HANDLED;
+	printk(KERN_ALERT "home! = %x\n", gpio_get_value(IMX_GPIO_NR(2, 15)));
+	
+	del_timer_sync(&mydata.timer);
+
+	mydata.timer.expires = get_jiffies_64() + 1*HZ;
+	mydata.timer.function = timer_func;
+	mydata.timer.data = (unsigned long)&mydata;
+	
+	add_timer(&mydata.timer);
+	printk("timer start\n");
+    return IRQ_HANDLED;
 }
 
 irqreturn_t inter_handler4(int irq, void* dev_id, struct pt_regs* reg) {
-        printk(KERN_ALERT "volume down! = %x\n", gpio_get_value(IMX_GPIO_NR(5, 14)));
-        return IRQ_HANDLED;
+      printk(KERN_ALERT "volume down! = %x\n", gpio_get_value(IMX_GPIO_NR(5, 14)));
+      __wake_up(&wq_write, 1, 1, NULL);
+		//wake_up_interruptible(&wq_write);
+		printk("wake up\n");
+		
+		del_timer_sync(&mydata.timer);
+		mydata.time = 0;
+		fnd_write(0);
+    return IRQ_HANDLED;
 }
 
 
@@ -135,7 +101,7 @@ static void timer_func(unsigned long timeout){
 	struct timer_data *p_data = (struct timer_data*)timeout;
 	
 	printk("timer func %d\n", p_data->time);
-	p_data->time = (p_data->time + 1)%10000;
+	p_data->time = (p_data->time + 1)%3600;
 	
 	mydata.timer.expires = get_jiffies_64() + 1*HZ;
 	mydata.timer.data = (unsigned long)&mydata;
@@ -147,19 +113,9 @@ static void timer_func(unsigned long timeout){
 }
 
 static int inter_write(struct file *filp, const char *buf, size_t count, loff_t *f_pos ){
-	del_timer_sync(&mydata.timer);
-	
-	mydata.timer.expires = get_jiffies_64() + 1*HZ;
-	mydata.timer.function = timer_func;
-	mydata.timer.data = (unsigned long)&mydata;
-	
-	add_timer(&mydata.timer);
-	printk("timer start\n");
-
-	if(interruptCount==0){
-                printk("sleep on\n");
-                interruptible_sleep_on(&wq_write);
-         }
+	fnd_write(0);
+  printk("sleep on\n");
+	interruptible_sleep_on(&wq_write);
 	return 0;
 }
 
@@ -168,13 +124,13 @@ static int inter_register_cdev(void)
 	int error;
 	if(inter_major) {
 		inter_dev = MKDEV(inter_major, inter_minor);
-		error = register_chrdev_region(inter_dev,1,"inter");
+		error = register_chrdev_region(inter_dev,1,"stopwatch");
 	}else{
-		error = alloc_chrdev_region(&inter_dev,inter_minor,1,"inter");
+		error = alloc_chrdev_region(&inter_dev,inter_minor,1,"stopwatch");
 		inter_major = MAJOR(inter_dev);
 	}
 	if(error<0) {
-		printk(KERN_WARNING "inter: can't get major %d\n", inter_major);
+		printk(KERN_WARNING "stopwatch: can't get major %d\n", inter_major);
 		return result;
 	}
 	printk(KERN_ALERT "major number = %d\n", inter_major);
@@ -194,7 +150,7 @@ static int __init inter_init(void) {
 	if((result = inter_register_cdev()) < 0 )
 		return result;
 	printk(KERN_ALERT "Init Module Success \n");
-	printk(KERN_ALERT "Device : /dev/inter, Major Num : 246 \n");
+	printk(KERN_ALERT "Device : /dev/stopwatch, Major Num : 242 \n");
 	
 	iom_fpga_fnd_addr = ioremap(IOM_FND_ADDRESS, 0x4);
 	
