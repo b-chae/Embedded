@@ -53,13 +53,21 @@ static struct file_operations inter_fops =
 irqreturn_t inter_handler1(int irq, void* dev_id, struct pt_regs* reg) {
 	printk(KERN_ALERT "volume up! = %x\n", gpio_get_value(IMX_GPIO_NR(1, 11)));
 
-	if(++interruptCount>=5) {
+	/*if(++interruptCount>=5) {
 		interruptCount=0;
                 __wake_up(&wq_write, 1, 1, NULL);
 		//wake_up_interruptible(&wq_write);
 		printk("wake up\n");
         }
-
+	*/
+	
+	del_timer_sync(&mydata.timer);
+	
+	mydata.time = 0;
+	fnd_write(0);
+	
+	printk("timer start\n");
+	
 	return IRQ_HANDLED;
 }
 
@@ -69,12 +77,30 @@ irqreturn_t inter_handler2(int irq, void* dev_id, struct pt_regs* reg) {
 }
 
 irqreturn_t inter_handler3(int irq, void* dev_id,struct pt_regs* reg) {
-        printk(KERN_ALERT "home! = %x\n", gpio_get_value(IMX_GPIO_NR(2, 15)));
-        return IRQ_HANDLED;
+	printk(KERN_ALERT "home! = %x\n", gpio_get_value(IMX_GPIO_NR(2, 15)));
+	
+	del_timer_sync(&mydata.timer);
+
+	mydata.timer.expires = get_jiffies_64() + 1*HZ;
+	mydata.timer.function = timer_func;
+	mydata.timer.data = (unsigned long)&mydata;
+	
+	add_timer(&mydata.timer);
+	printk("timer start\n");
+    return IRQ_HANDLED;
 }
 
 irqreturn_t inter_handler4(int irq, void* dev_id, struct pt_regs* reg) {
         printk(KERN_ALERT "volume down! = %x\n", gpio_get_value(IMX_GPIO_NR(5, 14)));
+
+		interruptCount=0;
+        __wake_up(&wq_write, 1, 1, NULL);
+		//wake_up_interruptible(&wq_write);
+		printk("wake up\n");
+		
+		mydata.time = 0;
+		fnd_write(0);
+
         return IRQ_HANDLED;
 }
 
@@ -135,7 +161,7 @@ static void timer_func(unsigned long timeout){
 	struct timer_data *p_data = (struct timer_data*)timeout;
 	
 	printk("timer func %d\n", p_data->time);
-	p_data->time = (p_data->time + 1)%10000;
+	p_data->time = (p_data->time + 1)%3600;
 	
 	mydata.timer.expires = get_jiffies_64() + 1*HZ;
 	mydata.timer.data = (unsigned long)&mydata;
@@ -147,15 +173,6 @@ static void timer_func(unsigned long timeout){
 }
 
 static int inter_write(struct file *filp, const char *buf, size_t count, loff_t *f_pos ){
-	del_timer_sync(&mydata.timer);
-	
-	mydata.timer.expires = get_jiffies_64() + 1*HZ;
-	mydata.timer.function = timer_func;
-	mydata.timer.data = (unsigned long)&mydata;
-	
-	add_timer(&mydata.timer);
-	printk("timer start\n");
-
 	if(interruptCount==0){
                 printk("sleep on\n");
                 interruptible_sleep_on(&wq_write);
