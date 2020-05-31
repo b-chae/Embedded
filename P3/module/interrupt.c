@@ -116,11 +116,9 @@ static void timer_func(unsigned long timeout){
 }
 
 static int inter_write(struct file *filp, const char *buf, size_t count, loff_t *f_pos ){
-
+	fnd_write(0);
     printk("sleep on\n");
 	interruptible_sleep_on(&wq_write);
-	
-	fnd_write(0);
 	return 0;
 }
 
