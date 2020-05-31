@@ -1,3 +1,5 @@
+void fnd_write(int n);
+
 /* 출력 초기화 */
 void clear_device(void){
 	fnd_write(0); //FND 0000 출력

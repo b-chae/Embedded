@@ -39,7 +39,7 @@ DECLARE_WAIT_QUEUE_HEAD(wq_write);
 static struct timer_data{
 	struct timer_list timer;
 	int time;
-}
+};
 
 struct timer_data mydata;
 
@@ -155,11 +155,11 @@ static int inter_write(struct file *filp, const char *buf, size_t count, loff_t 
 	
 	del_timer_sync(&mydata.timer);
 	
-	data.timers.expires = get_giffies_64() + 1*HZ;
-	data.timer.function = timer_func;
-	data.timer.data = (unsigned long)&mydata;
+	mydata.timer.expires = get_jiffies_64() + 1*HZ;
+	mydata.timer.function = timer_func;
+	mydata.timer.data = (unsigned long)&mydata;
 	
-	add_timer(&mydata.tiemr);
+	add_timer(&mydata.timer);
 	printk("timer start\n");
 	return 0;
 }
