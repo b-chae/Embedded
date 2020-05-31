@@ -30,8 +30,18 @@ irqreturn_t inter_handler4(int irq, void* dev_id, struct pt_regs* reg);
 static inter_usage=0;
 int interruptCount=0;
 
+#include "driver_header.h"
+#include "write.h"
+
 wait_queue_head_t wq_write;
 DECLARE_WAIT_QUEUE_HEAD(wq_write);
+
+static struct timer_data{
+	struct timer_list timer;
+	int time;
+};
+
+struct timer_data mydata;
 
 static struct file_operations inter_fops =
 {
@@ -70,6 +80,12 @@ irqreturn_t inter_handler4(int irq, void* dev_id, struct pt_regs* reg) {
 
 
 static int inter_open(struct inode *minode, struct file *mfile){
+	if(inter_usage != 0){
+		return -EBUSY;
+	}
+	
+	inter_usage = 1;
+
 	int ret;
 	int irq;
 
@@ -109,15 +125,41 @@ static int inter_release(struct inode *minode, struct file *mfile){
 	free_irq(gpio_to_irq(IMX_GPIO_NR(5, 14)), NULL);
 	
 	printk(KERN_ALERT "Release Module\n");
+	
+	inter_usage = 0;
+	
 	return 0;
 }
 
+static void timer_func(unsigned long timeout){
+	struct timer_data *p_data = (struct timer_data*)timeout;
+	
+	printk("timer func %d\n", p_data->time);
+	p_data->time = (p_data->time + 1)%10000;
+	
+	mydata.timer.expires = get_jiffies_64() + 1*HZ;
+	mydata.timer.data = (unsigned long)&mydata;
+	mydata.timer.function = timer_func;
+	
+	add_timer(&mydata.timer);
+	
+	fnd_write(mydata.time);
+}
+
 static int inter_write(struct file *filp, const char *buf, size_t count, loff_t *f_pos ){
+	del_timer_sync(&mydata.timer);
+	
+	mydata.timer.expires = get_jiffies_64() + 1*HZ;
+	mydata.timer.function = timer_func;
+	mydata.timer.data = (unsigned long)&mydata;
+	
+	add_timer(&mydata.timer);
+	printk("timer start\n");
+
 	if(interruptCount==0){
                 printk("sleep on\n");
                 interruptible_sleep_on(&wq_write);
          }
-	printk("write\n");
 	return 0;
 }
 
@@ -153,13 +195,20 @@ static int __init inter_init(void) {
 		return result;
 	printk(KERN_ALERT "Init Module Success \n");
 	printk(KERN_ALERT "Device : /dev/inter, Major Num : 246 \n");
+	
+	iom_fpga_fnd_addr = ioremap(IOM_FND_ADDRESS, 0x4);
+	
+	init_timer(&mydata.timer);
 	return 0;
 }
 
 static void __exit inter_exit(void) {
+	iounmap(iom_fpga_fnd_addr);
 	cdev_del(&inter_cdev);
 	unregister_chrdev_region(inter_dev, 1);
 	printk(KERN_ALERT "Remove Module Success \n");
+	inter_usage = 0;
+	del_timer_sync(&mydata.timer);
 }
 
 module_init(inter_init);
