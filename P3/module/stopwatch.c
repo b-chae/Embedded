@@ -9,12 +9,15 @@ irqreturn_t inter_handler1(int irq, void* dev_id, struct pt_regs* reg) {
 	mydata.time = 0;
 	fnd_write(0);
 	
-	printk("timer start\n");
+	printk("timer reset\n");
 	return IRQ_HANDLED;
 }
 
 irqreturn_t inter_handler2(int irq, void* dev_id, struct pt_regs* reg) {
         printk(KERN_ALERT "back! = %x\n", gpio_get_value(IMX_GPIO_NR(1, 12)));
+		
+		del_timer_sync(&mydata.timer);
+		printk("pause!\n");
         return IRQ_HANDLED;
 }
 
@@ -32,17 +35,38 @@ irqreturn_t inter_handler3(int irq, void* dev_id,struct pt_regs* reg) {
     return IRQ_HANDLED;
 }
 
+static void quit_func(unsigned long timeout){
+	mydata.time = 0;
+	quit_timer.quit_flag = 0;
+	fnd_write(0);
+	
+	  __wake_up(&wq_write, 1, 1, NULL);
+	//wake_up_interruptible(&wq_write);
+	printk("wake up\n");
+	
+	del_timer_sync(&mydata.timer);
+}
+
 irqreturn_t inter_handler4(int irq, void* dev_id, struct pt_regs* reg) {
-      printk(KERN_ALERT "volume down! = %x\n", gpio_get_value(IMX_GPIO_NR(5, 14)));
-      __wake_up(&wq_write, 1, 1, NULL);
-		//wake_up_interruptible(&wq_write);
-		printk("wake up\n");
+	
+	if(quit_timer.quit_flag == 0 && gpio_get_value(IMX_GPIO_NR(5, 14)) == 0){
+		printk(KERN_ALERT "volume down pressed = %x\n", gpio_get_value(IMX_GPIO_NR(5, 14)));
+		quit_timer.quit_flag = 1;
 		
-		del_timer_sync(&mydata.timer);
-		mydata.time = 0;
-		fnd_write(0);
+		quit_timer.timer.expires = get_jiffies_64() + 3*HZ;
+		quit_timer.timer.function = quit_func;
+		quit_timer.timer.data = (unsigned long)&quit_timer;
+		
+		add_timer(&quit_timer);
+		
+	}else if(gpio_get_value(IMX_GPIO_NR(5, 14)) == 1){
+		printk(KERN_ALERT "volume down not pressed\n");
+		quit_timer.quit_flag = 0;
+		del_timer_sync(&quit_timer.timer);
+	}
     return IRQ_HANDLED;
 }
+
 
 
 static int inter_open(struct inode *minode, struct file *mfile){
@@ -61,25 +85,25 @@ static int inter_open(struct inode *minode, struct file *mfile){
 	gpio_direction_input(IMX_GPIO_NR(2,15));
 	irq = gpio_to_irq(IMX_GPIO_NR(2,15));
 	printk(KERN_ALERT "IRQ Number : %d\n",irq);
-	ret=request_irq(irq, inter_handler1, IRQF_TRIGGER_RISING, "home", 0);
+	ret=request_irq(irq, inter_handler1, IRQF_TRIGGER_FALLING, "home", 0);
 
 	// int2
 	gpio_direction_input(IMX_GPIO_NR(1,12));
 	irq = gpio_to_irq(IMX_GPIO_NR(1,12));
 	printk(KERN_ALERT "IRQ Number : %d\n",irq);
-	ret=request_irq(irq, inter_handler2, IRQF_TRIGGER_RISING, "back", 0);
+	ret=request_irq(irq, inter_handler2, IRQF_TRIGGER_FALLING, "back", 0);
 
 	// int3
 	gpio_direction_input(IMX_GPIO_NR(1,11));
 	irq = gpio_to_irq(IMX_GPIO_NR(1,11));
 	printk(KERN_ALERT "IRQ Number : %d\n",irq);
-	ret=request_irq(irq, inter_handler3, IRQF_TRIGGER_RISING, "volup", 0);
+	ret=request_irq(irq, inter_handler3, IRQF_TRIGGER_FALLING, "volup", 0);
 
 	// int4
 	gpio_direction_input(IMX_GPIO_NR(5,14));
 	irq = gpio_to_irq(IMX_GPIO_NR(5,14));
 	printk(KERN_ALERT "IRQ Number : %d\n",irq);
-	ret=request_irq(irq, inter_handler4, IRQF_TRIGGER_RISING, "voldown", 0);
+	ret=request_irq(irq, inter_handler4, IRQF_TRIGGER_FALLING|IRQF_TRIGGER_RISING, "voldown", 0);
 
 	return 0;
 }
@@ -114,7 +138,7 @@ static void timer_func(unsigned long timeout){
 
 static int inter_write(struct file *filp, const char *buf, size_t count, loff_t *f_pos ){
 	fnd_write(0);
-  printk("sleep on\n");
+    printk("sleep on\n");
 	interruptible_sleep_on(&wq_write);
 	return 0;
 }
@@ -155,6 +179,10 @@ static int __init inter_init(void) {
 	iom_fpga_fnd_addr = ioremap(IOM_FND_ADDRESS, 0x4);
 	
 	init_timer(&mydata.timer);
+	init_timer(&quit_timer.timer);
+	
+	mydata.time = 0;
+	quit_timer.quit_flag = 0;
 	return 0;
 }
 
@@ -165,6 +193,7 @@ static void __exit inter_exit(void) {
 	printk(KERN_ALERT "Remove Module Success \n");
 	inter_usage = 0;
 	del_timer_sync(&mydata.timer);
+	del_timer_sync(&quit_timer.timer);
 }
 
 module_init(inter_init);

@@ -25,6 +25,7 @@ static int inter_open(struct inode *, struct file *);
 static int inter_release(struct inode *, struct file *);
 static int inter_write(struct file *filp, const char *buf, size_t count, loff_t *f_pos);
 static void timer_func(unsigned long timeout);
+static void quit_func(unsigned long timeout);
 
 irqreturn_t inter_handler1(int irq, void* dev_id, struct pt_regs* reg);
 irqreturn_t inter_handler2(int irq, void* dev_id, struct pt_regs* reg);
@@ -46,7 +47,13 @@ static struct timer_data{
 	int time;
 };
 
+static struct quit_data{
+	struct timer_list timer;
+	int quit_flag;
+};
+
 struct timer_data mydata;
+struct quit_data quit_timer;
 
 static struct file_operations inter_fops =
 {
