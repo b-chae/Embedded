@@ -36,15 +36,16 @@ irqreturn_t inter_handler3(int irq, void* dev_id,struct pt_regs* reg) {
 }
 
 static void quit_func(unsigned long timeout){
+	mydata.time = 0;
+	quit_timer.quit_flag = 0;
+	fnd_write(0);
+	
 	  __wake_up(&wq_write, 1, 1, NULL);
 	//wake_up_interruptible(&wq_write);
 	printk("wake up\n");
 
 	del_timer_sync(&mydata.timer);
 	del_timer_sync(&quit_timer.timer);
-	mydata.time = 0;
-	quit_timer.quit_flag = 0;
-	fnd_write(0);
 }
 
 irqreturn_t inter_handler4(int irq, void* dev_id, struct pt_regs* reg) {
@@ -60,6 +61,7 @@ irqreturn_t inter_handler4(int irq, void* dev_id, struct pt_regs* reg) {
 		add_timer(&quit_timer);
 		
 	}else if(gpio_get_value(IMX_GPIO_NR(5, 14)) == 1){
+		printk(KERN_ALERT "volume down not pressed\n");
 		quit_timer.quit_flag = 0;
 		del_timer_sync(&quit_timer.timer);
 	}
