@@ -16,6 +16,9 @@ irqreturn_t inter_handler1(int irq, void* dev_id, struct pt_regs* reg) {
 
 irqreturn_t inter_handler2(int irq, void* dev_id, struct pt_regs* reg) {
         printk(KERN_ALERT "back! = %x\n", gpio_get_value(IMX_GPIO_NR(1, 12)));
+		
+		del_timer_sync(&mydata.timer);
+		printk("pause!\n");
         return IRQ_HANDLED;
 }
 
