@@ -24,7 +24,7 @@ irqreturn_t inter_handler2(int irq, void* dev_id, struct pt_regs* reg) {
 irqreturn_t inter_handler3(int irq, void* dev_id,struct pt_regs* reg) {
 	printk(KERN_ALERT "home! = %x\n", gpio_get_value(IMX_GPIO_NR(2, 15)));
 	
-	//del_timer_sync(&mydata.timer);
+	del_timer_sync(&mydata.timer);
 
 	mydata.timer.expires = get_jiffies_64() + 1*HZ;
 	mydata.timer.function = timer_func;
