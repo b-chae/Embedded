@@ -47,6 +47,9 @@ static struct timer_data{
 };
 
 struct timer_data mydata;
+struct timer_list quit_timer;
+
+int quit_flag = 0;
 
 static struct file_operations inter_fops =
 {
