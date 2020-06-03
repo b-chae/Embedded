@@ -6,6 +6,9 @@ void clear_device(void){
 }
 
 /* fnd 출력 
+ * 초단위 n이 parameter로 주어지면
+ * 00분 00초 형식으로 출력된다.
+ * 예) 122초는 0202로 출력됨
  */
 void fnd_write(int n){
 	char value[4];

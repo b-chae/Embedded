@@ -1,18 +1,25 @@
 #include "driver_header.h"
 #include "write.h"
 
+/* volume up button pressed
+ * return to initial state!
+ * reset fnd time to 0000 and delete added timer
+ */
 irqreturn_t inter_handler1(int irq, void* dev_id, struct pt_regs* reg) {
 	printk(KERN_ALERT "volume up! = %x\n", gpio_get_value(IMX_GPIO_NR(1, 11)));
 	
 	del_timer_sync(&mydata.timer);
 	
 	mydata.time = 0;
-	fnd_write(0);
+	clear_device();
 	
 	printk("timer reset\n");
 	return IRQ_HANDLED;
 }
 
+/* back button pressed
+ * pause for a while
+ */
 irqreturn_t inter_handler2(int irq, void* dev_id, struct pt_regs* reg) {
         printk(KERN_ALERT "back! = %x\n", gpio_get_value(IMX_GPIO_NR(1, 12)));
 		
@@ -21,6 +28,10 @@ irqreturn_t inter_handler2(int irq, void* dev_id, struct pt_regs* reg) {
         return IRQ_HANDLED;
 }
 
+/* home button pressed
+ * start a timer!
+ * update fnd time every a second 
+ */
 irqreturn_t inter_handler3(int irq, void* dev_id,struct pt_regs* reg) {
 	printk(KERN_ALERT "home! = %x\n", gpio_get_value(IMX_GPIO_NR(2, 15)));
 	
@@ -35,10 +46,13 @@ irqreturn_t inter_handler3(int irq, void* dev_id,struct pt_regs* reg) {
     return IRQ_HANDLED;
 }
 
+/* 프로그램 종료
+ * 값을 초기화 시키고 타이머 삭제
+ */
 static void quit_func(unsigned long timeout){
 	mydata.time = 0;
 	quit_timer.quit_flag = 0;
-	fnd_write(0);
+	clear_device();
 	
 	  __wake_up(&wq_write, 1, 1, NULL);
 	//wake_up_interruptible(&wq_write);
@@ -47,8 +61,13 @@ static void quit_func(unsigned long timeout){
 	del_timer_sync(&mydata.timer);
 }
 
+/* volume down button pressed
+ * if IRQF_TRIGGER_FALLING : start a quit_timer to quit the program(3초동안 유지되면 프로그램이 종료될 것)
+ * if IRQF_TRIGGER_RISING : delete the quit_timer(프로그램 종료되지 않는다.)
+ */
 irqreturn_t inter_handler4(int irq, void* dev_id, struct pt_regs* reg) {
 	
+	//버튼을 누른 경우 3초 후 프로그램 종료하도록 설정한다.
 	if(quit_timer.quit_flag == 0 && gpio_get_value(IMX_GPIO_NR(5, 14)) == 0){
 		printk(KERN_ALERT "volume down pressed = %x\n", gpio_get_value(IMX_GPIO_NR(5, 14)));
 		quit_timer.quit_flag = 1;
@@ -59,15 +78,14 @@ irqreturn_t inter_handler4(int irq, void* dev_id, struct pt_regs* reg) {
 		
 		add_timer(&quit_timer);
 		
-	}else if(gpio_get_value(IMX_GPIO_NR(5, 14)) == 1){
+	}//그러나 3초가 되기 전에 버튼을 뗀 경우 설정된 타이머를 제거한다. -> 3초 이상 연속해서 눌러야만 실행됨
+	else if(gpio_get_value(IMX_GPIO_NR(5, 14)) == 1){
 		printk(KERN_ALERT "volume down not pressed\n");
 		quit_timer.quit_flag = 0;
 		del_timer_sync(&quit_timer.timer);
 	}
     return IRQ_HANDLED;
 }
-
-
 
 static int inter_open(struct inode *minode, struct file *mfile){
 	if(inter_usage != 0){
@@ -81,25 +99,25 @@ static int inter_open(struct inode *minode, struct file *mfile){
 
 	printk(KERN_ALERT "Open Module\n");
 
-	// int1
+	// home 버튼 interrupt 서비스 함수 등록
 	gpio_direction_input(IMX_GPIO_NR(2,15));
 	irq = gpio_to_irq(IMX_GPIO_NR(2,15));
 	printk(KERN_ALERT "IRQ Number : %d\n",irq);
 	ret=request_irq(irq, inter_handler1, IRQF_TRIGGER_FALLING, "home", 0);
 
-	// int2
+	// back 버튼 interrupt 서비스 함수 등록
 	gpio_direction_input(IMX_GPIO_NR(1,12));
 	irq = gpio_to_irq(IMX_GPIO_NR(1,12));
 	printk(KERN_ALERT "IRQ Number : %d\n",irq);
 	ret=request_irq(irq, inter_handler2, IRQF_TRIGGER_FALLING, "back", 0);
 
-	// int3
+	// vol+ 버튼 interrupt 서비스 함수 등록
 	gpio_direction_input(IMX_GPIO_NR(1,11));
 	irq = gpio_to_irq(IMX_GPIO_NR(1,11));
 	printk(KERN_ALERT "IRQ Number : %d\n",irq);
 	ret=request_irq(irq, inter_handler3, IRQF_TRIGGER_FALLING, "volup", 0);
 
-	// int4
+	// vol- 버튼 interrupt 서비스 함수 등록
 	gpio_direction_input(IMX_GPIO_NR(5,14));
 	irq = gpio_to_irq(IMX_GPIO_NR(5,14));
 	printk(KERN_ALERT "IRQ Number : %d\n",irq);
@@ -121,6 +139,7 @@ static int inter_release(struct inode *minode, struct file *mfile){
 	return 0;
 }
 
+/* 1초마다 fnd 출력값을 업데이트 */
 static void timer_func(unsigned long timeout){
 	struct timer_data *p_data = (struct timer_data*)timeout;
 	
@@ -137,7 +156,7 @@ static void timer_func(unsigned long timeout){
 }
 
 static int inter_write(struct file *filp, const char *buf, size_t count, loff_t *f_pos ){
-	fnd_write(0);
+	clear_device();
     printk("sleep on\n");
 	interruptible_sleep_on(&wq_write);
 	return 0;

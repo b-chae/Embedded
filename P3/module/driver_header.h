@@ -1,6 +1,7 @@
 #ifndef _DRIVER_HEADER_H_
 #define _DRIVER_HEADER_H_
 
+/* libraries */
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/interrupt.h>
@@ -17,6 +18,7 @@
 #include <linux/version.h>
 #include <linux/cdev.h>
 
+/* function declaration*/
 static int inter_major=242, inter_minor=0;
 static int result;
 static dev_t inter_dev;
@@ -42,11 +44,13 @@ static unsigned char *iom_fpga_fnd_addr;
 wait_queue_head_t wq_write;
 DECLARE_WAIT_QUEUE_HEAD(wq_write);
 
+/* fnd 정보 저장하는 structure */
 static struct timer_data{
 	struct timer_list timer;
 	int time;
 };
 
+/* 3초 후 프로그램을 종료시키기 위한 timer structure */
 static struct quit_data{
 	struct timer_list timer;
 	int quit_flag;
