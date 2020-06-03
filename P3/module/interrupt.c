@@ -41,29 +41,31 @@ static void quit_func(unsigned long timeout){
 	printk("wake up\n");
 
 	del_timer_sync(&mydata.timer);
-	del_timer_sync(&quit_timer);
+	del_timer_sync(&quit_timer.timer);
 	mydata.time = 0;
-	quit_flag = 0;
+	quit_timer.quit_flag = 0;
 	fnd_write(0);
 }
 
 irqreturn_t inter_handler4(int irq, void* dev_id, struct pt_regs* reg) {
 	
-	if(quit_flag == 0 && gpio_get_value(IMX_GPIO_NR(5, 14)) == 0){
+	if(quit_timer.quit_flag == 0 && gpio_get_value(IMX_GPIO_NR(5, 14)) == 0){
 		printk(KERN_ALERT "volume down pressed = %x\n", gpio_get_value(IMX_GPIO_NR(5, 14)));
-		quit_flag = 1;
+		quit_timer.quit_flag = 1;
 		
-		quit_timer.expires = get_jiffies_64() + 3*HZ;
-		quit_timer.function = quit_func;
-		quit_timer.data = (unsigned long)&quit_timer;
+		quit_timer.timer.expires = get_jiffies_64() + 3*HZ;
+		quit_timer.timer.function = quit_func;
+		quit_timer.timer.data = (unsigned long)&quit_timer;
 		
 		add_timer(&quit_timer);
+		
 	}else if(gpio_get_value(IMX_GPIO_NR(5, 14)) == 1){
-		quit_flag = 0;
-		del_timer_sync(&quit_timer);
+		quit_timer.quit_flag = 0;
+		del_timer_sync(&quit_timer.timer);
 	}
     return IRQ_HANDLED;
 }
+
 
 
 static int inter_open(struct inode *minode, struct file *mfile){
@@ -176,9 +178,10 @@ static int __init inter_init(void) {
 	iom_fpga_fnd_addr = ioremap(IOM_FND_ADDRESS, 0x4);
 	
 	init_timer(&mydata.timer);
+	init_timer(&quit_timer.timer);
 	
 	mydata.time = 0;
-	quit_flag = 0;
+	quit_timer.quit_flag = 0;
 	return 0;
 }
 
@@ -189,6 +192,7 @@ static void __exit inter_exit(void) {
 	printk(KERN_ALERT "Remove Module Success \n");
 	inter_usage = 0;
 	del_timer_sync(&mydata.timer);
+	del_timer_sync(&quit_timer.timer);
 }
 
 module_init(inter_init);
