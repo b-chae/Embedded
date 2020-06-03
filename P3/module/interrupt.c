@@ -43,9 +43,8 @@ static void quit_func(unsigned long timeout){
 	  __wake_up(&wq_write, 1, 1, NULL);
 	//wake_up_interruptible(&wq_write);
 	printk("wake up\n");
-
+	
 	del_timer_sync(&mydata.timer);
-	del_timer_sync(&quit_timer.timer);
 }
 
 irqreturn_t inter_handler4(int irq, void* dev_id, struct pt_regs* reg) {
