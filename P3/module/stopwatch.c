@@ -11,6 +11,7 @@ irqreturn_t inter_handler1(int irq, void* dev_id, struct pt_regs* reg) {
 	del_timer_sync(&mydata.timer);
 	
 	mydata.time = 0;
+	mydata.flag = -1;
 	clear_device();
 	
 	printk("timer reset\n");
@@ -23,7 +24,7 @@ irqreturn_t inter_handler1(int irq, void* dev_id, struct pt_regs* reg) {
 irqreturn_t inter_handler2(int irq, void* dev_id, struct pt_regs* reg) {
         printk(KERN_ALERT "back! = %x\n", gpio_get_value(IMX_GPIO_NR(1, 12)));
 		
-		del_timer_sync(&mydata.timer);
+		mydata.flag = 0;
 		printk("pause!\n");
         return IRQ_HANDLED;
 }
@@ -35,14 +36,20 @@ irqreturn_t inter_handler2(int irq, void* dev_id, struct pt_regs* reg) {
 irqreturn_t inter_handler3(int irq, void* dev_id,struct pt_regs* reg) {
 	printk(KERN_ALERT "home! = %x\n", gpio_get_value(IMX_GPIO_NR(2, 15)));
 	
-	del_timer_sync(&mydata.timer);
+	if(mydata.flag == -1){
+		mydata.flag = 1;
+		del_timer_sync(&mydata.timer);
 
-	mydata.timer.expires = get_jiffies_64() + 1*HZ;
-	mydata.timer.function = timer_func;
-	mydata.timer.data = (unsigned long)&mydata;
-	
-	add_timer(&mydata.timer);
-	printk("timer start\n");
+		mydata.timer.expires = get_jiffies_64() + 1*HZ;
+		mydata.timer.function = timer_func;
+		mydata.timer.data = (unsigned long)&mydata;
+		
+		add_timer(&mydata.timer);
+		printk("timer start\n");
+	}
+	else if(mydata.flag == 0){
+		mydata.flag = 1;
+	}
     return IRQ_HANDLED;
 }
 
@@ -51,6 +58,7 @@ irqreturn_t inter_handler3(int irq, void* dev_id,struct pt_regs* reg) {
  */
 static void quit_func(unsigned long timeout){
 	mydata.time = 0;
+	mydata.flag = -1;
 	quit_timer.quit_flag = 0;
 	clear_device();
 	
@@ -141,18 +149,28 @@ static int inter_release(struct inode *minode, struct file *mfile){
 
 /* 1초마다 fnd 출력값을 업데이트 */
 static void timer_func(unsigned long timeout){
-	struct timer_data *p_data = (struct timer_data*)timeout;
 	
-	printk("timer func %d\n", p_data->time);
-	p_data->time = (p_data->time + 1)%3600;
-	
-	mydata.timer.expires = get_jiffies_64() + 1*HZ;
-	mydata.timer.data = (unsigned long)&mydata;
-	mydata.timer.function = timer_func;
-	
-	add_timer(&mydata.timer);
-	
-	fnd_write(mydata.time);
+	if(mydata.flag == 1){
+		struct timer_data *p_data = (struct timer_data*)timeout;
+		
+		printk("timer func %d\n", p_data->time);
+		p_data->time = (p_data->time + 1)%3600;
+		
+		mydata.timer.expires = get_jiffies_64() + 1*HZ;
+		mydata.timer.data = (unsigned long)&mydata;
+		mydata.timer.function = timer_func;
+		
+		add_timer(&mydata.timer);
+		
+		fnd_write(mydata.time);
+	}
+	else if(mydata.flag == 0){
+		mydata.timer.expires = get_jiffies_64() + 1*HZ;
+		mydata.timer.data = (unsigned long)&mydata;
+		mydata.timer.function = timer_func;
+		
+		add_timer(&mydata.timer);
+	}
 }
 
 static int inter_write(struct file *filp, const char *buf, size_t count, loff_t *f_pos ){
@@ -201,6 +219,7 @@ static int __init inter_init(void) {
 	init_timer(&quit_timer.timer);
 	
 	mydata.time = 0;
+	mydata.flag = -1;
 	quit_timer.quit_flag = 0;
 	return 0;
 }
