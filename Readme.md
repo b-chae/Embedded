@@ -12,3 +12,9 @@
   - timer devicer name : /dev/dev_driver, major number : 242
   - 2020.05.19 : delete howmany variable / assign major number explicitly / tweak text lcd printing / clear outputs after iteration
   - 2020.05.21 : printk for details / commands using iotcl functions
+  
+#### P3
+  - simple stopwatch program using module programming, device driver and interrupt
+  - implement device driver which contains fpga_fnd and interrupt in one module
+  - execution : ./app
+  - device driver name : /dev/stopwatch, major number : 242
