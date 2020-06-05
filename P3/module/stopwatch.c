@@ -8,7 +8,7 @@
 irqreturn_t inter_handler1(int irq, void* dev_id, struct pt_regs* reg) {
 	printk(KERN_ALERT "volume up! = %x\n", gpio_get_value(IMX_GPIO_NR(1, 11)));
 	
-	del_timer_sync(&mydata.timer);
+	del_timer(&mydata.timer);
 	
 	mydata.time = 0;
 	mydata.flag = -1;
@@ -22,10 +22,13 @@ irqreturn_t inter_handler1(int irq, void* dev_id, struct pt_regs* reg) {
  * pause for a while
  */
 irqreturn_t inter_handler2(int irq, void* dev_id, struct pt_regs* reg) {
-        printk(KERN_ALERT "back! = %x\n", gpio_get_value(IMX_GPIO_NR(1, 12)));
-		
+        printk(KERN_ALERT "%x back button pressed\n", gpio_get_value(IMX_GPIO_NR(1, 12)));
+	
+	//if time is not stopped, change to pause state
+	if(mydata.flag == 1){
 		mydata.flag = 0;
 		printk("pause!\n");
+	}
         return IRQ_HANDLED;
 }
 
@@ -34,11 +37,12 @@ irqreturn_t inter_handler2(int irq, void* dev_id, struct pt_regs* reg) {
  * update fnd time every a second 
  */
 irqreturn_t inter_handler3(int irq, void* dev_id,struct pt_regs* reg) {
-	printk(KERN_ALERT "home! = %x\n", gpio_get_value(IMX_GPIO_NR(2, 15)));
+	printk(KERN_ALERT "%x home button pressed\n", gpio_get_value(IMX_GPIO_NR(2, 15)));
 	
+	//if initial state, start a new timer!
 	if(mydata.flag == -1){
 		mydata.flag = 1;
-		del_timer_sync(&mydata.timer);
+		del_timer(&mydata.timer);
 
 		mydata.timer.expires = get_jiffies_64() + 1*HZ;
 		mydata.timer.function = timer_func;
@@ -46,7 +50,7 @@ irqreturn_t inter_handler3(int irq, void* dev_id,struct pt_regs* reg) {
 		
 		add_timer(&mydata.timer);
 		printk("timer start\n");
-	}
+	}//if not initial state, change to ongoing mode
 	else if(mydata.flag == 0){
 		mydata.flag = 1;
 	}
@@ -66,7 +70,7 @@ static void quit_func(unsigned long timeout){
 	//wake_up_interruptible(&wq_write);
 	printk("wake up\n");
 	
-	del_timer_sync(&mydata.timer);
+	del_timer(&mydata.timer);
 }
 
 /* volume down button pressed
@@ -77,7 +81,7 @@ irqreturn_t inter_handler4(int irq, void* dev_id, struct pt_regs* reg) {
 	
 	//버튼을 누른 경우 3초 후 프로그램 종료하도록 설정한다.
 	if(quit_timer.quit_flag == 0 && gpio_get_value(IMX_GPIO_NR(5, 14)) == 0){
-		printk(KERN_ALERT "volume down pressed = %x\n", gpio_get_value(IMX_GPIO_NR(5, 14)));
+		printk(KERN_ALERT "%x volume down button pressed\n", gpio_get_value(IMX_GPIO_NR(5, 14)));
 		quit_timer.quit_flag = 1;
 		
 		quit_timer.timer.expires = get_jiffies_64() + 3*HZ;
@@ -88,9 +92,9 @@ irqreturn_t inter_handler4(int irq, void* dev_id, struct pt_regs* reg) {
 		
 	}//그러나 3초가 되기 전에 버튼을 뗀 경우 설정된 타이머를 제거한다. -> 3초 이상 연속해서 눌러야만 실행됨
 	else if(gpio_get_value(IMX_GPIO_NR(5, 14)) == 1){
-		printk(KERN_ALERT "volume down not pressed\n");
+		printk(KERN_ALERT "volume down button released\n");
 		quit_timer.quit_flag = 0;
-		del_timer_sync(&quit_timer.timer);
+		del_timer(&quit_timer.timer);
 	}
     return IRQ_HANDLED;
 }
@@ -153,8 +157,8 @@ static void timer_func(unsigned long timeout){
 	if(mydata.flag == 1){
 		struct timer_data *p_data = (struct timer_data*)timeout;
 		
-		printk("timer func %d\n", p_data->time);
 		p_data->time = (p_data->time + 1)%3600;
+		printk("timer func %d\n", p_data->time);
 		
 		mydata.timer.expires = get_jiffies_64() + 1*HZ;
 		mydata.timer.data = (unsigned long)&mydata;
