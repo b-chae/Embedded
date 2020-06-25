@@ -36,6 +36,7 @@ public class NDKExam extends Activity {
 	TextView beautyScoreText;
 	Button appleButton;
 	TextView appleScoreText;
+	Button freePlayButton;
 	Button backButton;
 	int switch_value;
 	int currentIndex = 0;
@@ -45,11 +46,13 @@ public class NDKExam extends Activity {
 	int musicSpeed = 500;
 	String str = "";
 	String interval = "";
-	String[] intervalColor = {"#ffffff", "#ff0000", "#ffa500", "#ffff00", "#008000", "#0000ff", "#4b0082", "#ee82ee", "#f25278", "#ffa500"};
+	String[] doremiColor = {"#ffffff", "#ff0000", "#ffa500", "#ffff00", "#008000", "#0000ff", "#4b0082", "#ee82ee", "#f25278", "#ffa500"};
+	int[] feverColor = {0x00ffffff, 0x1084CFEC, 0x109589C7, 0x1028547E};
 	MediaPlayer[] Doremi;
 	boolean feverTime = false;
 	int consecutive = 0;
 	int feverConsecutive = 0;
+	int feverLevel = 0;
 	
 	Handler mHandler=new Handler(){
 		public void handleMessage(Message msg){
@@ -82,10 +85,10 @@ public class NDKExam extends Activity {
 					ssb.setSpan(new ForegroundColorSpan(Color.parseColor("#00777777")), 0, currentIndex, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 				
 				for(int i = currentIndex+1; i< str.length(); i++){
-					ssb.setSpan(new ForegroundColorSpan(Color.parseColor("#55" + intervalColor[interval.charAt(i)-'0'].substring(1))), i, i+1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+					ssb.setSpan(new ForegroundColorSpan(Color.parseColor("#55" + doremiColor[interval.charAt(i)-'0'].substring(1))), i, i+1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 				}
 				
-				ssb.setSpan(new ForegroundColorSpan(Color.parseColor(intervalColor[msg.arg1])), currentIndex, currentIndex+1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+				ssb.setSpan(new ForegroundColorSpan(Color.parseColor(doremiColor[msg.arg1])), currentIndex, currentIndex+1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 				ssb.setSpan(new StyleSpan(Typeface.BOLD), currentIndex, currentIndex+1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 				tv.setText(ssb);
 				
@@ -96,12 +99,13 @@ public class NDKExam extends Activity {
 					}
 					else{
 						consecutive = 8;
-						score += 5;
+						score += feverLevel * 2;
 						if(interval.charAt(currentIndex) != '0') feverConsecutive += 1;
 					}
 					
-					if(!feverTime && consecutive >= 8){
-						tv.setBackgroundColor(0x55fbf9c2);
+					if(!feverTime && consecutive >= 5){
+						tv.setBackgroundColor(feverColor[1]);
+						feverLevel = 1;
 						feverTime = true;
 						feverTextView.setText("FEVER TIME X2");
 					}
@@ -117,12 +121,12 @@ public class NDKExam extends Activity {
 				driverwrite(consecutive);
 				currentIndex += 1;
 				
-				if(feverConsecutive == 5){
-					tv.setBackgroundColor(0x00fafafa);
-					feverTime = false;
+				if(feverConsecutive == 3){
 					feverConsecutive = 0;
-					consecutive = 0;
-					feverTextView.setText("");
+					feverLevel += 1;
+					if(feverLevel >= 4) feverLevel = 3;
+					tv.setBackgroundColor(feverColor[feverLevel]);
+					feverTextView.setText("FEVER TIME X" + feverLevel*2);
 				}
 			}
 		}
@@ -163,7 +167,17 @@ public class NDKExam extends Activity {
         airplaneButton.setVisibility(View.INVISIBLE);
         beautyButton.setVisibility(View.INVISIBLE);
         appleButton.setVisibility(View.INVISIBLE);
+        freePlayButton.setVisibility(View.INVISIBLE);
         backButton.setVisibility(View.INVISIBLE);
+	}
+	
+	private void freePlayInit(){
+		currentSong = 100;
+		str = "준비시작준비시작준비시작준비시작준비시작준비시작준비시작준비시작준비시작준비시작준비시작준비시작준비시작준비시작준비시작준비시작준비시작준비시작준비시작준비시작준비시작준비시작준비시작준비시작준비시작준비시작준비시작준비시작준비시작준비시작";
+		interval = "";
+		for(int i=0; i<str.length(); i++) interval += "0";
+		beforeStartGame();
+		backButton.setVisibility(View.VISIBLE);
 	}
 	
 	private void airplaneInit(){
@@ -185,7 +199,7 @@ public class NDKExam extends Activity {
 	private void appleInit(){
 		currentSong = 3;
 		
-		str = "준비시작도레미쉼미쉼파미레레레쉼레미파쉼파쉼솔파미미미쉼미파솔쉼솔쉼됴라솔쉼솔쉼도레미쉼미쉼레레도도도쉼";
+		str = "준비시작도레미쉼미쉼파미레레레쉼레미파쉼파쉼솔파미미미쉼미파솔쉼솔쉼도라솔쉼솔쉼도레미쉼미쉼레레도도도쉼";
 		interval = "0000123030432220234040543330345050865050123030221110";
 		
 		beforeStartGame();
@@ -230,6 +244,7 @@ public class NDKExam extends Activity {
         appleButton.setTypeface(myTypeFace);
         beautyButton.setTypeface(myTypeFace);
         backButton.setTypeface(myTypeFace);
+        freePlayButton.setTypeface(myTypeFace);
 	}
 	
 	@Override
@@ -248,6 +263,8 @@ public class NDKExam extends Activity {
         airplaneButton = (Button)findViewById(R.id.airplaneButton);
         beautyButton = (Button)findViewById(R.id.beautyButton);
         appleButton = (Button)findViewById(R.id.appleButton);        
+        freePlayButton = (Button)findViewById(R.id.freeButton);
+        
         init();
         
         mThread=new BackThread(mHandler);
@@ -278,6 +295,14 @@ public class NDKExam extends Activity {
 			}
 		});
 
+        freePlayButton.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				// TODO Auto-generated method stub
+				freePlayInit();
+			}
+		});
         
         backButton.setOnClickListener(new View.OnClickListener() {
 			
@@ -298,15 +323,18 @@ public class NDKExam extends Activity {
 				airplaneButton.setVisibility(View.VISIBLE);
 				beautyButton.setVisibility(View.VISIBLE);
 				appleButton.setVisibility(View.VISIBLE);
+				freePlayButton.setVisibility(View.VISIBLE);
 				tv.setText("");
 				feverTextView.setText("");
-				if(score > myBestScore[currentSong]){
-					myBestScore[currentSong] = score;
-					if(currentSong == 1) airplaneScoreText.setText("My best score : "+myBestScore[1]);
-					else if(currentSong == 2) beautyScoreText.setText("My best score : "+myBestScore[2]);
-					else if(currentSong == 3) appleScoreText.setText("My best score : "+myBestScore[3]);
+				if(currentSong < 4){
+					if(score > myBestScore[currentSong]){
+						myBestScore[currentSong] = score;
+						if(currentSong == 1) airplaneScoreText.setText("My best score : "+myBestScore[1]);
+						else if(currentSong == 2) beautyScoreText.setText("My best score : "+myBestScore[2]);
+						else if(currentSong == 3) appleScoreText.setText("My best score : "+myBestScore[3]);
+					}
+					score = 0;
 				}
-				score = 0;
 			}
 		});
         

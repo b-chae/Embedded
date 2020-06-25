@@ -28,15 +28,14 @@
         android:text="Choose a song to play below"
         android:textSize="18sp" />
 
-    <TextView
-        android:id="@+id/str_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:padding="10dp"
-        android:paddingBottom="10dp"
-        android:text="TextView"
-        android:textSize="30sp" />
-
+        <TextView
+            android:id="@+id/str_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:paddingBottom="10dp"
+            android:text="TextViewTextViewTextViewTextViewTextViewTextViewTextViewTextViewTextViewTextViewTextViewTextViewTextViewTextViewTextView"
+            android:textSize="30sp" />
     <TextView
         android:id="@+id/fever_text"
         android:layout_width="wrap_content"
@@ -76,11 +75,11 @@
 
             <Button
                 android:id="@+id/airplaneButton"
-                android:textSize="30sp"
-                android:width="240dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Button" />
+                android:text="Button"
+                android:textSize="30sp"
+                android:width="240dp" />
         </LinearLayout>
 
         <LinearLayout
@@ -103,9 +102,9 @@
                 android:id="@+id/appleButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:text="Like an apple"
                 android:textSize="30sp"
-                android:width="240dp"
-                android:text="Like an apple" />
+                android:width="240dp" />
         </LinearLayout>
 
         <LinearLayout
@@ -128,32 +127,56 @@
                 android:id="@+id/beautyButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:width="240dp"
+                android:text="Beauty likes"
                 android:textSize="30sp"
-                android:text="Beauty likes" />
+                android:width="240dp" />
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="5dp" >
-
-            <SeekBar
-                android:id="@+id/seekBar"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:max="700"
-                android:progress="300" />
+            android:padding="10dp"
+            android:paddingBottom="10dp" >
 
             <TextView
-                android:id="@+id/textView4"
+                android:id="@+id/TextView01"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:padding="5dp"
+                android:text=""
+                android:textSize="20sp" />
+
+            <Button
+                android:id="@+id/freeButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="change your music speed" />
-
+                android:text="Free play mode"
+                android:height="65dp"
+                android:textSize="20sp"
+                android:width="240dp" />
         </LinearLayout>
+    </LinearLayout>
 
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="5dp" >
+
+        <SeekBar
+            android:id="@+id/seekBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="700"
+            android:progress="300" />
+
+        <TextView
+            android:id="@+id/textView4"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="change your music speed" />
     </LinearLayout>
 
 </LinearLayout>
