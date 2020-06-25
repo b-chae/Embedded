@@ -161,23 +161,56 @@
     </LinearLayout>
 
     <LinearLayout
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="5dp" >
+        android:paddingLeft="10dp" >
 
-        <SeekBar
-            android:id="@+id/seekBar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:max="700"
-            android:progress="200" />
-
-        <TextView
-            android:id="@+id/textView4"
+        <Button
+            android:id="@+id/track1play"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="change your music speed" />
+            android:height="40dp"
+            android:paddingRight="10dp"
+            android:text="Track 1 play"
+            android:textSize="22sp"
+            android:width="240dp" />
+
+        <Button
+            android:id="@+id/track2play"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:height="40dp"
+            android:text="Track 2 play"
+            android:textSize="22sp"
+            android:width="240dp" />
+
+        <TextView
+            android:id="@+id/textView3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.69"
+            android:text="" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="right"
+            android:orientation="vertical"
+            android:padding="5dp" >
+
+            <SeekBar
+                android:id="@+id/seekBar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="700"
+                android:progress="200" />
+
+            <TextView
+                android:id="@+id/textView4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="change your music speed" />
+        </LinearLayout>
     </LinearLayout>
 
 </LinearLayout>

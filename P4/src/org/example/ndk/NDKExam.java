@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.text.Spannable;
@@ -38,6 +39,8 @@ public class NDKExam extends Activity {
 	TextView appleScoreText;
 	Button freePlayButton;
 	Button backButton;
+	Button track1play;
+	Button track2play;
 	int switch_value;
 	int currentIndex = 0;
 	int myBestScore[] = {0, 0, 0, 0};
@@ -262,6 +265,8 @@ public class NDKExam extends Activity {
         beautyButton.setTypeface(myTypeFace);
         backButton.setTypeface(myTypeFace);
         freePlayButton.setTypeface(myTypeFace);
+        track1play.setTypeface(myTypeFace);
+        track2play.setTypeface(myTypeFace);
 	}
 	
 	@Override
@@ -281,6 +286,8 @@ public class NDKExam extends Activity {
         beautyButton = (Button)findViewById(R.id.beautyButton);
         appleButton = (Button)findViewById(R.id.appleButton);        
         freePlayButton = (Button)findViewById(R.id.freeButton);
+        track1play = (Button)findViewById(R.id.track1play);
+        track2play = (Button)findViewById(R.id.track2play);
         
         init();
         
@@ -317,7 +324,8 @@ public class NDKExam extends Activity {
 			@Override
 			public void onClick(View v) {
 				// TODO Auto-generated method stub
-				freePlayInit();
+				Intent intent = new Intent(getApplicationContext(), FreePlayActivity.class);
+				startActivityForResult(intent, 1234);
 			}
 		});
         
@@ -354,6 +362,7 @@ public class NDKExam extends Activity {
 				}
 			}
 		});
+       
         
         SeekBar speedBar = (SeekBar)findViewById(R.id.seekBar);
         speedBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -379,6 +388,15 @@ public class NDKExam extends Activity {
 		});
 	}
 
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data){
+		super.onActivityResult(requestCode, resultCode, data);
+		if(requestCode == 1234 && resultCode == RESULT_OK){
+			int trackNum = data.getIntExtra("track", 0);
+			freePlayInit();
+		}
+	}
+	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.

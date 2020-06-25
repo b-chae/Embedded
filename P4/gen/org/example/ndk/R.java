@@ -224,7 +224,7 @@ containing a value of this type.
     public static final class id {
         public static final int LinearLayout1=0x7f050012;
         public static final int TextView01=0x7f05001e;
-        public static final int action_settings=0x7f050022;
+        public static final int action_settings=0x7f050028;
         public static final int airplaneButton=0x7f050019;
         public static final int airplaneScore=0x7f050018;
         public static final int alignBounds=0x7f050002;
@@ -248,18 +248,25 @@ containing a value of this type.
         public static final int freeButton=0x7f05001f;
         public static final int horizontal=0x7f050000;
         public static final int left=0x7f050006;
+        public static final int nopeButton=0x7f050027;
         public static final int right=0x7f050007;
-        public static final int seekBar=0x7f050020;
+        public static final int seekBar=0x7f050023;
         public static final int start=0x7f050010;
         public static final int str_text=0x7f050015;
         public static final int textView1=0x7f050013;
         public static final int textView2=0x7f050014;
-        public static final int textView4=0x7f050021;
+        public static final int textView3=0x7f050022;
+        public static final int textView4=0x7f050024;
         public static final int top=0x7f050004;
+        public static final int track1Button=0x7f050025;
+        public static final int track1play=0x7f050020;
+        public static final int track2Button=0x7f050026;
+        public static final int track2play=0x7f050021;
         public static final int vertical=0x7f050001;
     }
     public static final class layout {
         public static final int activity_main=0x7f030000;
+        public static final int freeplay_activity=0x7f030001;
     }
     public static final class menu {
         public static final int main=0x7f090000;

@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/LinearLayout1"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context=".NDKExam" >
+
+    <TextView
+        android:id="@+id/textView1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:paddingBottom="5dp"
+        android:text="Would you like to record your song?"
+        android:textSize="22sp" />
+    
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingBottom="5dp"
+        android:gravity="center"
+        android:text="If recording start, previous songs will be deleted automatically."
+        android:textSize="22sp"/>
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:paddingBottom="5dp"
+        android:text="Be aware that it is unable to retrieve deleted songs."
+        android:textSize="22sp" />
+
+    <LinearLayout
+        android:gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+
+        <Button
+            android:id="@+id/track1Button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:width="170dp"
+            android:textSize="25sp"
+            android:text="on Track A" />
+
+        <Button
+            android:id="@+id/track2Button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:width="170dp"
+            android:textSize="25sp"
+            android:text="on Track B" />
+
+        <Button
+            android:id="@+id/nopeButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:width="140dp"
+            android:textSize="25sp"
+            android:text="Nope" />
+
+    </LinearLayout>
+
+</LinearLayout>
