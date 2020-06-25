@@ -43,10 +43,10 @@ public class NDKExam extends Activity {
 	int myBestScore[] = {0, 0, 0, 0};
 	int score = 0;
 	int currentSong = 0;
-	int musicSpeed = 500;
+	int musicSpeed = 600;
 	String str = "";
 	String interval = "";
-	String[] doremiColor = {"#ffffff", "#ff0000", "#ffa500", "#ffff00", "#008000", "#0000ff", "#4b0082", "#ee82ee", "#f25278", "#ffa500"};
+	String[] doremiColor = {"#ffffff", "#ff0000", "#ffa500", "#ffff00", "#008000", "#0000ff", "#4b0082", "#ee82ee", "#f25278", "#d16002"};
 	int[] feverColor = {0x00ffffff, 0x1084CFEC, 0x109589C7, 0x1028547E};
 	MediaPlayer[] Doremi;
 	boolean feverTime = false;
@@ -74,6 +74,23 @@ public class NDKExam extends Activity {
 				
 				if(interval.charAt(currentIndex) != '0'){
 					Doremi[interval.charAt(currentIndex) - '0'].start();
+				}
+				else if(currentSong == 100){
+					Doremi[msg.arg1].start();
+					StringBuilder builder = new StringBuilder(str);
+					switch(msg.arg1){
+					case 0: builder.setCharAt(currentIndex, '쉼'); break;
+					case 1: builder.setCharAt(currentIndex, '도'); break;
+					case 2: builder.setCharAt(currentIndex, '레'); break;
+					case 3: builder.setCharAt(currentIndex, '미'); break;
+					case 4: builder.setCharAt(currentIndex, '파'); break;
+					case 5: builder.setCharAt(currentIndex, '솔'); break;
+					case 6: builder.setCharAt(currentIndex, '라'); break;
+					case 7: builder.setCharAt(currentIndex, '시'); break;
+					case 8: builder.setCharAt(currentIndex, '도'); break;
+					case 9: builder.setCharAt(currentIndex, '레');
+					}
+					str = builder.toString();
 				}
 				
 				try{Thread.sleep(70);}
@@ -173,7 +190,7 @@ public class NDKExam extends Activity {
 	
 	private void freePlayInit(){
 		currentSong = 100;
-		str = "준비시작준비시작준비시작준비시작준비시작준비시작준비시작준비시작준비시작준비시작준비시작준비시작준비시작준비시작준비시작준비시작준비시작준비시작준비시작준비시작준비시작준비시작준비시작준비시작준비시작준비시작준비시작준비시작준비시작준비시작";
+		str = " 지금우리는언제슬프고어려운일을만날거지만알고있어요모든달갑지않은고난이날사로잡겠지호우지금우리는슬프고어려운일이당신을어떻게만들지만알고있어요힘들고힘들겠지흠이제우리는언제우리가슬픔과어려움을이겨낼지를기억해요모든달갑지않은고난은힘을잃겠지호우이제우리는슬프고어려운일이더이상아무것도아니란사실을기억해요";
 		interval = "";
 		for(int i=0; i<str.length(); i++) interval += "0";
 		beforeStartGame();
