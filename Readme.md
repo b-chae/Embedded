@@ -18,3 +18,8 @@
   - implement device driver which contains fpga_fnd and interrupt in one module
   - execution : ./app
   - device driver name : /dev/stopwatch, major number : 242
+  
+#### P4
+  - simple but cute! android rhythm game
+  - 2020.06.23 : start a project! add 1 song to play
+  - 2020.06.24 : enable MediaPlayer, add 2 new songs, save my best score, music speed control
