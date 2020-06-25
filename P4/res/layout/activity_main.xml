@@ -15,22 +15,27 @@
         android:id="@+id/textView1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize = "50sp"
-        android:text="Welcome To Simple Rhythm Game" />
+        android:padding="10dp"
+        android:paddingBottom="5dp"
+        android:text="Welcome To Simple Rhythm Game"
+        android:textSize="50sp" />
 
     <TextView
         android:id="@+id/textView2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize = "18sp"
-        android:text="Choose a song to play below" />
+        android:paddingBottom="5dp"
+        android:text="Choose a song to play below"
+        android:textSize="18sp" />
 
     <TextView
         android:id="@+id/str_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize = "30sp"
-        android:text="TextView" />
+        android:padding="10dp"
+        android:paddingBottom="10dp"
+        android:text="TextView"
+        android:textSize="30sp" />
 
     <TextView
         android:id="@+id/fever_text"
@@ -41,28 +46,33 @@
 
     <Button
         android:id="@+id/backButton"
-        android:textSize="30sp"
-        android:width="240dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Button" />
+        android:text="Complete!"
+        android:textSize="30sp"
+        android:visibility="invisible"
+        android:width="240dp" />
 
     <LinearLayout
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" >
+        android:layout_height="wrap_content"
+        android:paddingBottom="10dp" >
 
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="vertical" >
+            android:orientation="vertical"
+            android:padding="10dp"
+            android:paddingBottom="10dp" >
 
             <TextView
                 android:id="@+id/airplaneScore"
-                android:gravity="center"
-                android:textSize="20sp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="TextView" />
+                android:gravity="center"
+                android:padding="5dp"
+                android:text="TextView"
+                android:textSize="20sp" />
 
             <Button
                 android:id="@+id/airplaneButton"
@@ -76,15 +86,18 @@
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="vertical" >
+            android:orientation="vertical"
+            android:padding="10dp"
+            android:paddingBottom="10dp" >
 
             <TextView
                 android:id="@+id/appleScore"
-                android:gravity="center"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="20sp"
-                android:text="TextView" />
+                android:gravity="center"
+                android:padding="5dp"
+                android:text="TextView"
+                android:textSize="20sp" />
 
             <Button
                 android:id="@+id/appleButton"
@@ -98,15 +111,18 @@
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="vertical" >
+            android:orientation="vertical"
+            android:padding="10dp"
+            android:paddingBottom="10dp" >
 
             <TextView
                 android:id="@+id/beautyScore"
-                android:gravity="center"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="20sp"
-                android:text="TextView" />
+                android:gravity="center"
+                android:padding="5dp"
+                android:text="TextView"
+                android:textSize="20sp" />
 
             <Button
                 android:id="@+id/beautyButton"
@@ -120,7 +136,8 @@
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="vertical" >
+            android:orientation="vertical"
+            android:padding="5dp" >
 
             <SeekBar
                 android:id="@+id/seekBar"
