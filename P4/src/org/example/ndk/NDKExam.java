@@ -56,11 +56,44 @@ public class NDKExam extends Activity {
 	int consecutive = 0;
 	int feverConsecutive = 0;
 	int feverLevel = 0;
+	String track1 = "";
+	String track2 = "";
 	
 	Handler mHandler=new Handler(){
 		public void handleMessage(Message msg){
 			if(str.length() == 0){
 			
+			}
+			else if(currentSong == 1001){ //track 1 playing
+				for(int i=0; i<10; i++)
+					if(Doremi[i].isPlaying()){
+						Doremi[i].pause();
+						if(track1.charAt(currentIndex) != i + '0'){
+							Doremi[i].seekTo(300);
+						}
+					}
+				
+				if(track1.charAt(currentIndex) != '0'){
+					Doremi[track1.charAt(currentIndex) - '0'].start();
+				}
+				currentIndex += 1;
+				
+				if(currentIndex >= str.length()) str="";
+			}
+			else if(currentSong == 1002){ //track 2 playing
+				for(int i=0; i<10; i++)
+					if(Doremi[i].isPlaying()){
+						Doremi[i].pause();
+						if(track2.charAt(currentIndex) != i + '0'){
+							Doremi[i].seekTo(300);
+						}
+					}
+				
+				if(track2.charAt(currentIndex) != '0'){
+					Doremi[track2.charAt(currentIndex) - '0'].start();
+				}
+				currentIndex += 1;
+				if(currentIndex >= str.length()) str="";
 			}
 			else if(currentIndex >= str.length()){
 				backButton.setVisibility(View.VISIBLE);
@@ -78,7 +111,7 @@ public class NDKExam extends Activity {
 				if(interval.charAt(currentIndex) != '0'){
 					Doremi[interval.charAt(currentIndex) - '0'].start();
 				}
-				else if(currentSong == 100){
+				else if(currentSong == 100 || currentSong == 101 || currentSong == 102){
 					Doremi[msg.arg1].start();
 					StringBuilder builder = new StringBuilder(str);
 					switch(msg.arg1){
@@ -94,6 +127,13 @@ public class NDKExam extends Activity {
 					case 9: builder.setCharAt(currentIndex, '레');
 					}
 					str = builder.toString();
+					
+					if(currentSong == 101){
+						track1 += msg.arg1;
+					}
+					else if(currentSong == 102){
+						track2 += msg.arg1;
+					}
 				}
 				
 				try{Thread.sleep(70);}
@@ -329,6 +369,28 @@ public class NDKExam extends Activity {
 			}
 		});
         
+        track1play.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				// TODO Auto-generated method stub
+				currentSong = 1001;
+				str = track1;
+				currentIndex = 0;
+			}
+		});
+        
+        track2play.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				// TODO Auto-generated method stub
+				currentSong = 1002;
+				str = track2;
+				currentIndex = 0;
+			}
+		});
+        
         backButton.setOnClickListener(new View.OnClickListener() {
 			
 			@Override
@@ -393,7 +455,16 @@ public class NDKExam extends Activity {
 		super.onActivityResult(requestCode, resultCode, data);
 		if(requestCode == 1234 && resultCode == RESULT_OK){
 			int trackNum = data.getIntExtra("track", 0);
+
 			freePlayInit();
+			if(trackNum == 1){
+				track1 = "";
+				currentSong = 101;
+			}
+			else if(trackNum == 2){
+				track2 = "";
+				currentSong = 102;
+			}
 		}
 	}
 	
