@@ -17,6 +17,7 @@ JNIEXPORT jint JNICALL Java_org_example_ndk_NDKExam_switchdriverclose(JNIEnv *en
 	return close(fd);
 }
 
+/* value를 파라미터로 받아 value개의 led를 뒤에서부터 킨다 */
 JNIEXPORT jint JNICALL Java_org_example_ndk_NDKExam_driverwrite(JNIEnv *env, jobject this, jint value){
 
 	int fd = open("/dev/fpga_led_driver", O_RDWR);
@@ -44,6 +45,7 @@ JNIEXPORT jint JNICALL Java_org_example_ndk_NDKExam_driverwrite(JNIEnv *env, job
 	return result;
 }
 
+/* value값을 파라미터로 받아 4자리 정수로 출력 */
 JNIEXPORT jint JNICALL Java_org_example_ndk_NDKExam_fndwrite(JNIEnv *env, jobject this, jint value){
 
 	int fd = open("/dev/fpga_fnd", O_RDWR);
@@ -63,6 +65,7 @@ JNIEXPORT jint JNICALL Java_org_example_ndk_NDKExam_fndwrite(JNIEnv *env, jobjec
 	return result;
 }
 
+/* 현재 눌려진 버튼의 번호 (1~9), 또는 아무것도 안눌려질 경우 0값 리턴 */
 JNIEXPORT jint JNICALL Java_org_example_ndk_NDKExam_switchread(JNIEnv *env, jobject this, jint fd){
 	unsigned char sw_buff[9];
 	int result = 0;

@@ -10,6 +10,7 @@ import android.view.Window;
 import android.widget.Button;
 import android.widget.TextView;
 
+/* Track A or B 플레이 Dialog */
 public class TrackPlayActivity extends Activity {
 
 	public static TrackPlayActivity mContext;
@@ -18,7 +19,7 @@ public class TrackPlayActivity extends Activity {
 	Intent intent;
 	Intent sendIntent;
 	
-	public void EndSong() {
+	public void EndSong() { //노래가 끝날 경우
 		textView.setText("Done!");
 	}
 	
@@ -43,13 +44,14 @@ public class TrackPlayActivity extends Activity {
         sendIntent = new Intent();
         
         int length = intent.getExtras().getInt("str");
-        if(length == 0){
+        if(length == 0){ //노래가 없을 경우
         	textView.setText("Not recorded yet!");
         }
-        else{
+        else{ //노래가 있을 경우
         	textView.setText("Playing..");
         }
         
+		//이전 Activity로 돌아가는 Back 버튼
         backButton.setOnClickListener(new View.OnClickListener() {
 			
 			@Override

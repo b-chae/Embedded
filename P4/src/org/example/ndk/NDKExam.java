@@ -23,6 +23,7 @@ import android.widget.Button;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+/* 메인 Activity */
 public class NDKExam extends Activity {
 	public native int switchdriveropen();
 	public native int switchdriverclose(int fd);
@@ -62,6 +63,9 @@ public class NDKExam extends Activity {
 	String track1 = "";
 	String track2 = "";
 	
+	/* Track A or Track B에 저장된 음악 플레이
+	 * 그 전에 실행되는 음악은 정지한다.
+	 */
 	private void TrackPlay(int track){
 		for(int i=0; i<10; i++)
 			if(Doremi[i].isPlaying()){
@@ -75,6 +79,7 @@ public class NDKExam extends Activity {
 			}
 	}
 	
+	/* Track A or B에 저장된 음악 플레이가 끝났는 지 체크 */
 	private void TrackEndCheck(){
 		if(currentIndex >= str.length()){
 			str="";
@@ -82,20 +87,23 @@ public class NDKExam extends Activity {
 		}
 	}
 	
+	/* 현재 누른 버튼에 따른 색깔 변화 */
 	private void TextColorChange(int msg){
 		SpannableStringBuilder ssb = new SpannableStringBuilder(str);
-		if(currentIndex != 0)
+		if(currentIndex != 0) //0부터 currentIndex-1까지(지나간 음) 투명색으로 처리
 			ssb.setSpan(new ForegroundColorSpan(Color.parseColor("#00777777")), 0, currentIndex, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 		
-		for(int i = currentIndex+1; i< str.length(); i++){
+		for(int i = currentIndex+1; i< str.length(); i++){ //currentIndex + 1 부터 끝까지 투명한 무지개색으로 설정
 			ssb.setSpan(new ForegroundColorSpan(Color.parseColor("#55" + doremiColor[interval.charAt(i)-'0'].substring(1))), i, i+1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 		}
 		
+		//현재 글자 불투명한 컬러 설정 및 굵게 설정
 		ssb.setSpan(new ForegroundColorSpan(Color.parseColor(doremiColor[msg])), currentIndex, currentIndex+1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 		ssb.setSpan(new StyleSpan(Typeface.BOLD), currentIndex, currentIndex+1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 		tv.setText(ssb);
 	}
 	
+	/* 현재 누른 버튼에 따른 글자 변화 */
 	private void CurrentDoremiChange(int msg){
 		StringBuilder builder = new StringBuilder(str);
 		switch(msg){
@@ -113,18 +121,20 @@ public class NDKExam extends Activity {
 		str = builder.toString();
 	}
 	
+	/* 현재 누른 버튼에 따른 점수 계산 , fever Time 효과 설정 */
 	private void InputCheck(int msg){
-		if(interval.substring(currentIndex, currentIndex+1).equals(Integer.toString(msg))){
-			if(!feverTime){
+		if(interval.substring(currentIndex, currentIndex+1).equals(Integer.toString(msg))){ //올바른 버튼 입력
+			if(!feverTime){ //보너스 타임이 아닐 경우
 				if(interval.charAt(currentIndex) != '0') consecutive += 1;
 				if(msg != 0) score += 1;
 			}
-			else{
+			else{ //보너스 타임일 경우
 				consecutive = 8;
 				if(msg != 0) score += feverLevel * 2;
 				if(interval.charAt(currentIndex) != '0') feverConsecutive += 1;
 			}
 			
+			//피버타임이 아닐 경우 5연속 맞았을 때 피버 1단계 실행
 			if(!feverTime && consecutive >= 5){
 				tv.setBackgroundColor(feverColor[1]);
 				feverLevel = 1;
@@ -133,7 +143,7 @@ public class NDKExam extends Activity {
 			}
 			fndwrite(score);
 		}
-		else{
+		else{ //틀릴경우
 			consecutive = 0;
 			tv.setBackgroundColor(0x00fafafa);
 			feverTime = false;
@@ -168,12 +178,13 @@ public class NDKExam extends Activity {
 				currentIndex += 1;
 				TrackEndCheck();
 			}
-			else if(currentIndex >= str.length()){
+			else if(currentIndex >= str.length()){ //노래 끝!
 				backButton.setVisibility(View.VISIBLE);
 			}
-			else if(currentSong == 100 || currentSong == 101 || currentSong == 102){
-				int i;
-				for(i=0; i<10; i++){
+			else if(currentSong == 100 || currentSong == 101 || currentSong == 102){ //free play mode
+				
+				//현재 누른 버튼에 따른 소리 출력
+				for(int i=0; i<10; i++){
 					if(Doremi[i].isPlaying()){
 						Doremi[i].pause();
 						if(i != msg.arg1) Doremi[i].seekTo(300);
@@ -189,10 +200,12 @@ public class NDKExam extends Activity {
 				
 				currentIndex += 1;
 				
+				//트랙 A 또는 B에 저장
 				if(currentSong == 101) track1 += msg.arg1;
 				else if(currentSong == 102) track2 += msg.arg1;
 			}
-			else{
+			else{ //게임 모드
+				//해당 노래 소리 출력
 				for(int i=0; i<10; i++)
 					if(Doremi[i].isPlaying()){
 						Doremi[i].pause();
@@ -211,10 +224,11 @@ public class NDKExam extends Activity {
 				InputCheck(msg.arg1);
 				currentIndex += 1;
 				
+				//피버 타임에서 연속 3회이상 맞을 경우 피버 1단계 -> 2단계 -> 3단계 업그레이드
 				if(feverConsecutive == 3){
 					feverConsecutive = 0;
 					feverLevel += 1;
-					if(feverLevel >= 4) feverLevel = 3;
+					if(feverLevel >= 4) feverLevel = 3; //최대 3단계
 					tv.setBackgroundColor(feverColor[feverLevel]);
 					feverTextView.setText("FEVER TIME X" + feverLevel*2);
 				}
@@ -248,6 +262,7 @@ public class NDKExam extends Activity {
 	BackThread mThread;
 	Typeface myTypeFace;
 	
+	//게임 시작 전 clear
 	private void beforeStartGame(){
 		currentIndex = 0;
 		
@@ -259,6 +274,7 @@ public class NDKExam extends Activity {
         backButton.setVisibility(View.INVISIBLE);
 	}
 	
+	//자유 플레이 모드 전 초기화
 	private void freePlayInit(){
 		currentSong = 100;
 		str = " 지금우리는언제슬프고어려운일을만날거지만알고있어요모든달갑지않은고난이날사로잡겠지호우지금우리는슬프고어려운일이당신을어떻게만들지만알고있어요힘들고힘들겠지흠이제우리는언제우리가슬픔과어려움을이겨낼지를기억해요모든달갑지않은고난은힘을잃겠지호우이제우리는슬프고어려운일이더이상아무것도아니란사실을기억해요";
@@ -268,6 +284,7 @@ public class NDKExam extends Activity {
 		backButton.setVisibility(View.VISIBLE);
 	}
 	
+	//비행기 노래 플레이 전 초기화
 	private void airplaneInit(){
 		currentSong = 1;
 		str = "준비시작미미미레도도레레미쉼미쉼미쉼레쉼레쉼레쉼미쉼솔쉼솔쉼미미미레도도레레미쉼미쉼미쉼레레쉼레미미레레도도";
@@ -275,6 +292,7 @@ public class NDKExam extends Activity {
         beforeStartGame();
 	}
 	
+	//미녀는 석류를 좋아해 노래 플레이 전 초기화
 	private void beautyInit(){
 		currentSong = 2;
 		str = "준비시작라라도도라라솔솔라라솔솔파파파쉼파파파레도레파솔라라솔솔파파파쉼파파파레도레파솔라라솔솔라라라쉼라라도도도도쉼쉼쉼쉼쉼쉼쉼쉼라라도도라라솔솔라라솔솔파파";
@@ -282,6 +300,7 @@ public class NDKExam extends Activity {
         beforeStartGame();
 	}
 	
+	//사과같은 내얼굴 노래 플레이 전 초기화
 	private void appleInit(){
 		currentSong = 3;
 		str = "준비시작도레미쉼미쉼파미레레레쉼레미파쉼파쉼솔파미미미쉼미파솔쉼솔쉼도라솔쉼솔쉼도레미쉼미쉼레레도도도쉼";
@@ -289,6 +308,7 @@ public class NDKExam extends Activity {
 		beforeStartGame();
 	}
 	
+	/* textView 초기화, animation 설정, ndk library 불러오기, 음악 파일 불러오기, 글꼴 설정 */
 	private void init(){
         tv.setText("");
         feverTextView.setText("");
@@ -296,7 +316,7 @@ public class NDKExam extends Activity {
         beautyScoreText.setText("My best score : 0");
         appleScoreText.setText("My best score : 0");
         
-		/*fever text animation*/
+		/*fever text animation : 반짝거리게 설정*/
         Animation anim = new AlphaAnimation(0.0f, 1.0f);
         anim.setDuration(100);
         anim.setStartOffset(20);
@@ -305,18 +325,17 @@ public class NDKExam extends Activity {
         feverTextView.startAnimation(anim);
         
         System.loadLibrary("ndk-exam");
-    
-        driverwrite(0);
-        fndwrite(0);
+        driverwrite(0); fndwrite(0);
         
+		/* 계이름 음악 파일 불러오기 */
         Doremi = new MediaPlayer[10];
         Doremi[0] = MediaPlayer.create(this, R.raw.re); Doremi[1] = MediaPlayer.create(this, R.raw.dol); Doremi[2] = MediaPlayer.create(this, R.raw.re);
         Doremi[3] = MediaPlayer.create(this, R.raw.mi); Doremi[4] = MediaPlayer.create(this, R.raw.fa); Doremi[5] = MediaPlayer.create(this, R.raw.sol);
         Doremi[6] = MediaPlayer.create(this, R.raw.la); Doremi[7] = MediaPlayer.create(this, R.raw.si); Doremi[8] = MediaPlayer.create(this, R.raw.high_dol);
         Doremi[9] = MediaPlayer.create(this, R.raw.high_re);
 	
+		/* 글꼴 설정 */
         myTypeFace = Typeface.createFromAsset(getAssets(), "fonts/jalnan.ttf");
-        
         TextView title = (TextView)findViewById(R.id.textView1);
         title.setTypeface(myTypeFace); airplaneButton.setTypeface(myTypeFace); appleButton.setTypeface(myTypeFace);
         beautyButton.setTypeface(myTypeFace); backButton.setTypeface(myTypeFace); freePlayButton.setTypeface(myTypeFace);
@@ -346,7 +365,7 @@ public class NDKExam extends Activity {
 		mThread.setDaemon(true);
 		mThread.start();
         
-        airplaneButton.setOnClickListener(new View.OnClickListener() {
+        airplaneButton.setOnClickListener(new View.OnClickListener() { //비행기 노래 플레이 버튼
         	
 			@Override
 			public void onClick(View v) {
@@ -354,7 +373,7 @@ public class NDKExam extends Activity {
 			}
 		});
         
-        beautyButton.setOnClickListener(new View.OnClickListener() {
+        beautyButton.setOnClickListener(new View.OnClickListener() { //미녀는 석류를 좋아해 플레이 버튼
 			
 			@Override
 			public void onClick(View v) {
@@ -362,7 +381,7 @@ public class NDKExam extends Activity {
 			}
 		});
         
-        appleButton.setOnClickListener(new View.OnClickListener() {
+        appleButton.setOnClickListener(new View.OnClickListener() { //사과 같은 내얼굴 플레이 버튼
 			
 			@Override
 			public void onClick(View v) {
@@ -370,17 +389,17 @@ public class NDKExam extends Activity {
 			}
 		});
 
-        freePlayButton.setOnClickListener(new View.OnClickListener() {
+        freePlayButton.setOnClickListener(new View.OnClickListener() { //자유 플레이 모드
 			
 			@Override
 			public void onClick(View v) {
-				// TODO Auto-generated method stub
+				// 새로운 창 띄우기
 				Intent intent = new Intent(getApplicationContext(), FreePlayActivity.class);
 				startActivityForResult(intent, 1234);
 			}
 		});
         
-        track1play.setOnClickListener(new View.OnClickListener() {
+        track1play.setOnClickListener(new View.OnClickListener() {//Track A 플레이
 			
 			@Override
 			public void onClick(View v) {
@@ -394,7 +413,7 @@ public class NDKExam extends Activity {
 			}
 		});
         
-        track2play.setOnClickListener(new View.OnClickListener() {
+        track2play.setOnClickListener(new View.OnClickListener() {//Track B 플레이
 			
 			@Override
 			public void onClick(View v) {
@@ -408,7 +427,7 @@ public class NDKExam extends Activity {
 			}
 		});
         
-        backButton.setOnClickListener(new View.OnClickListener() {
+        backButton.setOnClickListener(new View.OnClickListener() {//Complete 버튼 클릭
 			
 			@Override
 			public void onClick(View v) {
@@ -440,7 +459,7 @@ public class NDKExam extends Activity {
 			}
 		});
        
-        
+        //노래 속도 조절
         SeekBar speedBar = (SeekBar)findViewById(R.id.seekBar);
         speedBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
 			
@@ -463,24 +482,24 @@ public class NDKExam extends Activity {
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data){
 		super.onActivityResult(requestCode, resultCode, data);
-		if(requestCode == 5678 && resultCode == RESULT_OK){
+		if(requestCode == 5678 && resultCode == RESULT_OK){ //track A or B 플레이
 			int res = data.getIntExtra("back", 0);
-			if(res == 1){
+			if(res == 1){//Back 버튼 누를 경우 현재 나오는 노래 중지
 				str = "";
 				for(int i=0; i<10; i++){
 					if(Doremi[i].isPlaying()) Doremi[i].pause();
 				}
 			}
 		}
-		else if(requestCode == 1234 && resultCode == RESULT_OK){
+		else if(requestCode == 1234 && resultCode == RESULT_OK){//자유플레이모드 알림창
 			int trackNum = data.getIntExtra("track", 0);
 
 			freePlayInit();
-			if(trackNum == 1){
+			if(trackNum == 1){//track A 저장
 				track1 = "";
 				currentSong = 101;
 			}
-			else if(trackNum == 2){
+			else if(trackNum == 2){//track B 저장
 				track2 = "";
 				currentSong = 102;
 			}

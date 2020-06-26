@@ -9,6 +9,7 @@ import android.view.Window;
 import android.widget.Button;
 import android.widget.TextView;
 
+/* 자유 플레이 모드 버튼을 클릭했을 때 나오는 알림/선택창 */
 public class FreePlayActivity extends Activity {
 	
 	Button track1Button;
@@ -36,6 +37,7 @@ public class FreePlayActivity extends Activity {
         
         intent = new Intent();
         
+		//track A에 녹음
         track1Button.setOnClickListener(new View.OnClickListener() {
 			
 			@Override
@@ -47,6 +49,7 @@ public class FreePlayActivity extends Activity {
 			}
 		});
         
+		//track B에 녹음
         track2Button.setOnClickListener(new View.OnClickListener() {
 			
 			@Override
@@ -58,6 +61,7 @@ public class FreePlayActivity extends Activity {
 			}
 		});
         
+		//녹음하지 않고 시작
         nopeButton.setOnClickListener(new View.OnClickListener() {
 			
 			@Override
