@@ -10,6 +10,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.text.Layout;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.style.ForegroundColorSpan;
@@ -29,6 +30,8 @@ public class NDKExam extends Activity {
 	public native int fndwrite(int value);
 	public native int switchread(int fd);
 	
+	View playLayout;
+	View trackLayout;
 	TextView tv;
 	TextView feverTextView;
 	Button airplaneButton;
@@ -59,11 +62,14 @@ public class NDKExam extends Activity {
 	String track1 = "";
 	String track2 = "";
 	
-	private void TrackPlay(){
+	private void TrackPlay(int track){
 		for(int i=0; i<10; i++)
 			if(Doremi[i].isPlaying()){
 				Doremi[i].pause();
-				if(track1.charAt(currentIndex) != i + '0'){
+				if(track == 1 && track1.charAt(currentIndex) != i + '0'){
+					Doremi[i].seekTo(300);
+				}
+				else if(track == 2 && track2.charAt(currentIndex) != i + '0'){
 					Doremi[i].seekTo(300);
 				}
 			}
@@ -76,16 +82,16 @@ public class NDKExam extends Activity {
 		}
 	}
 	
-	private void TextColorChange(){
+	private void TextColorChange(int msg){
 		SpannableStringBuilder ssb = new SpannableStringBuilder(str);
 		if(currentIndex != 0)
 			ssb.setSpan(new ForegroundColorSpan(Color.parseColor("#00777777")), 0, currentIndex, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 		
-		for(i = currentIndex+1; i< str.length(); i++){
+		for(int i = currentIndex+1; i< str.length(); i++){
 			ssb.setSpan(new ForegroundColorSpan(Color.parseColor("#55" + doremiColor[interval.charAt(i)-'0'].substring(1))), i, i+1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 		}
 		
-		ssb.setSpan(new ForegroundColorSpan(Color.parseColor(doremiColor[msg.arg1])), currentIndex, currentIndex+1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+		ssb.setSpan(new ForegroundColorSpan(Color.parseColor(doremiColor[msg])), currentIndex, currentIndex+1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 		ssb.setSpan(new StyleSpan(Typeface.BOLD), currentIndex, currentIndex+1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 		tv.setText(ssb);
 	}
@@ -115,7 +121,7 @@ public class NDKExam extends Activity {
 			}
 			else{
 				consecutive = 8;
-				score += feverLevel * 2;
+				if(msg != 0) score += feverLevel * 2;
 				if(interval.charAt(currentIndex) != '0') feverConsecutive += 1;
 			}
 			
@@ -144,7 +150,7 @@ public class NDKExam extends Activity {
 			}
 			else if(currentSong == 1001){ //track 1 playing
 				
-				TrackPlay();
+				TrackPlay(1);
 				
 				if(track1.charAt(currentIndex) != '0'){
 					Doremi[track1.charAt(currentIndex) - '0'].start();
@@ -154,7 +160,7 @@ public class NDKExam extends Activity {
 			}
 			else if(currentSong == 1002){ //track 2 playing
 				
-				TrackPlay();
+				TrackPlay(2);
 				
 				if(track2.charAt(currentIndex) != '0'){
 					Doremi[track2.charAt(currentIndex) - '0'].start();
@@ -179,11 +185,11 @@ public class NDKExam extends Activity {
 				}
 				
 				CurrentDoremiChange(msg.arg1);
-				TextColorChange();
+				TextColorChange(msg.arg1);
 				
 				currentIndex += 1;
 				
-				if(currentSong == 101) track1 += msg.arg1
+				if(currentSong == 101) track1 += msg.arg1;
 				else if(currentSong == 102) track2 += msg.arg1;
 			}
 			else{
@@ -201,7 +207,7 @@ public class NDKExam extends Activity {
 				catch(InterruptedException e){}
 				
 				CurrentDoremiChange(msg.arg1);
-				TextColorChange();
+				TextColorChange(msg.arg1);
 				InputCheck(msg.arg1);
 				currentIndex += 1;
 				
@@ -248,10 +254,8 @@ public class NDKExam extends Activity {
 		tv.setText(str);
         feverTextView.setText("");
         
-        airplaneButton.setVisibility(View.INVISIBLE);
-        beautyButton.setVisibility(View.INVISIBLE);
-        appleButton.setVisibility(View.INVISIBLE);
-        freePlayButton.setVisibility(View.INVISIBLE);
+        playLayout.setVisibility(View.INVISIBLE);
+        trackLayout.setVisibility(View.INVISIBLE);
         backButton.setVisibility(View.INVISIBLE);
 	}
 	
@@ -324,6 +328,9 @@ public class NDKExam extends Activity {
 		
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        
+        playLayout = findViewById(R.id.playLayout);
+        trackLayout = findViewById(R.id.trackLayout);
         
         tv = (TextView)findViewById(R.id.str_text); feverTextView = (TextView)findViewById(R.id.fever_text);
         airplaneScoreText = (TextView)findViewById(R.id.airplaneScore); beautyScoreText = (TextView)findViewById(R.id.beautyScore);
@@ -417,10 +424,8 @@ public class NDKExam extends Activity {
 				str = "";
 				tv.setBackgroundColor(0x00fafafa);
 				backButton.setVisibility(View.INVISIBLE);
-				airplaneButton.setVisibility(View.VISIBLE);
-				beautyButton.setVisibility(View.VISIBLE);
-				appleButton.setVisibility(View.VISIBLE);
-				freePlayButton.setVisibility(View.VISIBLE);
+				playLayout.setVisibility(View.VISIBLE);
+				trackLayout.setVisibility(View.VISIBLE);
 				tv.setText("");
 				feverTextView.setText("");
 				if(currentSong < 4){

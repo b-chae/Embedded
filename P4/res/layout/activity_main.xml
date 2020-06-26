@@ -54,6 +54,7 @@
         android:width="240dp" />
 
     <LinearLayout
+        android:id="@+id/playLayout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:paddingBottom="8dp" >
@@ -161,6 +162,7 @@
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/trackLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingLeft="10dp" >
