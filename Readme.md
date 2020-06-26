@@ -24,3 +24,4 @@
   - 2020.06.23 : start a project! add 1 song to play
   - 2020.06.24 : enable MediaPlayer, add 2 new songs, save my best score, music speed control
   - 2020.06.25 : add new Activity for free play mode
+  - 2020.06.26 : add new Activity for track play mode - can record your own songs :smile:
