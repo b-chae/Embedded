@@ -102,17 +102,12 @@ public class NDKExam extends Activity {
 				int i;
 				for(i=0; i<10; i++){
 					if(Doremi[i].isPlaying()){
-						if(msg.arg1 == i) break;
 						Doremi[i].pause();
-						if(msg.arg1 != 0){
-							Doremi[msg.arg1].seekTo(300);
-							Doremi[msg.arg1].start();
-						}
+						if(i != msg.arg1) Doremi[i].seekTo(300);
 					}
 				}
 				
-				if(i==10 && msg.arg1 != 0){
-					Doremi[msg.arg1].seekTo(300);
+				if(msg.arg1 != 0){
 					Doremi[msg.arg1].start();
 				}
 				
@@ -157,10 +152,10 @@ public class NDKExam extends Activity {
 				for(int i=0; i<10; i++)
 					if(Doremi[i].isPlaying()){
 						Doremi[i].pause();
+						if(interval.charAt(currentIndex) -'0' != i) Doremi[i].seekTo(300);
 					}
 				
 				if(interval.charAt(currentIndex) != '0'){
-					Doremi[interval.charAt(currentIndex) - '0'].seekTo(300);
 					Doremi[interval.charAt(currentIndex) - '0'].start();
 				}
 				
