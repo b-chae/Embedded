@@ -26,6 +26,11 @@
             android:name=".FreePlayActivity"
             android:theme="@android:style/Theme.Dialog"
             />
+        
+        <activity 
+            android:name=".TrackPlayActivity"
+            android:theme="@android:style/Theme.Dialog"
+            />
     </application>
 
 </manifest>

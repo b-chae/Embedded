@@ -400,6 +400,9 @@ public class NDKExam extends Activity {
 				currentSong = 1001;
 				str = track1;
 				currentIndex = 0;
+				Intent intent = new Intent(getApplicationContext(), TrackPlayActivity.class);
+				intent.putExtra("str", str.length());
+				startActivityForResult(intent, 5678);
 			}
 		});
         
@@ -411,6 +414,9 @@ public class NDKExam extends Activity {
 				currentSong = 1002;
 				str = track2;
 				currentIndex = 0;
+				Intent intent = new Intent(getApplicationContext(), TrackPlayActivity.class);
+				intent.putExtra("str", str.length());
+				startActivityForResult(intent, 5678);
 			}
 		});
         
