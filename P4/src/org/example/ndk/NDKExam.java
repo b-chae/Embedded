@@ -78,7 +78,10 @@ public class NDKExam extends Activity {
 				}
 				currentIndex += 1;
 				
-				if(currentIndex >= str.length()) str="";
+				if(currentIndex >= str.length()){
+					str="";
+					TrackPlayActivity.mContext.EndSong();
+				}
 			}
 			else if(currentSong == 1002){ //track 2 playing
 				for(int i=0; i<10; i++)

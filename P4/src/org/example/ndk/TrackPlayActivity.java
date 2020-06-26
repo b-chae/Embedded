@@ -1,6 +1,7 @@
 package org.example.ndk;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
@@ -11,10 +12,15 @@ import android.widget.TextView;
 
 public class TrackPlayActivity extends Activity {
 
+	public static TrackPlayActivity mContext;
 	TextView textView;
 	Button backButton;
 	Intent intent;
 	Intent sendIntent;
+	
+	public void EndSong() {
+		textView.setText("Done!");
+	}
 	
 	private void setTypeface(){
 		Typeface myTypeFace = Typeface.createFromAsset(getAssets(), "fonts/jalnan.ttf");
@@ -29,6 +35,7 @@ public class TrackPlayActivity extends Activity {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.track_play_activity);
         setTypeface();
+        mContext = this;
         
         textView = (TextView)findViewById(R.id.textView10);
         
