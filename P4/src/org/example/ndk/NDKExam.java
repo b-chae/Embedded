@@ -98,42 +98,70 @@ public class NDKExam extends Activity {
 			else if(currentIndex >= str.length()){
 				backButton.setVisibility(View.VISIBLE);
 			}
+			else if(currentSong == 100 || currentSong == 101 || currentSong == 102){
+				int i;
+				for(i=0; i<10; i++){
+					if(Doremi[i].isPlaying()){
+						if(msg.arg1 == i) break;
+						Doremi[i].pause();
+						if(msg.arg1 != 0){
+							Doremi[msg.arg1].seekTo(300);
+							Doremi[msg.arg1].start();
+						}
+					}
+				}
+				
+				if(i==10 && msg.arg1 != 0){
+					Doremi[msg.arg1].seekTo(300);
+					Doremi[msg.arg1].start();
+				}
+				
+				StringBuilder builder = new StringBuilder(str);
+				switch(msg.arg1){
+				case 0: builder.setCharAt(currentIndex, '쉼'); break;
+				case 1: builder.setCharAt(currentIndex, '도'); break;
+				case 2: builder.setCharAt(currentIndex, '레'); break;
+				case 3: builder.setCharAt(currentIndex, '미'); break;
+				case 4: builder.setCharAt(currentIndex, '파'); break;
+				case 5: builder.setCharAt(currentIndex, '솔'); break;
+				case 6: builder.setCharAt(currentIndex, '라'); break;
+				case 7: builder.setCharAt(currentIndex, '시'); break;
+				case 8: builder.setCharAt(currentIndex, '도'); break;
+				case 9: builder.setCharAt(currentIndex, '레');
+				}
+				str = builder.toString();
+				
+				SpannableStringBuilder ssb = new SpannableStringBuilder(str);
+				if(currentIndex != 0)
+					ssb.setSpan(new ForegroundColorSpan(Color.parseColor("#00777777")), 0, currentIndex, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+				
+				for(i = currentIndex+1; i< str.length(); i++){
+					ssb.setSpan(new ForegroundColorSpan(Color.parseColor("#55" + doremiColor[interval.charAt(i)-'0'].substring(1))), i, i+1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+				}
+				
+				ssb.setSpan(new ForegroundColorSpan(Color.parseColor(doremiColor[msg.arg1])), currentIndex, currentIndex+1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+				ssb.setSpan(new StyleSpan(Typeface.BOLD), currentIndex, currentIndex+1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+				tv.setText(ssb);
+				
+				currentIndex += 1;
+				
+				if(currentSong == 101){
+					track1 += msg.arg1;
+				}
+				else if(currentSong == 102){
+					track2 += msg.arg1;
+				}
+			}
 			else{
 				
 				for(int i=0; i<10; i++)
 					if(Doremi[i].isPlaying()){
 						Doremi[i].pause();
-						if(interval.charAt(currentIndex) != i + '0'){
-							Doremi[i].seekTo(300);
-						}
 					}
 				
 				if(interval.charAt(currentIndex) != '0'){
+					Doremi[interval.charAt(currentIndex) - '0'].seekTo(300);
 					Doremi[interval.charAt(currentIndex) - '0'].start();
-				}
-				else if(currentSong == 100 || currentSong == 101 || currentSong == 102){
-					Doremi[msg.arg1].start();
-					StringBuilder builder = new StringBuilder(str);
-					switch(msg.arg1){
-					case 0: builder.setCharAt(currentIndex, '쉼'); break;
-					case 1: builder.setCharAt(currentIndex, '도'); break;
-					case 2: builder.setCharAt(currentIndex, '레'); break;
-					case 3: builder.setCharAt(currentIndex, '미'); break;
-					case 4: builder.setCharAt(currentIndex, '파'); break;
-					case 5: builder.setCharAt(currentIndex, '솔'); break;
-					case 6: builder.setCharAt(currentIndex, '라'); break;
-					case 7: builder.setCharAt(currentIndex, '시'); break;
-					case 8: builder.setCharAt(currentIndex, '도'); break;
-					case 9: builder.setCharAt(currentIndex, '레');
-					}
-					str = builder.toString();
-					
-					if(currentSong == 101){
-						track1 += msg.arg1;
-					}
-					else if(currentSong == 102){
-						track2 += msg.arg1;
-					}
 				}
 				
 				try{Thread.sleep(70);}
