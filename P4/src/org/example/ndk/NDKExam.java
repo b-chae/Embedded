@@ -482,7 +482,16 @@ public class NDKExam extends Activity {
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data){
 		super.onActivityResult(requestCode, resultCode, data);
-		if(requestCode == 1234 && resultCode == RESULT_OK){
+		if(requestCode == 5678 && resultCode == RESULT_OK){
+			int res = data.getIntExtra("back", 0);
+			if(res == 1){
+				str = "";
+				for(int i=0; i<10; i++){
+					if(Doremi[i].isPlaying()) Doremi[i].pause();
+				}
+			}
+		}
+		else if(requestCode == 1234 && resultCode == RESULT_OK){
 			int trackNum = data.getIntExtra("track", 0);
 
 			freePlayInit();

@@ -14,6 +14,7 @@ public class TrackPlayActivity extends Activity {
 	TextView textView;
 	Button backButton;
 	Intent intent;
+	Intent sendIntent;
 	
 	private void setTypeface(){
 		Typeface myTypeFace = Typeface.createFromAsset(getAssets(), "fonts/jalnan.ttf");
@@ -31,7 +32,9 @@ public class TrackPlayActivity extends Activity {
         
         textView = (TextView)findViewById(R.id.textView10);
         
-        Intent intent = getIntent();
+        intent = getIntent();
+        sendIntent = new Intent();
+        
         int length = intent.getExtras().getInt("str");
         if(length == 0){
         	textView.setText("Not recorded yet!");
@@ -45,6 +48,8 @@ public class TrackPlayActivity extends Activity {
 			@Override
 			public void onClick(View v) {
 				// TODO Auto-generated method stub
+				sendIntent.putExtra("back", 1);
+				setResult(RESULT_OK, sendIntent);
 				finish();
 			}
 		});
