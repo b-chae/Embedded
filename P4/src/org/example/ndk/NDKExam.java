@@ -59,44 +59,108 @@ public class NDKExam extends Activity {
 	String track1 = "";
 	String track2 = "";
 	
+	private void TrackPlay(){
+		for(int i=0; i<10; i++)
+			if(Doremi[i].isPlaying()){
+				Doremi[i].pause();
+				if(track1.charAt(currentIndex) != i + '0'){
+					Doremi[i].seekTo(300);
+				}
+			}
+	}
+	
+	private void TrackEndCheck(){
+		if(currentIndex >= str.length()){
+			str="";
+			TrackPlayActivity.mContext.EndSong();
+		}
+	}
+	
+	private void TextColorChange(){
+		SpannableStringBuilder ssb = new SpannableStringBuilder(str);
+		if(currentIndex != 0)
+			ssb.setSpan(new ForegroundColorSpan(Color.parseColor("#00777777")), 0, currentIndex, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+		
+		for(i = currentIndex+1; i< str.length(); i++){
+			ssb.setSpan(new ForegroundColorSpan(Color.parseColor("#55" + doremiColor[interval.charAt(i)-'0'].substring(1))), i, i+1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+		}
+		
+		ssb.setSpan(new ForegroundColorSpan(Color.parseColor(doremiColor[msg.arg1])), currentIndex, currentIndex+1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+		ssb.setSpan(new StyleSpan(Typeface.BOLD), currentIndex, currentIndex+1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+		tv.setText(ssb);
+	}
+	
+	private void CurrentDoremiChange(int msg){
+		StringBuilder builder = new StringBuilder(str);
+		switch(msg){
+		case 0: builder.setCharAt(currentIndex, '쉼'); break;
+		case 1: builder.setCharAt(currentIndex, '도'); break;
+		case 2: builder.setCharAt(currentIndex, '레'); break;
+		case 3: builder.setCharAt(currentIndex, '미'); break;
+		case 4: builder.setCharAt(currentIndex, '파'); break;
+		case 5: builder.setCharAt(currentIndex, '솔'); break;
+		case 6: builder.setCharAt(currentIndex, '라'); break;
+		case 7: builder.setCharAt(currentIndex, '시'); break;
+		case 8: builder.setCharAt(currentIndex, '도'); break;
+		case 9: builder.setCharAt(currentIndex, '레');
+		}
+		str = builder.toString();
+	}
+	
+	private void InputCheck(int msg){
+		if(interval.substring(currentIndex, currentIndex+1).equals(Integer.toString(msg))){
+			if(!feverTime){
+				if(interval.charAt(currentIndex) != '0') consecutive += 1;
+				if(msg != 0) score += 1;
+			}
+			else{
+				consecutive = 8;
+				score += feverLevel * 2;
+				if(interval.charAt(currentIndex) != '0') feverConsecutive += 1;
+			}
+			
+			if(!feverTime && consecutive >= 5){
+				tv.setBackgroundColor(feverColor[1]);
+				feverLevel = 1;
+				feverTime = true;
+				feverTextView.setText("FEVER TIME X2");
+			}
+			fndwrite(score);
+		}
+		else{
+			consecutive = 0;
+			tv.setBackgroundColor(0x00fafafa);
+			feverTime = false;
+			feverTextView.setText("");
+		}
+		
+		driverwrite(consecutive);
+	}
+	
 	Handler mHandler=new Handler(){
 		public void handleMessage(Message msg){
 			if(str.length() == 0){
 			
 			}
 			else if(currentSong == 1001){ //track 1 playing
-				for(int i=0; i<10; i++)
-					if(Doremi[i].isPlaying()){
-						Doremi[i].pause();
-						if(track1.charAt(currentIndex) != i + '0'){
-							Doremi[i].seekTo(300);
-						}
-					}
+				
+				TrackPlay();
 				
 				if(track1.charAt(currentIndex) != '0'){
 					Doremi[track1.charAt(currentIndex) - '0'].start();
 				}
 				currentIndex += 1;
-				
-				if(currentIndex >= str.length()){
-					str="";
-					TrackPlayActivity.mContext.EndSong();
-				}
+				TrackEndCheck();
 			}
 			else if(currentSong == 1002){ //track 2 playing
-				for(int i=0; i<10; i++)
-					if(Doremi[i].isPlaying()){
-						Doremi[i].pause();
-						if(track2.charAt(currentIndex) != i + '0'){
-							Doremi[i].seekTo(300);
-						}
-					}
+				
+				TrackPlay();
 				
 				if(track2.charAt(currentIndex) != '0'){
 					Doremi[track2.charAt(currentIndex) - '0'].start();
 				}
 				currentIndex += 1;
-				if(currentIndex >= str.length()) str="";
+				TrackEndCheck();
 			}
 			else if(currentIndex >= str.length()){
 				backButton.setVisibility(View.VISIBLE);
@@ -114,44 +178,15 @@ public class NDKExam extends Activity {
 					Doremi[msg.arg1].start();
 				}
 				
-				StringBuilder builder = new StringBuilder(str);
-				switch(msg.arg1){
-				case 0: builder.setCharAt(currentIndex, '쉼'); break;
-				case 1: builder.setCharAt(currentIndex, '도'); break;
-				case 2: builder.setCharAt(currentIndex, '레'); break;
-				case 3: builder.setCharAt(currentIndex, '미'); break;
-				case 4: builder.setCharAt(currentIndex, '파'); break;
-				case 5: builder.setCharAt(currentIndex, '솔'); break;
-				case 6: builder.setCharAt(currentIndex, '라'); break;
-				case 7: builder.setCharAt(currentIndex, '시'); break;
-				case 8: builder.setCharAt(currentIndex, '도'); break;
-				case 9: builder.setCharAt(currentIndex, '레');
-				}
-				str = builder.toString();
-				
-				SpannableStringBuilder ssb = new SpannableStringBuilder(str);
-				if(currentIndex != 0)
-					ssb.setSpan(new ForegroundColorSpan(Color.parseColor("#00777777")), 0, currentIndex, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-				
-				for(i = currentIndex+1; i< str.length(); i++){
-					ssb.setSpan(new ForegroundColorSpan(Color.parseColor("#55" + doremiColor[interval.charAt(i)-'0'].substring(1))), i, i+1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-				}
-				
-				ssb.setSpan(new ForegroundColorSpan(Color.parseColor(doremiColor[msg.arg1])), currentIndex, currentIndex+1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-				ssb.setSpan(new StyleSpan(Typeface.BOLD), currentIndex, currentIndex+1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-				tv.setText(ssb);
+				CurrentDoremiChange(msg.arg1);
+				TextColorChange();
 				
 				currentIndex += 1;
 				
-				if(currentSong == 101){
-					track1 += msg.arg1;
-				}
-				else if(currentSong == 102){
-					track2 += msg.arg1;
-				}
+				if(currentSong == 101) track1 += msg.arg1
+				else if(currentSong == 102) track2 += msg.arg1;
 			}
 			else{
-				
 				for(int i=0; i<10; i++)
 					if(Doremi[i].isPlaying()){
 						Doremi[i].pause();
@@ -163,48 +198,11 @@ public class NDKExam extends Activity {
 				}
 				
 				try{Thread.sleep(70);}
-				catch(InterruptedException e){
-				}
+				catch(InterruptedException e){}
 				
-				SpannableStringBuilder ssb = new SpannableStringBuilder(str);
-				if(currentIndex != 0)
-					ssb.setSpan(new ForegroundColorSpan(Color.parseColor("#00777777")), 0, currentIndex, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-				
-				for(int i = currentIndex+1; i< str.length(); i++){
-					ssb.setSpan(new ForegroundColorSpan(Color.parseColor("#55" + doremiColor[interval.charAt(i)-'0'].substring(1))), i, i+1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-				}
-				
-				ssb.setSpan(new ForegroundColorSpan(Color.parseColor(doremiColor[msg.arg1])), currentIndex, currentIndex+1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-				ssb.setSpan(new StyleSpan(Typeface.BOLD), currentIndex, currentIndex+1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-				tv.setText(ssb);
-				
-				if(interval.substring(currentIndex, currentIndex+1).equals(Integer.toString(msg.arg1))){
-					if(!feverTime){
-						if(interval.charAt(currentIndex) != '0') consecutive += 1;
-						if(msg.arg1 != 0) score += 1;
-					}
-					else{
-						consecutive = 8;
-						score += feverLevel * 2;
-						if(interval.charAt(currentIndex) != '0') feverConsecutive += 1;
-					}
-					
-					if(!feverTime && consecutive >= 5){
-						tv.setBackgroundColor(feverColor[1]);
-						feverLevel = 1;
-						feverTime = true;
-						feverTextView.setText("FEVER TIME X2");
-					}
-					fndwrite(score);
-				}
-				else{
-					consecutive = 0;
-					tv.setBackgroundColor(0x00fafafa);
-					feverTime = false;
-					feverTextView.setText("");
-				}
-				
-				driverwrite(consecutive);
+				CurrentDoremiChange(msg.arg1);
+				TextColorChange();
+				InputCheck(msg.arg1);
 				currentIndex += 1;
 				
 				if(feverConsecutive == 3){
@@ -270,7 +268,6 @@ public class NDKExam extends Activity {
 		currentSong = 1;
 		str = "준비시작미미미레도도레레미쉼미쉼미쉼레쉼레쉼레쉼미쉼솔쉼솔쉼미미미레도도레레미쉼미쉼미쉼레레쉼레미미레레도도";
         interval = "000033321122303030202020305050333211223030302202332211";
-	
         beforeStartGame();
 	}
 	
@@ -278,16 +275,13 @@ public class NDKExam extends Activity {
 		currentSong = 2;
 		str = "준비시작라라도도라라솔솔라라솔솔파파파쉼파파파레도레파솔라라솔솔파파파쉼파파파레도레파솔라라솔솔라라라쉼라라도도도도쉼쉼쉼쉼쉼쉼쉼쉼라라도도라라솔솔라라솔솔파파";
         interval = "00006688665566554440444212456655444044421245665566606688880000000066886655665544";
-        
         beforeStartGame();
 	}
 	
 	private void appleInit(){
 		currentSong = 3;
-		
 		str = "준비시작도레미쉼미쉼파미레레레쉼레미파쉼파쉼솔파미미미쉼미파솔쉼솔쉼도라솔쉼솔쉼도레미쉼미쉼레레도도도쉼";
 		interval = "0000123030432220234040543330345050865050123030221110";
-		
 		beforeStartGame();
 	}
 	
@@ -298,6 +292,7 @@ public class NDKExam extends Activity {
         beautyScoreText.setText("My best score : 0");
         appleScoreText.setText("My best score : 0");
         
+		/*fever text animation*/
         Animation anim = new AlphaAnimation(0.0f, 1.0f);
         anim.setDuration(100);
         anim.setStartOffset(20);
@@ -311,28 +306,17 @@ public class NDKExam extends Activity {
         fndwrite(0);
         
         Doremi = new MediaPlayer[10];
-        Doremi[0] = MediaPlayer.create(this, R.raw.re);
-        Doremi[1] = MediaPlayer.create(this, R.raw.dol);
-        Doremi[2] = MediaPlayer.create(this, R.raw.re);
-        Doremi[3] = MediaPlayer.create(this, R.raw.mi);
-        Doremi[4] = MediaPlayer.create(this, R.raw.fa);
-        Doremi[5] = MediaPlayer.create(this, R.raw.sol);
-        Doremi[6] = MediaPlayer.create(this, R.raw.la);
-        Doremi[7] = MediaPlayer.create(this, R.raw.si);
-        Doremi[8] = MediaPlayer.create(this, R.raw.high_dol);
+        Doremi[0] = MediaPlayer.create(this, R.raw.re); Doremi[1] = MediaPlayer.create(this, R.raw.dol); Doremi[2] = MediaPlayer.create(this, R.raw.re);
+        Doremi[3] = MediaPlayer.create(this, R.raw.mi); Doremi[4] = MediaPlayer.create(this, R.raw.fa); Doremi[5] = MediaPlayer.create(this, R.raw.sol);
+        Doremi[6] = MediaPlayer.create(this, R.raw.la); Doremi[7] = MediaPlayer.create(this, R.raw.si); Doremi[8] = MediaPlayer.create(this, R.raw.high_dol);
         Doremi[9] = MediaPlayer.create(this, R.raw.high_re);
 	
         myTypeFace = Typeface.createFromAsset(getAssets(), "fonts/jalnan.ttf");
         
         TextView title = (TextView)findViewById(R.id.textView1);
-        title.setTypeface(myTypeFace);
-        airplaneButton.setTypeface(myTypeFace);
-        appleButton.setTypeface(myTypeFace);
-        beautyButton.setTypeface(myTypeFace);
-        backButton.setTypeface(myTypeFace);
-        freePlayButton.setTypeface(myTypeFace);
-        track1play.setTypeface(myTypeFace);
-        track2play.setTypeface(myTypeFace);
+        title.setTypeface(myTypeFace); airplaneButton.setTypeface(myTypeFace); appleButton.setTypeface(myTypeFace);
+        beautyButton.setTypeface(myTypeFace); backButton.setTypeface(myTypeFace); freePlayButton.setTypeface(myTypeFace);
+        track1play.setTypeface(myTypeFace); track2play.setTypeface(myTypeFace);
 	}
 	
 	@Override
@@ -341,19 +325,13 @@ public class NDKExam extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         
-        tv = (TextView)findViewById(R.id.str_text);
-        feverTextView = (TextView)findViewById(R.id.fever_text);
-        airplaneScoreText = (TextView)findViewById(R.id.airplaneScore);
-        beautyScoreText = (TextView)findViewById(R.id.beautyScore);
+        tv = (TextView)findViewById(R.id.str_text); feverTextView = (TextView)findViewById(R.id.fever_text);
+        airplaneScoreText = (TextView)findViewById(R.id.airplaneScore); beautyScoreText = (TextView)findViewById(R.id.beautyScore);
         appleScoreText = (TextView)findViewById(R.id.appleScore);
         
-        backButton = (Button)findViewById(R.id.backButton);
-        airplaneButton = (Button)findViewById(R.id.airplaneButton);
-        beautyButton = (Button)findViewById(R.id.beautyButton);
-        appleButton = (Button)findViewById(R.id.appleButton);        
-        freePlayButton = (Button)findViewById(R.id.freeButton);
-        track1play = (Button)findViewById(R.id.track1play);
-        track2play = (Button)findViewById(R.id.track2play);
+        backButton = (Button)findViewById(R.id.backButton); airplaneButton = (Button)findViewById(R.id.airplaneButton);
+        beautyButton = (Button)findViewById(R.id.beautyButton); appleButton = (Button)findViewById(R.id.appleButton);        
+        freePlayButton = (Button)findViewById(R.id.freeButton); track1play = (Button)findViewById(R.id.track1play); track2play = (Button)findViewById(R.id.track2play);
         
         init();
         
@@ -463,20 +441,15 @@ public class NDKExam extends Activity {
 			
 			@Override
 			public void onStopTrackingTouch(SeekBar seekBar) {
-				// TODO Auto-generated method stub
-				
 			}
 			
 			@Override
-			public void onStartTrackingTouch(SeekBar seekBar) {
-				// TODO Auto-generated method stub
-				
+			public void onStartTrackingTouch(SeekBar seekBar) {	
 			}
 			
 			@Override
 			public void onProgressChanged(SeekBar seekBar, int progress,
 					boolean fromUser) {
-				// TODO Auto-generated method stub
 				musicSpeed = 400 + progress;
 			}
 		});
