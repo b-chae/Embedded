@@ -1,7 +1,5 @@
 package org.example.ndk;
 
-//import com.example.androidex.MainActivity.BackThread;
-
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
